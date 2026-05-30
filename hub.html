@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Cason Line · Into the Unknown</title>
+<meta name="description" content="Eleven generations of one American family — heritage narrative, audit-verified lineage ledger, research workspace.">
+<meta property="og:title" content="The Cason Line — Into the Unknown">
+<meta property="og:description" content="Eleven generations, four hundred years, one unbroken thread. Heritage narrative + forensic ledger.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/hub">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Cason Line — Eleven generations, four hundred years. Hertfordshire, 1608 to Titusville, 1957.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Cason Line — Into the Unknown">
+<meta name="twitter:description" content="Eleven generations, four hundred years, one unbroken thread. Heritage narrative + forensic ledger.">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/colors_and_type.css">
+<!-- Self-hosted brand fonts (drop real files in assets/fonts/ to activate) -->
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-serif);
+    background: var(--parchment);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── progress bar ── */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: var(--gold-bright);
+    z-index: 1002; transition: width 0.05s linear;
+    width: 0;
+  }
+
+  /* ── eco strip (live status) ── */
+  .eco {
+    background: var(--deep-blue);
+    color: rgba(244,237,228,0.7);
+    border-bottom: 1px solid rgba(196,154,60,0.18);
+    padding: 8px 32px;
+    font-family: var(--font-sans);
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .eco a {
+    color: rgba(244,237,228,0.55); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .eco a::before { content:''; width:6px; height:6px; border-radius:50%; background: currentColor; }
+  .eco a[data-prop="heritage"]::before  { background: #d4a825; }
+  .eco a[data-prop="tree"]::before      { background: #d4a825; }
+  .eco a[data-prop="dashboard"]::before { background: #2d5a4a; }
+  .eco a[data-prop="deck"]::before      { background: #8b4513; }
+  .eco a[aria-current="page"] { color: var(--gold-bright); }
+  .eco a:hover { color: var(--cream); }
+  .eco .sep { opacity: 0.3; }
+  .eco .right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .eco .pulse { display: inline-flex; align-items: center; gap: 6px; color: #10B981; }
+  .eco .pulse::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: #10B981; box-shadow: 0 0 6px #10B981;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* ── sticky nav ── */
+  .nav {
+    background: rgba(26,39,68,0.95);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    color: var(--cream);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(196,154,60,0.2);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav .brand {
+    display: flex; align-items: baseline; gap: 12px;
+    font-family: var(--font-display); font-weight: 900; font-size: 16px;
+    color: var(--gold-bright); letter-spacing: 0.02em;
+  }
+  .nav .brand .tag {
+    font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(244,237,228,0.55);
+  }
+  .nav .links { display: flex; gap: 6px; }
+  .nav .links a {
+    font-family: var(--font-sans); font-size: 11.5px;
+    color: rgba(244,237,228,0.7); text-decoration: none;
+    padding: 7px 12px; border-radius: 4px;
+    letter-spacing: 0.04em;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav .links a:hover { color: var(--gold-bright); background: rgba(244,237,228,0.05); }
+  .nav .cta {
+    margin-left: 12px;
+    font-family: var(--font-sans); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--gold-bright); color: var(--deep-blue);
+    padding: 8px 14px; border-radius: 4px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .nav .cta:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,168,37,0.4); }
+
+  /* ── hero ── */
+  .hero {
+    background: var(--deep-blue);
+    color: var(--cream);
+    padding: 90px 32px 110px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .hero::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 64px;
+    background: linear-gradient(180deg, transparent, var(--parchment));
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 360px; gap: 64px; align-items: center;
+  }
+  .hero .kicker {
+    font-family: var(--font-sans); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold-bright);
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .hero .kicker::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-bright);
+    box-shadow: 0 0 8px var(--gold-bright);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(56px, 8vw, 96px);
+    letter-spacing: 0.015em; line-height: 1;
+    margin: 0 0 14px 0;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+  }
+  .hero .sub {
+    font-family: var(--font-sans); font-size: 14px; font-weight: 300;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold-bright);
+    margin-bottom: 28px;
+  }
+  .hero .tag {
+    font-family: var(--font-serif); font-style: italic;
+    font-size: 19px; line-height: 1.55;
+    color: var(--cream);
+    margin: 0 0 36px;
+    max-width: 60ch;
+  }
+  .hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 13px 22px; border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s var(--ease-out);
+  }
+  .btn-primary {
+    background: var(--gold-bright); color: var(--deep-blue);
+    border: 1px solid var(--gold-bright);
+  }
+  .btn-primary:hover { background: var(--cream); border-color: var(--cream); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212,168,37,0.4); }
+  .btn-ghost {
+    background: transparent; color: var(--cream);
+    border: 1px solid rgba(244,237,228,0.3);
+  }
+  .btn-ghost:hover { border-color: var(--gold-bright); color: var(--gold-bright); }
+  .btn .arr { transition: transform 0.2s; }
+  .btn:hover .arr { transform: translateX(4px); }
+
+  /* hero side card */
+  .moments {
+    background: rgba(244,237,228,0.04);
+    border: 1px solid rgba(196,154,60,0.25);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .moments .h {
+    font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold-bright);
+    margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .moments .h::after {
+    content: 'live'; font-size: 9px; padding: 2px 6px;
+    background: rgba(16,185,129,0.15); color: #10B981; border-radius: 3px;
+    letter-spacing: 0.15em;
+  }
+  .moments .row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+    padding: 9px 0; border-top: 1px solid rgba(196,154,60,0.15);
+    font-family: var(--font-sans); font-size: 12px;
+  }
+  .moments .row:first-of-type { border-top: none; }
+  .moments .row .yr {
+    font-family: var(--font-display); font-weight: 700; font-size: 15px;
+    color: var(--gold-bright);
+    min-width: 56px;
+  }
+  .moments .row .what {
+    color: rgba(244,237,228,0.85); flex: 1; line-height: 1.4;
+  }
+  .moments .row .who {
+    color: rgba(244,237,228,0.5); font-style: italic; font-size: 11px;
+  }
+
+  /* ── section chrome ── */
+  /* ── section chrome ── */
+  section.band { padding: 88px 32px; position: relative; }
+  section.band.parchment { background: #eadfcc; }  /* deeper parchment for pop */
+  section.band.cream {
+    background: #f5e6d3;  /* warmer rust-cream */
+    border-top: 1px solid rgba(139,69,19,0.22);
+    border-bottom: 1px solid rgba(139,69,19,0.22);
+  }
+  section.band.gold {
+    background: var(--deep-blue); color: var(--cream);
+    border-top: 2px solid var(--gold-bright);
+    border-bottom: 2px solid var(--gold-bright);
+  }
+  section.band.deep {
+    background: var(--deep-blue); color: var(--cream);
+    border-top: 2px solid var(--gold);
+  }
+  .band-inner { max-width: 1180px; margin: 0 auto; }
+
+  .section-head {
+    display: flex; align-items: end; justify-content: space-between; gap: 32px;
+    margin-bottom: 40px;
+  }
+  .section-head .meta {
+    font-family: var(--font-sans); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .band.deep .section-head .meta,
+  .band.gold .section-head .meta { color: var(--gold-bright); }
+  .section-head h2 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(32px, 4vw, 44px);
+    letter-spacing: 0.01em; line-height: 1.1;
+    color: var(--rust);
+    margin: 0; max-width: 22ch;
+  }
+  .band.deep .section-head h2,
+  .band.gold .section-head h2 { color: var(--gold-bright); }
+  .section-head .lede {
+    font-family: var(--font-serif); font-style: italic;
+    font-size: 16px; line-height: 1.5;
+    color: var(--ink);
+    max-width: 42ch;
+    margin: 0;
+  }
+  .band.deep .section-head .lede,
+  .band.gold .section-head .lede { color: var(--cream); }
+
+  /* ── primary card grid (Narrative + Ledger — the two big ones) ── */
+  .primary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .big-card {
+    background: var(--cream);
+    border: 1.5px solid rgba(139,69,19,0.22);
+    border-radius: 8px;
+    padding: 36px 32px;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s var(--ease-out);
+  }
+  .big-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: var(--gold);
+  }
+  .big-card.dark {
+    background: var(--deep-blue); color: var(--cream); border-color: var(--ink);
+  }
+  .big-card.dark::before { background: var(--gold-bright); }
+  .big-card:hover {
+    border-color: var(--rust);
+    transform: translateY(-2px);
+  }
+  .big-card.dark:hover { border-color: var(--gold-bright); }
+  .big-card .num {
+    font-family: var(--font-sans); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .big-card.dark .num { color: var(--gold-bright); }
+  .big-card h3 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 32px; line-height: 1.1;
+    color: var(--ink); margin: 0 0 8px;
+    letter-spacing: 0.01em;
+  }
+  .big-card.dark h3 { color: var(--cream); }
+  .big-card .role {
+    font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--rust);
+    margin-bottom: 16px;
+  }
+  .big-card.dark .role { color: var(--gold-bright); }
+  .big-card p {
+    font-family: var(--font-serif); font-size: 15px; line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 22px;
+  }
+  .big-card.dark p { color: var(--cream); }
+  .big-card .tags {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .big-card .tag-chip {
+    font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 3px;
+    background: rgba(154,123,45,0.12); color: var(--rust);
+  }
+  .big-card.dark .tag-chip { background: rgba(212,168,37,0.15); color: var(--gold-bright); }
+  .big-card .open {
+    margin-top: auto;
+    font-family: var(--font-sans); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--rust);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .big-card.dark .open { color: var(--gold-bright); }
+  .big-card .open .arr { transition: transform 0.2s; }
+  .big-card:hover .open .arr { transform: translateX(4px); }
+
+  /* ── support cards grid (smaller) ── */
+  .support-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .card {
+    background: var(--cream);
+    border: 1.5px solid rgba(139,69,19,0.18);
+    border-radius: 6px;
+    padding: 22px 20px;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s var(--ease-out);
+  }
+  .card::before {
+    content: ''; position: absolute; left: 0; top: 0; right: 0; height: 3px;
+    background: var(--accent, var(--gold));
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent, var(--rust));
+  }
+  .card[data-color="gold"]    { --accent: var(--gold-bright); }
+  .card[data-color="rust"]    { --accent: var(--rust); }
+  .card[data-color="green"]   { --accent: var(--sea-green); }
+  .card[data-color="blood"]   { --accent: var(--blood); }
+  .card .num {
+    font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent, var(--gold));
+    margin-bottom: 8px;
+  }
+  .card h3 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 20px; line-height: 1.15;
+    color: var(--ink); margin: 0 0 6px;
+  }
+  .card .role {
+    font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+    color: var(--accent, var(--rust));
+    margin-bottom: 10px; letter-spacing: 0.04em;
+  }
+  .card p {
+    font-family: var(--font-serif); font-size: 13px; line-height: 1.55;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+  .card .open {
+    margin-top: auto;
+    font-family: var(--font-sans); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent, var(--gold));
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .card:hover .open { filter: brightness(0.85); }
+  .card .open .arr { transition: transform 0.2s; }
+  .card:hover .open .arr { transform: translateX(3px); }
+
+  /* ── status strip (on gold band) ── */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    background: var(--deep-blue);
+    border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--ink);
+  }
+  .stat-cell {
+    padding: 28px 28px;
+    border-right: 1px solid rgba(196,154,60,0.18);
+    color: var(--cream);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-cell .lbl {
+    font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(244,237,228,0.5);
+    margin-bottom: 12px;
+  }
+  .stat-cell .val {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: 56px; line-height: 1;
+    color: var(--cream); letter-spacing: -0.01em;
+  }
+  .stat-cell .val.gold { color: var(--gold-bright); }
+  .stat-cell .val.green { color: #34D399; }
+  .stat-cell .val.warn { color: #FB7185; }
+  .stat-cell .sub {
+    font-family: var(--font-sans); font-size: 11.5px;
+    color: rgba(244,237,228,0.65);
+    margin-top: 10px; line-height: 1.4; letter-spacing: 0.03em;
+  }
+
+  /* ── closing CTA ── */
+  .closing {
+    text-align: center;
+  }
+  .closing h2 {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(40px, 5vw, 56px);
+    color: var(--cream); margin: 0 0 14px;
+    letter-spacing: 0.02em; line-height: 1.1;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  }
+  .closing .accent { color: var(--gold-bright); }
+  .closing .quote {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 22px; color: var(--cream);
+    max-width: 56ch; margin: 0 auto 36px;
+    line-height: 1.5;
+  }
+  .closing .quote::before, .closing .quote::after { content: '"'; color: var(--gold-bright); opacity: 0.7; }
+  .closing .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .closing .rule {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--gold-bright), var(--rust));
+    margin: 0 auto 22px;
+  }
+
+  /* ── footer ── */
+  footer {
+    background: var(--ink); color: rgba(244,237,228,0.65);
+    padding: 36px 32px; text-align: center;
+    font-family: var(--font-sans); font-size: 12px;
+  }
+  footer .row { max-width: 900px; margin: 0 auto; }
+  footer a { color: var(--gold-bright); text-decoration: none; margin: 0 10px; }
+  footer a:hover { color: var(--cream); }
+  footer .legal {
+    margin-top: 14px; font-size: 10.5px; color: rgba(244,237,228,0.4);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── reveal on scroll ── */
+  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s var(--ease-out); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ── responsive ── */
+  @media (max-width: 980px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .moments { order: 2; }
+    .primary-grid { grid-template-columns: 1fr; }
+    .support-grid { grid-template-columns: 1fr 1fr; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stat-cell:nth-child(2) { border-right: none; }
+    .stat-cell:nth-child(1), .stat-cell:nth-child(2) { border-bottom: 1px solid rgba(196,154,60,0.18); }
+  }
+  @media (max-width: 600px) {
+    .eco { font-size: 10px; padding: 6px 18px; gap: 10px; flex-wrap: wrap; }
+    .eco .right { display: none; }
+    .nav { padding: 12px 18px; }
+    .nav .links { display: none; }
+    .hero { padding: 60px 24px 80px; }
+    section.band { padding: 56px 24px; }
+    .section-head { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .support-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .stat-cell { border-right: none; border-bottom: 1px solid rgba(196,154,60,0.18); }
+    .stat-cell:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="eco">
+  <a aria-current="page">cason.heritage</a>
+  <span class="sep">/</span>
+  <a data-prop="heritage" href="/heritage">narrative</a>
+  <span class="sep">/</span>
+  <a data-prop="tree" href="/tree">ledger</a>
+  <span class="sep">/</span>
+  <a data-prop="dashboard" href="/dashboard">dashboard</a>
+  <span class="sep">/</span>
+  <a data-prop="deck" href="/deck">deck</a>
+  <div class="right">
+    <span class="pulse">audit live · v1.0 · may 2026</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="brand">
+    The Cason Line
+    <span class="tag">into the unknown</span>
+  </div>
+  <div class="links">
+    <a href="#properties">Surfaces</a>
+    <a href="#status">Status</a>
+    <a href="#closing">Pattern</a>
+    <a href="/tree" class="cta">Open the ledger →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="kicker">eleven generations · four hundred years</div>
+      <h1>Into the<br>Unknown</h1>
+      <div class="sub">The Cason Line · c.1604 — present</div>
+      <p class="tag">A man left England with nothing. His grandson was orphaned at ten and carried the name alone. Their descendant walked into Florida at sixty. Eleven generations. The inheritance is the willingness to move.</p>
+      <div class="actions">
+        <a href="/heritage" class="btn btn-primary">Read the narrative <span class="arr">→</span></a>
+        <a href="/tree" class="btn btn-ghost">Open the audit ledger <span class="arr">→</span></a>
+      </div>
+    </div>
+    <aside class="moments" aria-label="Recent activity">
+      <div class="h">recent activity</div>
+      <div class="row">
+        <span class="yr">May 19</span>
+        <span class="what">VA Patent Book 1 p.124 · re-photographed</span>
+      </div>
+      <div class="row">
+        <span class="yr">May 15</span>
+        <span class="what">3 Casson baptisms surfaced · Lincs/Cambs</span>
+      </div>
+      <div class="row">
+        <span class="yr">May 11</span>
+        <span class="what">Digswell parish 1600–1640 · disproven</span>
+      </div>
+      <div class="row">
+        <span class="yr">May 8</span>
+        <span class="what">Big Y-700 ordered · ~5 wks to results</span>
+      </div>
+      <div class="row">
+        <span class="yr">Apr 30</span>
+        <span class="what">Lower Norfolk Order Books · 5 appearances confirmed</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="band parchment" id="properties">
+  <div class="band-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="meta">// 01 · the two main surfaces</div>
+        <h2>One story. Two registers.</h2>
+      </div>
+      <p class="lede">A literary, hand-bound narrative — and a forensic ledger that grades every claim by primary-source tier. Read either, or move between them.</p>
+    </div>
+
+    <div class="primary-grid">
+      <a class="big-card reveal" data-card href="/heritage">
+        <div class="num">surface 01 · narrative</div>
+        <h3>The Heritage Site</h3>
+        <div class="role">the long-form, hand-bound version</div>
+        <p>Scrollable retelling — hero, prologue, the Atlantic crossing, the evidence board, the Florida crossing, the timeline, the closing. The version you share with relatives.</p>
+        <div class="tags">
+          <span class="tag-chip">11 generations</span>
+          <span class="tag-chip">interactive map</span>
+          <span class="tag-chip">timeline</span>
+        </div>
+        <span class="open">Read the narrative <span class="arr">→</span></span>
+      </a>
+
+      <a class="big-card dark reveal" data-card href="/tree">
+        <div class="num">surface 02 · ledger</div>
+        <h3>The Audit Ledger</h3>
+        <div class="role">every claim a tier · every ancestor a record</div>
+        <p>Forensic companion — topology, dossiers for all eleven direct-line ancestors plus collaterals, citation chains, the disproven-claims quarantine, the field log of in-progress digs.</p>
+        <div class="tags">
+          <span class="tag-chip">tier-graded</span>
+          <span class="tag-chip">3 brick walls</span>
+          <span class="tag-chip">live audit</span>
+        </div>
+        <span class="open">Open the ledger <span class="arr">→</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="band cream">
+  <div class="band-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="meta">// 02 · supporting surfaces</div>
+        <h2>The working set.</h2>
+      </div>
+      <p class="lede">Variants, the audit deck, the design tokens, the research prompt — built on the same data layer as the ledger.</p>
+    </div>
+
+    <div class="support-grid">
+      <a class="card reveal" data-card data-color="green" href="/dashboard">
+        <div class="num">03 · variants</div>
+        <h3>Dashboard</h3>
+        <div class="role">Five directions on one canvas</div>
+        <p>Atlas · Long Scroll · Migration · Vault · Dashboard. Each a different metaphor. Pan, zoom, focus any one fullscreen.</p>
+        <span class="open">Compare <span class="arr">→</span></span>
+      </a>
+
+      <a class="card reveal" data-card data-color="rust" href="/deck">
+        <div class="num">04 · deck</div>
+        <h3>Audit Findings</h3>
+        <div class="role">Slide-format for sharing</div>
+        <p>Nine slides on the corrections — what was disproven, what's anchored, where the gap sits. Print-to-PDF supported.</p>
+        <span class="open">View deck <span class="arr">→</span></span>
+      </a>
+
+      <a class="card reveal" data-card data-color="gold" href="/system">
+        <div class="num">05 · system</div>
+        <h3>Design Tokens</h3>
+        <div class="role">Parchment and gold leaf</div>
+        <p>Colors, type, spacing, shadows, components. Drop-in CSS variables. Skill-compatible for downstream use.</p>
+        <span class="open">Open docs <span class="arr">→</span></span>
+      </a>
+
+      <a class="card reveal" data-card data-color="sea" href="/brand-fonts.html">
+        <div class="num">06 · fonts</div>
+        <h3>Brand Fonts</h3>
+        <div class="role">Self-hosted typography</div>
+        <p>Upload your licensed Display/Headings and Body Serif files. Clears the missing-fonts warning for deck + heritage previews.</p>
+        <span class="open">Manage fonts <span class="arr">→</span></span>
+      </a>
+
+      <a class="card reveal" data-card data-color="blood" href="/prompt">
+        <div class="num">06 · prompt</div>
+        <h3>Edge Expansion</h3>
+        <div class="role">Forensic LLM research prompt</div>
+        <p>Drop into any chat with web search. Anchor facts, quarantine list, evidence-tier taxonomy, JSON output ready to merge.</p>
+        <span class="open">Copy prompt <span class="arr">→</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="band gold" id="status">
+  <div class="band-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="meta">// 03 · project status</div>
+        <h2>Audit live. Three walls open.</h2>
+      </div>
+      <p class="lede">Every number primary-sourced. Y-DNA Big Y-700 results land early July 2026 and will unlock two walls at once.</p>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat-cell">
+        <div class="lbl">// generations</div>
+        <div class="val gold">~12</div>
+        <div class="sub">c.1604 → present · ~422 yrs · Gen 5 unfilled</div>
+      </div>
+      <div class="stat-cell">
+        <div class="lbl">// records on file</div>
+        <div class="val green">61</div>
+        <div class="sub">11 direct line · 50 collateral · 5 Hillery → Utah</div>
+      </div>
+      <div class="stat-cell">
+        <div class="lbl">// open brick walls</div>
+        <div class="val warn">3</div>
+        <div class="sub">Gen 5 link · English origin · enslaved-people IDs</div>
+      </div>
+      <div class="stat-cell">
+        <div class="lbl">// pending</div>
+        <div class="val">Big Y-700</div>
+        <div class="sub">results window opens Jul 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band deep closing" id="closing">
+  <div class="band-inner">
+    <div class="section-head" style="justify-content:center; flex-direction:column; align-items:center; text-align:center;">
+      <div class="meta reveal">// the pattern</div>
+    </div>
+    <div class="reveal">
+      <div class="rule"></div>
+      <h2>The vehicle changes.<br><span class="accent">The instinct doesn't.</span></h2>
+      <p class="quote">From Thomas's cargo ship to Robert's rockets. Eleven generations. The line is real. The story is being rewritten under primary-source discipline. The inheritance is the willingness to move.</p>
+      <div class="actions">
+        <a href="/heritage" class="btn btn-primary">Read the full story <span class="arr">→</span></a>
+        <a href="/deck" class="btn btn-ghost">Audit deck <span class="arr">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="row">
+    <a href="/heritage">Narrative</a>·<a href="/tree">Ledger</a>·<a href="/dashboard">Dashboard</a>·<a href="/deck">Deck</a>·<a href="/system">System</a>·<a href="/brand-fonts.html">Fonts</a>·<a href="/prompt">Prompt</a>
+    <div class="legal">cason heritage v1.0 · audit may 2026 · we move next</div>
+  </div>
+</footer>
+
+<script>
+  // Reading-progress bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = pct + '%';
+  }, { passive: true });
+
+  // Reveal-on-scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

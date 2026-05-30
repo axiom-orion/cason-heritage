@@ -1,0 +1,145 @@
+/* =============================================================================
+   VORION DESIGN TOKENS — v1.0
+   Source of truth: voriongit-ops/_design/tokens.css
+   ---------------------------------------------------------------------------
+   DISCIPLINE
+     1 primary + 1 secondary (universal across all Vorion properties)
+     1 site accent (varies per property; same hue in light/dark)
+     7 neutrals · 3 semantic
+     One sans (Inter) · one mono (Geist Mono) · one serif (IBM Plex Serif, BASIS only)
+     3 motion durations
+   USAGE
+     <html data-site="vorion|basis|agentanchor|cognigate|aurais|kaizen">
+   ============================================================================= */
+
+:root {
+  /* ── BRAND (universal) ──────────────────────────────────────────────────── */
+  --vorion-primary:   #0891B2;   /* cyan-600 — CTAs, links, logo accents */
+  --vorion-secondary: #1E293B;   /* slate-800 — headings, structural */
+  --vorion-deep:      #0B1A2E;   /* navy from the orb — premium ground */
+  --vorion-silver:    #C9D2DC;   /* chrome ring color */
+  --vorion-spark:     #4DA8FF;   /* electric blue spark */
+
+  /* ── SITE ACCENT (default = Vorion violet) ──────────────────────────────── */
+  --site-accent:      #8B5CF6;   /* violet-500 */
+  --site-accent-dim:  #5B21B6;
+  --site-accent-soft: #EDE9FE;
+
+  /* ── NEUTRAL RAMP ───────────────────────────────────────────────────────── */
+  --neutral-50:  #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-500: #64748B;
+  --neutral-700: #334155;
+  --neutral-900: #0F172A;
+  --neutral-950: #020617;
+
+  /* ── SEMANTIC ───────────────────────────────────────────────────────────── */
+  --success: #10B981;   /* emerald-500 */
+  --danger:  #EF4444;   /* red-500 */
+  --warning: #F59E0B;   /* amber-500 */
+
+  /* ── SURFACES (light mode) ──────────────────────────────────────────────── */
+  --bg:        #FFFFFF;
+  --bg-alt:    var(--neutral-50);
+  --bg-deep:   var(--neutral-100);
+  --fg:        var(--vorion-secondary);
+  --fg-muted:  var(--neutral-500);
+  --fg-subtle: var(--neutral-700);
+  --border:    var(--neutral-200);
+  --border-strong: var(--neutral-300);
+
+  /* ── TYPOGRAPHY ─────────────────────────────────────────────────────────── */
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono:    "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  --font-serif:   "IBM Plex Serif", Georgia, serif; /* BASIS specification docs only */
+
+  --scale-72: 4.5rem;     /* hero display */
+  --scale-48: 3rem;       /* H1 */
+  --scale-36: 2.25rem;    /* H2 */
+  --scale-24: 1.5rem;     /* H3 */
+  --scale-18: 1.125rem;   /* body-lg */
+  --scale-16: 1rem;       /* body */
+  --scale-14: 0.875rem;   /* small */
+  --scale-12: 0.75rem;    /* caption / mono kicker */
+
+  /* ── SPACING (4px base, T-shirt sized) ──────────────────────────────────── */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* ── RADII ──────────────────────────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* ── ELEVATION ──────────────────────────────────────────────────────────── */
+  --shadow-1: 0 1px 2px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.05);
+  --shadow-2: 0 4px 12px -2px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+  --shadow-3: 0 12px 32px -8px rgba(15,23,42,0.12), 0 4px 8px rgba(15,23,42,0.04);
+  --shadow-glow: 0 0 0 1px var(--site-accent), 0 0 32px -8px var(--site-accent);
+
+  /* ── MOTION ─────────────────────────────────────────────────────────────── */
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --motion-slow: 300ms;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── PER-SITE ACCENT OVERRIDES (light) ──────────────────────────────────── */
+[data-site="agentanchor"] { --site-accent: #3B82F6; --site-accent-dim:#1D4ED8; --site-accent-soft:#DBEAFE; }
+[data-site="cognigate"]   { --site-accent: #10B981; --site-accent-dim:#047857; --site-accent-soft:#D1FAE5; }
+[data-site="aurais"]      { --site-accent: #F59E0B; --site-accent-dim:#B45309; --site-accent-soft:#FEF3C7; }
+[data-site="kaizen"]      { --site-accent: #F43F5E; --site-accent-dim:#9F1239; --site-accent-soft:#FFE4E6; }
+/* basis & vorion share the default violet */
+
+/* ── DARK MODE ──────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --vorion-primary:   #22D3EE;   /* cyan-400 */
+  --vorion-secondary: #F1F5F9;
+  --site-accent:      #A78BFA;   /* violet-400 */
+  --site-accent-dim:  #7C3AED;
+  --site-accent-soft: #2E1065;
+
+  --bg:        var(--neutral-950);
+  --bg-alt:    var(--neutral-900);
+  --bg-deep:   #0B1220;
+  --fg:        var(--neutral-100);
+  --fg-muted:  #94A3B8;
+  --fg-subtle: #CBD5E1;
+  --border:    #1E293B;
+  --border-strong: #334155;
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-2: 0 4px 12px -2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4);
+  --shadow-3: 0 12px 32px -8px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4);
+}
+[data-theme="dark"][data-site="agentanchor"] { --site-accent:#60A5FA; --site-accent-dim:#2563EB; --site-accent-soft:#172554; }
+[data-theme="dark"][data-site="cognigate"]   { --site-accent:#34D399; --site-accent-dim:#059669; --site-accent-soft:#022C22; }
+[data-theme="dark"][data-site="aurais"]      { --site-accent:#FBBF24; --site-accent-dim:#D97706; --site-accent-soft:#451A03; }
+[data-theme="dark"][data-site="kaizen"]      { --site-accent:#FB7185; --site-accent-dim:#E11D48; --site-accent-soft:#4C0519; }
+
+/* ── UTILITY CLASSES ─────────────────────────────────────────────────────── */
+.vorion-accent { color: var(--site-accent); }
+.vorion-muted  { color: var(--fg-muted); }
+.vorion-mono   { font-family: var(--font-mono); }
+.vorion-serif  { font-family: var(--font-serif); }
+
+.vorion-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--scale-12);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--site-accent);
+  font-weight: 500;
+}

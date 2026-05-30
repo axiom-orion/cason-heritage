@@ -1,0 +1,981 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Cognigate · playground · try the gate live" description="Pick a scenario. Watch the gate authenticate, evaluate scope, apply guardrails, and sign — live.">
+<div data-screen-label="cognigate.dev/playground · interactive policy editor">
+
+<div class="eco-strip">
+  <div class="row">
+    <span>// VORION ECOSYSTEM</span>
+    <a href="vorion-www.html" data-site="vorion">vorion.org</a><span class="sep">/</span>
+    <a href="cognigate-www.html" data-site="cognigate" aria-current="page">cognigate.dev</a><span class="sep">/</span>
+    <a href="agentanchor-www.html" data-site="agentanchor">agentanchorai.com</a><span class="sep">/</span>
+    <a href="aurais-www.html" data-site="aurais">aurais.net</a>
+    <span style="margin-left:auto; opacity:0.6;">apache-2.0 · v 0.9.4</span>
+  </div>
+</div>
+
+<header class="site-nav">
+  <div class="row">
+    <a href="cognigate-www.html" class="brand"><img src="assets/cognigate-logo.png" alt="" /> Cognigate</a>
+    <span class="crumb">/<span class="here"> playground</span></span>
+    <nav class="links" style="margin-left: 32px;">
+      <a href="cognigate-www.html#sdks">SDKs</a>
+      <a href="cognigate-www.html#perf">Performance</a>
+      <a href="#">Docs</a>
+      <a href="#">Changelog</a>
+    </nav>
+    <a href="cognigate-www.html#oss" class="cta" style="background: #0F172A; border-color: #0F172A;">★ on GitHub →</a>
+  </div>
+</header>
+
+<section class="pg-hero">
+  <div class="page">
+    <div class="row">
+      <div>
+        <span class="kicker">▸ Try the gate · no install, no auth</span>
+        <h1>See the gate <span class="accent">decide</span>, sign, and chain — live.</h1>
+        <p class="lede">Pick a scenario. Watch Cognigate authenticate the caller, evaluate scope against policy, apply guardrails, and issue a verdict — with the receipt and chain link materialized below.</p>
+      </div>
+      <div class="pg-stats">
+        <span>P50</span><strong>38ms</strong>
+        <span>P99</span><strong>112ms</strong>
+        <span>Conformance</span><strong style="color:#10B981;">472/472 ✓</strong>
+        <span>Server</span><strong>cdn.cognigate.dev/us-west-2</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="scenarios">
+  <div class="page">
+    <div class="scen-label">// pick a scenario</div>
+    <div class="scen-row" id="scen-row">
+      <button class="scen active" data-id="allow-1">
+        <span class="badge allow">▸ ALLOW</span>
+        <div class="title">In-scope read</div>
+        <div class="sub">market-scout · db.read(orders) · T3</div>
+      </button>
+      <button class="scen" data-id="allow-2">
+        <span class="badge allow">▸ ALLOW</span>
+        <div class="title">Attested T4</div>
+        <div class="sub">claude-procurement · mail.send · T4</div>
+      </button>
+      <button class="scen" data-id="deny-1">
+        <span class="badge deny">✗ DENY</span>
+        <div class="title">Scope creep</div>
+        <div class="sub">code-review · db.write(customers)</div>
+      </button>
+      <button class="scen" data-id="deny-2">
+        <span class="badge deny">✗ DENY</span>
+        <div class="title">Ungoverned caller</div>
+        <div class="sub">unknown ollama runtime · net.out</div>
+      </button>
+      <button class="scen" data-id="esc-1">
+        <span class="badge esc">⚠ ESCALATE</span>
+        <div class="title">Threshold tripped</div>
+        <div class="sub">svc-reconciler · txn &gt; $50k</div>
+      </button>
+      <button class="scen" data-id="esc-2">
+        <span class="badge esc">⚠ ESCALATE</span>
+        <div class="title">Rate-limit drift</div>
+        <div class="sub">kb-indexer · 14× scope/90s</div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="page">
+    <div class="bench">
+
+      <!-- ─── EDITOR ─────────────────────────────────────────────── -->
+      <div class="pane">
+        <div class="ph editor-tabs">
+          <div class="tabs">
+            <div class="tab active" data-t="policy"><span class="dot"></span>policy.yaml</div>
+            <div class="tab" data-t="call">tool-call.json</div>
+            <div class="tab" data-t="agent">agent.car</div>
+          </div>
+          <div class="actions">
+            <button class="run" id="run-btn">▶ DECIDE · 38ms</button>
+          </div>
+        </div>
+        <div class="editor"><pre id="editor-body"></pre></div>
+      </div>
+
+      <!-- ─── DECISION ──────────────────────────────────────────── -->
+      <div class="pane">
+        <div class="ph">
+          <span class="title">// gate · 5 stages</span>
+          <span class="meta" id="decide-tail">basis:0.9 · ed25519</span>
+        </div>
+        <div class="decide">
+          <div class="decide-stages" id="stages"></div>
+          <div id="verdict-wrap"></div>
+          <div id="receipt-wrap"></div>
+        </div>
+      </div>
+
+      <!-- ─── CHAIN ────────────────────────────────────────────── -->
+      <div class="pane">
+        <div class="ph">
+          <span class="title">// chain · last 5</span>
+          <span class="meta">basis://chain · block <span id="block-no">8,422,108</span></span>
+        </div>
+        <div class="chain" id="chain"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="tail">
+  <div class="page">
+    <h2>11 lines from "tool call" to "signed in chain."</h2>
+    <p>The playground is the same gate you'd run locally — same code path, same latency budget, same receipt format. Drop the SDK in your agent and you're done.</p>
+    <div style="display:inline-flex; gap: 12px;">
+      <a href="cognigate-www.html#sdks" class="btn btn--lg">Get the SDK <span class="arrow">→</span></a>
+      <a href="#" class="btn btn--ghost btn--lg">Read the docs</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="page">
+    <div class="row">
+      <div class="brand-block">
+        <strong style="font-size: 18px; letter-spacing: -0.01em;">Cognigate · the gate</strong>
+        <div class="tag">// VORION ECOSYSTEM</div>
+        <p>Apache-2.0 reference implementation of the BASIS standard. v 0.9.4 · sub-120ms.</p>
+      </div>
+      <div><h4>Playground</h4><ul>
+        <li><a href="#">Share scenario</a></li>
+        <li><a href="#">Export receipt</a></li>
+        <li><a href="#">Open in CLI</a></li>
+      </ul></div>
+      <div><h4>Product</h4><ul>
+        <li><a href="cognigate-www.html#sdks">SDKs</a></li>
+        <li><a href="#">Docs</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul></div>
+      <div><h4>Standard</h4><ul>
+        <li><a href="vorion-www.html">vorion.org</a></li>
+        <li><a href="#">BASIS 0.9</a></li>
+      </ul></div>
+      <div><h4>Family</h4><ul>
+        <li><a href="agentanchor-www.html">AgentAnchor</a></li>
+        <li><a href="aurais-www.html">Aurais</a></li>
+      </ul></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 Vorion LLC · Apache-2.0</span>
+      <span>// playground reads from cdn.cognigate.dev/us-west-2 · public test endpoint</span>
+    </div>
+  </div>
+</footer>
+
+</div>
+</BaseLayout>
+
+<style is:global>
+/* =============================================================================
+     /playground — try a scenario, see the gate decide in real time
+     ============================================================================= */
+
+  .crumb {
+    font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted);
+    letter-spacing: 0.06em; padding: 0 16px;
+  }
+  .crumb .here { color: var(--site-accent); }
+
+  /* HERO */
+  .pg-hero { padding: 56px 0 28px; }
+  .pg-hero .row { display: flex; align-items: end; justify-content: space-between; gap: 32px; }
+  .pg-hero .kicker {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--site-accent);
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pg-hero .kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--site-accent); box-shadow: 0 0 8px var(--site-accent); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pg-hero h1 {
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.05; letter-spacing: -0.03em; font-weight: 700;
+    margin: 0 0 12px; max-width: 22ch; text-wrap: balance;
+  }
+  .pg-hero h1 .accent { color: var(--site-accent); }
+  .pg-hero p.lede { font-size: 18px; color: var(--fg-muted); max-width: 56ch; margin: 0; line-height: 1.5; }
+
+  .pg-stats {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--fg-muted);
+    display: grid; grid-template-columns: auto auto; gap: 4px 24px; text-align: right;
+  }
+  .pg-stats strong { color: var(--fg); font-weight: 600; }
+
+  /* SCENARIO PICKER */
+  .scenarios {
+    padding: 24px 0 32px;
+    border-top: 1px solid var(--border);
+  }
+  .scen-label {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--fg-muted);
+    margin-bottom: 12px;
+  }
+  .scen-row {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+  }
+  .scen {
+    text-align: left; cursor: pointer;
+    padding: 14px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 160ms;
+  }
+  .scen:hover { border-color: var(--site-accent); background: var(--site-accent-soft); }
+  .scen.active {
+    border-color: var(--site-accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--site-accent) 12%, transparent);
+    background: var(--bg);
+  }
+  .scen .badge {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    display: inline-block; margin-bottom: 8px;
+  }
+  .scen .badge.allow { color: #047857; background: #DCFCE7; }
+  .scen .badge.deny { color: #B91C1C; background: #FEE2E2; }
+  .scen .badge.esc { color: #B45309; background: #FEF3C7; }
+  .scen .title {
+    font-size: 13.5px; font-weight: 500; color: var(--fg); line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .scen .sub {
+    font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted);
+    line-height: 1.4;
+  }
+
+  /* THREE-PANE WORKBENCH */
+  .bench {
+    display: grid;
+    grid-template-columns: 1.05fr 0.85fr 0.7fr;
+    gap: 14px;
+    align-items: stretch;
+    padding-bottom: 64px;
+  }
+  .pane {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .pane .ph {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-alt);
+  }
+  .pane .ph .title {
+    font-family: var(--font-mono); font-size: 11px; color: var(--site-accent);
+    letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600;
+  }
+  .pane .ph .meta {
+    font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* Editor pane — code-frame look */
+  .editor {
+    background: #0B1120; color: #E2E8F0;
+    flex: 1; padding: 18px 0 18px;
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.7;
+    overflow: auto;
+  }
+  .editor pre { margin: 0; padding: 0 22px 0 14px; counter-reset: line; }
+  .editor pre .line { display: block; counter-increment: line; }
+  .editor pre .line::before {
+    content: counter(line);
+    display: inline-block; width: 26px; padding-right: 14px;
+    text-align: right; color: #334155;
+    user-select: none;
+  }
+  .editor .kw { color: #C084FC; }
+  .editor .fn { color: #60A5FA; }
+  .editor .str { color: #34D399; }
+  .editor .num { color: #FBBF24; }
+  .editor .com { color: #475569; font-style: italic; }
+  .editor .var { color: #F1F5F9; }
+  .editor .yk { color: #93C5FD; }
+  .editor .hi { background: rgba(16,185,129,0.10); border-left: 2px solid #10B981; margin-left: -14px; padding-left: 12px; }
+  .editor .hi.deny { background: rgba(251,113,133,0.10); border-left-color: #FB7185; }
+  .editor .hi.esc { background: rgba(251,191,36,0.10); border-left-color: #FBBF24; }
+
+  .pane .ph.editor-tabs { background: #050912; border-bottom: 1px solid #1E293B; padding: 0 8px; }
+  .editor-tabs .tabs { display: flex; height: 38px; }
+  .editor-tabs .tab {
+    padding: 0 14px; height: 100%; display: flex; align-items: center;
+    font-family: var(--font-mono); font-size: 11px; color: #64748B;
+    border-right: 1px solid #1E293B;
+    cursor: pointer;
+  }
+  .editor-tabs .tab.active { color: #E2E8F0; background: #0B1120; }
+  .editor-tabs .tab:hover:not(.active) { color: #94A3B8; }
+  .editor-tabs .tab .dot { width: 6px; height: 6px; border-radius: 50%; background: #10B981; margin-right: 8px; }
+  .editor-tabs .actions { margin-left: auto; padding: 0 8px; display: flex; align-items: center; gap: 6px; }
+  .editor-tabs .actions .run {
+    background: #10B981; color: #050912;
+    padding: 5px 12px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; cursor: pointer; border: none;
+  }
+  .editor-tabs .actions .run:hover { background: #34D399; }
+
+  /* Decision pane */
+  .decide {
+    flex: 1;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+  }
+  .decide-stages {
+    padding: 14px 18px 0;
+    display: grid; gap: 6px;
+  }
+  .stage {
+    display: grid; grid-template-columns: 22px 1fr auto;
+    gap: 10px; align-items: center;
+    padding: 6px 0;
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-muted);
+    border-top: 1px dashed var(--border);
+  }
+  .stage:first-child { border-top: none; }
+  .stage .num { color: var(--site-accent); font-weight: 700; }
+  .stage .body { color: var(--fg); }
+  .stage .body small { color: var(--fg-muted); margin-left: 6px; }
+  .stage .ms { color: #34D399; font-weight: 600; }
+  .stage.done .body::before { content: "✓ "; color: #34D399; }
+  .stage.fail .body::before { content: "✗ "; color: #FB7185; }
+  .stage.fail .body { color: #B91C1C; }
+  .stage.fail .ms { color: #FB7185; }
+  .stage.esc .body::before { content: "⚠ "; color: #B45309; }
+  .stage.esc .body { color: #B45309; }
+  .stage.esc .ms { color: #FBBF24; }
+
+  /* Verdict card */
+  .verdict {
+    margin: 14px 18px;
+    padding: 22px;
+    border-radius: 10px;
+    border: 2px solid;
+    text-align: center;
+  }
+  .verdict[data-v="allow"] { border-color: #10B981; background: rgba(16,185,129,0.06); }
+  .verdict[data-v="deny"] { border-color: #FB7185; background: rgba(251,113,133,0.06); }
+  .verdict[data-v="esc"] { border-color: #FBBF24; background: rgba(251,191,36,0.06); }
+  .verdict .v-tag {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+    font-weight: 600;
+  }
+  .verdict[data-v="allow"] .v-tag { color: #047857; }
+  .verdict[data-v="deny"] .v-tag { color: #B91C1C; }
+  .verdict[data-v="esc"] .v-tag { color: #B45309; }
+  .verdict .v-name {
+    font-size: 36px; font-weight: 800; letter-spacing: -0.025em; line-height: 1;
+    margin: 8px 0 6px;
+  }
+  .verdict[data-v="allow"] .v-name { color: #047857; }
+  .verdict[data-v="deny"] .v-name { color: #B91C1C; }
+  .verdict[data-v="esc"] .v-name { color: #B45309; }
+  .verdict .v-why {
+    font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--fg); margin-top: 8px;
+    background: var(--bg); padding: 8px 12px; border-radius: 6px;
+    display: inline-block;
+  }
+  .verdict .v-ms {
+    margin-top: 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.04em;
+  }
+
+  /* Receipt block */
+  .receipt {
+    margin: 0 18px 18px;
+    padding: 14px 16px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-mono); font-size: 11.5px;
+  }
+  .receipt h5 {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em;
+    color: var(--fg-muted); margin: 0 0 10px; text-transform: uppercase; font-weight: 500;
+  }
+  .receipt .row { display: grid; grid-template-columns: 70px 1fr; gap: 8px; padding: 2px 0; }
+  .receipt .k { color: var(--fg-muted); }
+  .receipt .v { color: var(--fg); word-break: break-all; }
+  .receipt .v.hash { color: #6D28D9; }
+  .receipt .v.sig { color: #047857; }
+
+  /* Chain pane */
+  .chain { flex: 1; overflow-y: auto; }
+  .chain-row {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .chain-row:last-child { border-bottom: none; }
+  .chain-row .glyph {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    margin-top: 2px;
+  }
+  .chain-row[data-v="allow"] .glyph { background: rgba(16,185,129,0.12); color: #047857; }
+  .chain-row[data-v="deny"] .glyph { background: rgba(251,113,133,0.12); color: #B91C1C; }
+  .chain-row[data-v="esc"] .glyph { background: rgba(251,191,36,0.15); color: #B45309; }
+  .chain-row::before {
+    /* connector dot line */
+    content: ""; position: absolute; left: 26px; top: 32px; bottom: -1px; width: 1px;
+    background: var(--border);
+  }
+  .chain-row:last-child::before { display: none; }
+  .chain-row .body { min-width: 0; }
+  .chain-row .meta {
+    font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); letter-spacing: 0.06em;
+    display: flex; gap: 12px;
+  }
+  .chain-row .what { font-size: 13px; color: var(--fg); margin: 4px 0; }
+  .chain-row .what .agent { font-weight: 600; }
+  .chain-row .hash { font-family: var(--font-mono); font-size: 10px; color: #6D28D9; word-break: break-all; }
+  .chain-row.new { animation: chainin 600ms ease-out; }
+  @keyframes chainin {
+    from { background: rgba(16,185,129,0.14); transform: translateY(-6px); opacity: 0; }
+    to { background: transparent; transform: none; opacity: 1; }
+  }
+  .chain-row.deny.new { animation-name: chaininD; }
+  @keyframes chaininD {
+    from { background: rgba(251,113,133,0.14); transform: translateY(-6px); opacity: 0; }
+    to { background: transparent; transform: none; opacity: 1; }
+  }
+  .chain-row.esc.new { animation-name: chaininE; }
+  @keyframes chaininE {
+    from { background: rgba(251,191,36,0.18); transform: translateY(-6px); opacity: 0; }
+    to { background: transparent; transform: none; opacity: 1; }
+  }
+
+  /* Tail callout */
+  .tail {
+    padding: 56px 0; border-top: 1px solid var(--border); text-align: center;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
+  }
+  .tail h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 700; letter-spacing: -0.025em; margin: 0 0 12px; max-width: 22ch; margin-inline: auto; text-wrap: balance; }
+  .tail p { color: var(--fg-muted); max-width: 56ch; margin: 0 auto 24px; }
+
+  @media (max-width: 1100px) {
+    .scen-row { grid-template-columns: repeat(3, 1fr); }
+    .bench { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script is:inline>
+/* =============================================================================
+   Scenario engine. Each scenario carries: editor content (3 tabs), stages
+   timeline, verdict card, receipt fields, and a chain row prepended.
+   Clicking a scenario or pressing ▶ DECIDE replays the sequence.
+   ============================================================================= */
+(function () {
+  const editor = document.getElementById('editor-body');
+  const stagesEl = document.getElementById('stages');
+  const verdictWrap = document.getElementById('verdict-wrap');
+  const receiptWrap = document.getElementById('receipt-wrap');
+  const chainEl = document.getElementById('chain');
+  const runBtn = document.getElementById('run-btn');
+  const decideTail = document.getElementById('decide-tail');
+  const blockEl = document.getElementById('block-no');
+  let blockNum = 8422108;
+
+  /* Tab content per scenario (3 tabs each) */
+  const tabContent = {
+    'allow-1': {
+      policy: [
+        ['<span class="com"># policy.yaml · market-scout-prod</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">market-scout-prod</span>:'],
+        ['    <span class="yk">trust_tier</span>: <span class="num">T3</span>'],
+        ['    <span class="yk">scope</span>:'],
+        ['      <span class="hi">- <span class="str">db.read</span>(<span class="str">"orders"</span>, <span class="str">"trades"</span>)</span>'],
+        ['      - <span class="str">db.write</span>(<span class="str">"orders"</span>, <span class="yk">max_rows</span>: <span class="num">10</span>)'],
+        ['      - <span class="str">net.out</span>(<span class="str">"api.stripe.com"</span>)'],
+        ['    <span class="yk">deny</span>:'],
+        ['      - <span class="str">db.write</span>(<span class="str">"customers"</span>)'],
+        ['      - <span class="str">net.out</span>(<span class="str">"*"</span>)'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — incoming</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="str">"agent:market-scout-prod"</span>,'],
+        ['  <span class="yk">"action"</span>: <span class="hi"><span class="str">"db.read"</span></span>,'],
+        ['  <span class="yk">"scope"</span>: { <span class="yk">"table"</span>: <span class="hi"><span class="str">"orders"</span></span>, <span class="yk">"limit"</span>: <span class="num">50</span> },'],
+        ['  <span class="yk">"because"</span>: <span class="str">"daily settlement reconcile"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="str">"ed25519:9f2a…b41c"</span>'],
+        ['}'],
+      ],
+      agent: [
+        ['<span class="com"># agent.car · cognigate registry record</span>'],
+        ['<span class="yk">id</span>:        <span class="str">"agent:market-scout-prod"</span>'],
+        ['<span class="yk">tier</span>:      <span class="num">T3</span>   <span class="com"># issued by AgentAnchor 2026.02.18</span>'],
+        ['<span class="yk">attest</span>:    <span class="str">"basis://aa/T3/2026.02.18"</span>'],
+        ['<span class="yk">scope</span>:'],
+        ['  - <span class="str">db.read</span>(<span class="str">"orders"</span>, <span class="str">"trades"</span>)'],
+        ['  - <span class="str">db.write</span>(<span class="str">"orders"</span>, <span class="yk">max_rows</span>: <span class="num">10</span>)'],
+        ['  - <span class="str">net.out</span>(<span class="str">"api.stripe.com"</span>)'],
+      ],
+    },
+    'allow-2': {
+      policy: [
+        ['<span class="com"># policy.yaml · claude-procurement</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">claude-procurement</span>:'],
+        ['    <span class="yk">trust_tier</span>: <span class="num">T4</span>  <span class="com"># attested</span>'],
+        ['    <span class="yk">scope</span>:'],
+        ['      - <span class="str">contract.review</span>(<span class="str">"vendor"</span>)'],
+        ['      <span class="hi">- <span class="str">mail.send</span>(<span class="str">"vendor"</span>, <span class="yk">max</span>: <span class="num">25</span>)</span>'],
+        ['      - <span class="str">doc.read</span>(<span class="str">"contracts/*"</span>)'],
+        ['    <span class="yk">guardrails</span>:'],
+        ['      <span class="yk">rate</span>: <span class="num">200</span>/<span class="num">1m</span>'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — incoming</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="str">"agent:claude-procurement"</span>,'],
+        ['  <span class="yk">"action"</span>: <span class="hi"><span class="str">"mail.send"</span></span>,'],
+        ['  <span class="yk">"to"</span>: [<span class="str">"vendor-a@partner.com"</span>, <span class="str">"vendor-b@..."</span>, <span class="num">10</span> total],'],
+        ['  <span class="yk">"subject"</span>: <span class="str">"Q2 renewal terms"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="str">"ed25519:74d1…3fa9"</span>'],
+        ['}'],
+      ],
+      agent: [
+        ['<span class="com"># agent.car · attested at T4</span>'],
+        ['<span class="yk">id</span>:        <span class="str">"agent:claude-procurement"</span>'],
+        ['<span class="yk">tier</span>:      <span class="num">T4</span>   <span class="com"># auditor: KPMG · 2026.02</span>'],
+        ['<span class="yk">attest</span>:    <span class="str">"basis://aa/T4/aud-2026.02"</span>'],
+        ['<span class="yk">days_clean</span>: <span class="num">312</span>'],
+        ['<span class="yk">scope</span>:'],
+        ['  - <span class="str">contract.review</span>(<span class="str">"vendor"</span>)'],
+        ['  - <span class="str">mail.send</span>(<span class="str">"vendor"</span>, <span class="yk">max</span>: <span class="num">25</span>)'],
+      ],
+    },
+    'deny-1': {
+      policy: [
+        ['<span class="com"># policy.yaml · code-review</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">code-review</span>:'],
+        ['    <span class="yk">trust_tier</span>: <span class="num">T2</span>'],
+        ['    <span class="yk">scope</span>:'],
+        ['      - <span class="str">repo.read</span>(<span class="str">"*"</span>)'],
+        ['      - <span class="str">repo.write</span>(<span class="str">"pr-comments"</span>)'],
+        ['    <span class="yk">deny</span>:'],
+        ['      <span class="hi deny">- <span class="str">db.write</span>(<span class="str">"customers"</span>)</span>'],
+        ['      - <span class="str">db.write</span>(<span class="str">"users"</span>)'],
+        ['      - <span class="str">net.out</span>(<span class="str">"*"</span>)'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — INCOMING</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="str">"agent:code-review"</span>,'],
+        ['  <span class="yk">"action"</span>: <span class="hi deny"><span class="str">"db.write"</span></span>,'],
+        ['  <span class="yk">"scope"</span>: { <span class="yk">"table"</span>: <span class="hi deny"><span class="str">"customers"</span></span> },'],
+        ['  <span class="yk">"because"</span>: <span class="str">"backfill missing email column"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="str">"ed25519:b8a3…71c5"</span>'],
+        ['}'],
+        ['<span class="com">// (this should not even reach the DB.)</span>'],
+      ],
+      agent: [
+        ['<span class="com"># agent.car · last 30d</span>'],
+        ['<span class="yk">id</span>:         <span class="str">"agent:code-review"</span>'],
+        ['<span class="yk">tier</span>:       <span class="num">T2</span>'],
+        ['<span class="yk">declared_scope</span>:  repo.read, repo.write(pr-comments)'],
+        ['<span class="yk">near_miss</span>:  <span class="num">2</span> in last 30d   <span class="com"># both auto-denied</span>'],
+        ['<span class="yk">days_clean</span>: <span class="num">62</span>'],
+      ],
+    },
+    'deny-2': {
+      policy: [
+        ['<span class="com"># policy.yaml · default workspace</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">default</span>:'],
+        ['    <span class="yk">require</span>:'],
+        ['      <span class="hi deny">- <span class="str">caller_sig</span>      <span class="com"># must verify</span></span>'],
+        ['      <span class="hi deny">- <span class="str">tier</span>: <span class="num">T1+</span>     <span class="com"># declared minimum</span></span>'],
+        ['      - <span class="str">scope_manifest</span>'],
+        ['    <span class="yk">on_missing</span>:'],
+        ['      <span class="yk">action</span>: <span class="str">"DENY + AURAIS_ALERT"</span>'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — UNKNOWN CALLER</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="hi deny"><span class="str">"(none — fingerprint: ollama+llama3.2)"</span></span>,'],
+        ['  <span class="yk">"action"</span>: <span class="str">"net.out"</span>,'],
+        ['  <span class="yk">"target"</span>: <span class="str">"api.unknown-bin.io:443"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="hi deny"><span class="str">null</span></span>,'],
+        ['  <span class="yk">"chain"</span>: <span class="hi deny"><span class="str">null</span></span>'],
+        ['}'],
+        ['<span class="com">// origin: 192.168.1.74:11434 · LAN sweep · Aurais paged</span>'],
+      ],
+      agent: [
+        ['<span class="com"># no agent.car record</span>'],
+        ['<span class="com"># Aurais inventory shows:</span>'],
+        ['  <span class="yk">first_seen</span>: <span class="num">42s</span> ago'],
+        ['  <span class="yk">fingerprint</span>: ollama · llama3.2:8b'],
+        ['  <span class="yk">host</span>:       <span class="str">192.168.1.74:11434</span>'],
+        ['  <span class="yk">cert</span>:       <span class="hi deny"><span class="str">none</span></span>'],
+        ['  <span class="yk">action</span>:     <span class="str">"enroll-or-quarantine"</span>'],
+      ],
+    },
+    'esc-1': {
+      policy: [
+        ['<span class="com"># policy.yaml · svc-reconciler · finance</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">svc-reconciler</span>:'],
+        ['    <span class="yk">trust_tier</span>: <span class="num">T3</span>'],
+        ['    <span class="yk">scope</span>:'],
+        ['      - <span class="str">db.write</span>(<span class="str">"orders"</span>)'],
+        ['      - <span class="str">payment.move</span>(<span class="str">"settle"</span>)'],
+        ['    <span class="yk">guardrails</span>:'],
+        ['      <span class="hi esc">- <span class="str">payment.move</span> &gt; <span class="num">$50_000</span>:</span>'],
+        ['          <span class="yk">verdict</span>: <span class="str">"ESCALATE"</span>'],
+        ['          <span class="yk">to</span>: <span class="str">"role:finance-lead"</span>'],
+        ['          <span class="yk">timeout</span>: <span class="num">5m</span>'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — high-stakes settle</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="str">"agent:svc-reconciler"</span>,'],
+        ['  <span class="yk">"action"</span>: <span class="str">"payment.move"</span>,'],
+        ['  <span class="yk">"amount_usd"</span>: <span class="hi esc"><span class="num">182_400.00</span></span>,'],
+        ['  <span class="yk">"from"</span>: <span class="str">"acct:1422"</span>, <span class="yk">"to"</span>: <span class="str">"acct:3081"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="str">"ed25519:31a2…9c4d"</span>'],
+        ['}'],
+      ],
+      agent: [
+        ['<span class="com"># agent.car · svc-reconciler</span>'],
+        ['<span class="yk">id</span>:         <span class="str">"agent:svc-reconciler"</span>'],
+        ['<span class="yk">tier</span>:       <span class="num">T3</span>'],
+        ['<span class="yk">days_clean</span>: <span class="num">189</span>'],
+        ['<span class="yk">cap_amount</span>: <span class="num">$50_000</span>  <span class="com"># above this → escalate</span>'],
+        ['<span class="yk">escalates_to</span>: <span class="str">"role:finance-lead@acme"</span>'],
+      ],
+    },
+    'esc-2': {
+      policy: [
+        ['<span class="com"># policy.yaml · kb-indexer · rate guard</span>'],
+        ['<span class="kw">policy</span>:'],
+        ['  <span class="var">kb-indexer</span>:'],
+        ['    <span class="yk">trust_tier</span>: <span class="num">T2</span>'],
+        ['    <span class="yk">scope</span>:'],
+        ['      - <span class="str">fs.read</span>(<span class="str">"/docs"</span>)'],
+        ['      - <span class="str">db.write</span>(<span class="str">"search_index"</span>)'],
+        ['    <span class="yk">guardrails</span>:'],
+        ['      <span class="hi esc">- <span class="str">rate</span>: <span class="num">3</span>/<span class="num">90s</span>     <span class="com"># soft cap</span></span>'],
+        ['      <span class="hi esc">  <span class="yk">on_breach</span>: <span class="str">"ESCALATE + DRIFT_NOTE"</span></span>'],
+      ],
+      call: [
+        ['<span class="com">// tool-call.json — drift detected</span>'],
+        ['{'],
+        ['  <span class="yk">"agent"</span>: <span class="str">"agent:kb-indexer"</span>,'],
+        ['  <span class="yk">"action"</span>: <span class="str">"fs.read"</span>,'],
+        ['  <span class="yk">"recent_count_90s"</span>: <span class="hi esc"><span class="num">14</span></span>,  <span class="com"># cap is 3</span>'],
+        ['  <span class="yk">"target"</span>: <span class="str">"/docs/customers/**"</span>,'],
+        ['  <span class="yk">"caller_sig"</span>: <span class="str">"ed25519:af31…2204"</span>'],
+        ['}'],
+      ],
+      agent: [
+        ['<span class="com"># agent.car · drift watch</span>'],
+        ['<span class="yk">id</span>:           <span class="str">"agent:kb-indexer"</span>'],
+        ['<span class="yk">tier</span>:         <span class="num">T2</span>'],
+        ['<span class="yk">last_90s</span>:     <span class="hi esc"><span class="num">14</span> calls</span>'],
+        ['<span class="yk">baseline_90s</span>: <span class="num">~2</span>'],
+        ['<span class="yk">drift_score</span>:  <span class="hi esc"><span class="num">7.0×</span></span>'],
+        ['<span class="yk">handler</span>:      <span class="str">"role:data-platform"</span>'],
+      ],
+    },
+  };
+
+  const scenarioData = {
+    'allow-1': {
+      verdict: 'allow', verdictName: 'ALLOW', verdictTag: 'in scope · 38ms',
+      why: 'db.read(orders) ∈ scope(market-scout-prod)',
+      ms: 38,
+      receipt: {
+        id: '0x9f2a4e21b41c…',
+        agent: 'agent:market-scout-prod',
+        action: 'db.read(orders, n=50)',
+        tier: 'T3 — attested 2026.02.18',
+        cap: 'cap_2nQ8…fA1 · expires 38ms',
+        sig: 'ed25519:f7a9…d2c1',
+      },
+      stages: [
+        ['authenticate caller', 'sig ✓ · ed25519:9f2a…b41c', 2, 'done'],
+        ['resolve agent.car', 'tier T3 · attested', 4, 'done'],
+        ['evaluate scope', 'db.read(orders) ∈ allow', 12, 'done'],
+        ['apply guardrails', 'rate 0.2/s · OK', 6, 'done'],
+        ['sign &amp; chain', 'ed25519 · block 8,422,108', 14, 'done'],
+      ],
+      chainKind: 'allow',
+      chainWhat: '<span class="agent">market-scout-prod</span> · db.read(orders, n=50)',
+    },
+    'allow-2': {
+      verdict: 'allow', verdictName: 'ALLOW', verdictTag: 'attested · 41ms',
+      why: 'mail.send(vendor, n=10/25) ∈ scope(claude-procurement)',
+      ms: 41,
+      receipt: {
+        id: '0x44a17b3e88ed…',
+        agent: 'agent:claude-procurement',
+        action: 'mail.send(vendor, n=10)',
+        tier: 'T4 — KPMG audited 2026.02',
+        cap: 'cap_8mP3…cV7 · expires 41ms',
+        sig: 'ed25519:74d1…3fa9',
+      },
+      stages: [
+        ['authenticate caller', 'sig ✓ · T4 attestation', 3, 'done'],
+        ['resolve agent.car', '312 days clean · T4', 5, 'done'],
+        ['evaluate scope', 'mail.send ∈ allow', 11, 'done'],
+        ['apply guardrails', '10 / 25 cap · 0.8/s', 7, 'done'],
+        ['sign &amp; chain', 'ed25519 · block 8,422,109', 15, 'done'],
+      ],
+      chainKind: 'allow',
+      chainWhat: '<span class="agent">claude-procurement</span> · mail.send(vendor, n=10)',
+    },
+    'deny-1': {
+      verdict: 'deny', verdictName: 'DENY', verdictTag: 'out of scope · 14ms',
+      why: 'db.write(customers) ∈ deny(code-review)',
+      ms: 14,
+      receipt: {
+        id: '0x1c8e773aa092…',
+        agent: 'agent:code-review',
+        action: 'db.write(customers) — DENIED',
+        tier: 'T2',
+        cap: '(none — call rejected)',
+        sig: 'ed25519:5ae0…11dc',
+      },
+      stages: [
+        ['authenticate caller', 'sig ✓ · ed25519:b8a3…71c5', 2, 'done'],
+        ['resolve agent.car', 'tier T2 · declared scope', 4, 'done'],
+        ['evaluate scope', 'db.write(customers) ∈ deny', 6, 'fail'],
+        ['apply guardrails', 'short-circuit · no exec', 1, 'fail'],
+        ['sign &amp; chain', 'DENY logged · block 8,422,110', 12, 'done'],
+      ],
+      chainKind: 'deny',
+      chainWhat: '<span class="agent">code-review</span> · db.write(customers) ✗',
+    },
+    'deny-2': {
+      verdict: 'deny', verdictName: 'DENY', verdictTag: 'no caller · 4ms',
+      why: 'unsigned · no chain · no attestation',
+      ms: 4,
+      receipt: {
+        id: '0x73bb09e8f8a1…',
+        agent: '(unknown — ollama+llama3.2:8b)',
+        action: 'net.out(api.unknown-bin.io:443) — DENIED',
+        tier: '—',
+        cap: '(none — caller unverified)',
+        sig: 'ed25519:0fa1…3c44 (gate)',
+      },
+      stages: [
+        ['authenticate caller', 'sig: <span class="ms" style="color:#FB7185">null</span>', 1, 'fail'],
+        ['resolve agent.car', '<span class="ms" style="color:#FB7185">no record</span>', 0, 'fail'],
+        ['evaluate scope', 'caller unverified · skip', 0, 'fail'],
+        ['apply guardrails', 'short-circuit · Aurais paged', 0, 'fail'],
+        ['sign &amp; chain', 'DENY + alert · block 8,422,111', 3, 'done'],
+      ],
+      chainKind: 'deny',
+      chainWhat: '<span class="agent">(unknown ollama runtime)</span> · net.out — no cert',
+    },
+    'esc-1': {
+      verdict: 'esc', verdictName: 'ESCALATE', verdictTag: 'threshold · 22ms',
+      why: 'payment.move($182,400) &gt; cap $50,000 → finance-lead',
+      ms: 22,
+      receipt: {
+        id: '0x2e7714b50318…',
+        agent: 'agent:svc-reconciler',
+        action: 'payment.move($182,400) — ESCALATED',
+        tier: 'T3 · cap $50,000',
+        cap: '(awaiting role:finance-lead · 5m)',
+        sig: 'ed25519:31a2…9c4d',
+      },
+      stages: [
+        ['authenticate caller', 'sig ✓ · T3', 2, 'done'],
+        ['resolve agent.car', 'tier T3 · cap $50,000', 4, 'done'],
+        ['evaluate scope', 'payment.move ∈ allow', 9, 'done'],
+        ['apply guardrails', '$182,400 &gt; cap · escalate', 3, 'esc'],
+        ['sign &amp; chain', 'PENDING · block 8,422,112', 4, 'esc'],
+      ],
+      chainKind: 'esc',
+      chainWhat: '<span class="agent">svc-reconciler</span> · payment.move($182,400) ⚠',
+    },
+    'esc-2': {
+      verdict: 'esc', verdictName: 'ESCALATE', verdictTag: 'drift · 18ms',
+      why: 'fs.read rate 14/90s &gt; soft cap 3/90s · 7.0× baseline',
+      ms: 18,
+      receipt: {
+        id: '0x6a02db1cc7f4…',
+        agent: 'agent:kb-indexer',
+        action: 'fs.read(/docs/customers/**) — ESCALATED',
+        tier: 'T2 · drift 7.0×',
+        cap: '(paused · role:data-platform · 5m)',
+        sig: 'ed25519:af31…2204',
+      },
+      stages: [
+        ['authenticate caller', 'sig ✓ · T2', 2, 'done'],
+        ['resolve agent.car', 'baseline 90s · 2 calls', 3, 'done'],
+        ['evaluate scope', 'fs.read ∈ allow', 5, 'done'],
+        ['apply guardrails', 'rate 14/90s · drift 7.0×', 3, 'esc'],
+        ['sign &amp; chain', 'PAUSED + alert · 8,422,113', 5, 'esc'],
+      ],
+      chainKind: 'esc',
+      chainWhat: '<span class="agent">kb-indexer</span> · fs.read · drift 7× ⚠',
+    },
+  };
+
+  /* Helpers */
+  function setEditorTab(scenId, tab) {
+    const lines = tabContent[scenId][tab];
+    editor.innerHTML = lines.map(l => `<span class="line">${l[0]}</span>`).join('');
+  }
+  function renderStages(s) {
+    stagesEl.innerHTML = s.stages.map((row, i) => `
+      <div class="stage ${row[3]}">
+        <span class="num">[${String(i+1).padStart(2,'0')}]</span>
+        <span class="body">${row[0]} <small>${row[1]}</small></span>
+        <span class="ms">${row[2]}ms</span>
+      </div>`).join('');
+  }
+  function renderVerdict(s) {
+    verdictWrap.innerHTML = `
+      <div class="verdict" data-v="${s.verdict}">
+        <div class="v-tag">${s.verdictTag}</div>
+        <div class="v-name">${s.verdictName}</div>
+        <div class="v-why">${s.why}</div>
+        <div class="v-ms">total: ${s.ms}ms · receipt sealed</div>
+      </div>`;
+    receiptWrap.innerHTML = `
+      <div class="receipt">
+        <h5>// signed receipt</h5>
+        <div class="row"><span class="k">id</span><span class="v hash">${s.receipt.id}</span></div>
+        <div class="row"><span class="k">agent</span><span class="v">${s.receipt.agent}</span></div>
+        <div class="row"><span class="k">action</span><span class="v">${s.receipt.action}</span></div>
+        <div class="row"><span class="k">tier</span><span class="v">${s.receipt.tier}</span></div>
+        <div class="row"><span class="k">cap</span><span class="v">${s.receipt.cap}</span></div>
+        <div class="row"><span class="k">sig</span><span class="v sig">${s.receipt.sig}</span></div>
+      </div>`;
+  }
+  function prependChain(s, time) {
+    const rowHtml = `
+      <div class="chain-row new ${s.chainKind}" data-v="${s.verdict}">
+        <div class="glyph">${s.verdict === 'allow' ? '✓' : s.verdict === 'deny' ? '✗' : '⚠'}</div>
+        <div class="body">
+          <div class="meta">
+            <span>${time}</span>
+            <span>${s.verdictName}</span>
+            <span>${s.ms}ms</span>
+          </div>
+          <div class="what">${s.chainWhat}</div>
+          <div class="hash">${s.receipt.id}</div>
+        </div>
+      </div>`;
+    chainEl.insertAdjacentHTML('afterbegin', rowHtml);
+    while (chainEl.children.length > 5) chainEl.removeChild(chainEl.lastChild);
+    const first = chainEl.firstElementChild;
+    setTimeout(() => first.classList.remove('new'), 700);
+  }
+
+  /* Time helper */
+  function nowStr() {
+    const d = new Date();
+    return d.toLocaleTimeString('en-US', { hour12: false });
+  }
+
+  /* Seed chain with a few prior receipts (allow-heavy) */
+  function seedChain() {
+    const seed = [
+      { verdict:'allow', verdictName:'ALLOW', ms:34, receipt:{ id:'0x9bb1c241aa9d…' }, chainKind:'allow', chainWhat:'<span class="agent">claude-procurement</span> · contract.review' },
+      { verdict:'allow', verdictName:'ALLOW', ms:29, receipt:{ id:'0xc4421ee03a01…' }, chainKind:'allow', chainWhat:'<span class="agent">market-scout-prod</span> · db.read(trades)' },
+      { verdict:'allow', verdictName:'ALLOW', ms:31, receipt:{ id:'0x6b104caa28c3…' }, chainKind:'allow', chainWhat:'<span class="agent">on-call-bot</span> · pagerduty.notify' },
+      { verdict:'esc',   verdictName:'ESCALATE', ms:18, receipt:{ id:'0x77a8c0bb1322…' }, chainKind:'esc',   chainWhat:'<span class="agent">qa-runner</span> · shell.exec ⚠' },
+      { verdict:'deny',  verdictName:'DENY',  ms:8,  receipt:{ id:'0xeaa01298d12c…' }, chainKind:'deny',  chainWhat:'<span class="agent">research-pal</span> · net.out(blocked)' },
+    ];
+    seed.reverse().forEach(s => prependChain(s, nowStr()));
+    chainEl.querySelectorAll('.chain-row.new').forEach(r => r.classList.remove('new'));
+  }
+
+  /* Run sequence */
+  let activeId = 'allow-1';
+  let activeTab = 'policy';
+
+  function loadScenario(id) {
+    activeId = id;
+    document.querySelectorAll('.scen').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+    setEditorTab(id, activeTab);
+    runBtn.innerHTML = '▶ DECIDE · ' + scenarioData[id].ms + 'ms';
+    runBtn.disabled = false;
+    runBtn.style.opacity = 1;
+    verdictWrap.innerHTML = '';
+    receiptWrap.innerHTML = '';
+    // Stages: show pending state
+    stagesEl.innerHTML = scenarioData[id].stages.map((row, i) => `
+      <div class="stage" style="opacity:0.45">
+        <span class="num">[${String(i+1).padStart(2,'0')}]</span>
+        <span class="body">${row[0]} <small>pending</small></span>
+        <span class="ms">—</span>
+      </div>`).join('');
+  }
+
+  async function runScenario() {
+    const s = scenarioData[activeId];
+    runBtn.disabled = true; runBtn.style.opacity = 0.6;
+    verdictWrap.innerHTML = ''; receiptWrap.innerHTML = '';
+    // Reveal stages one at a time
+    const total = s.stages.length;
+    for (let i = 0; i < total; i++) {
+      const row = s.stages[i];
+      const stageEl = stagesEl.children[i];
+      stageEl.classList.add(row[3]);
+      stageEl.style.opacity = 1;
+      stageEl.querySelector('.body').innerHTML = `${row[0]} <small>${row[1]}</small>`;
+      stageEl.querySelector('.ms').textContent = row[2] + 'ms';
+      await new Promise(r => setTimeout(r, 220 + Math.random()*80));
+    }
+    renderVerdict(s);
+    prependChain(s, nowStr());
+    blockNum += 1;
+    blockEl.textContent = blockNum.toLocaleString();
+    runBtn.disabled = false; runBtn.style.opacity = 1;
+  }
+
+  /* Wire events */
+  document.querySelectorAll('.scen').forEach(b => {
+    b.addEventListener('click', () => {
+      loadScenario(b.dataset.id);
+      runScenario();
+    });
+  });
+  document.querySelectorAll('.editor-tabs .tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      activeTab = t.dataset.t;
+      setEditorTab(activeId, activeTab);
+    });
+  });
+  runBtn.addEventListener('click', runScenario);
+
+  /* Init */
+  seedChain();
+  loadScenario('allow-1');
+  setTimeout(runScenario, 320);
+})();
+</script>

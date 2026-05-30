@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--parchment); }
+  .label { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faded); margin: 0 0 10px; }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .item { display: flex; flex-direction: column; gap: 6px; }
+  .dot { width: 100%; height: 60px; border-radius: 6px; border: 1px solid var(--border-hairline); display: flex; align-items: center; justify-content: center; font-family: var(--font-sans); font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #faf6f0; }
+  .key { font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--faded); }
+</style></head>
+<body>
+  <div class="label">Evidence-board status scale</div>
+  <div class="row">
+    <div class="item"><div class="dot" style="background:#2d5a4a;">Leading</div><div class="key">--status-leading</div></div>
+    <div class="item"><div class="dot" style="background:#9a7b2d;">Secondary</div><div class="key">--status-secondary</div></div>
+    <div class="item"><div class="dot" style="background:#7a6e62;">Possible</div><div class="key">--status-possible</div></div>
+    <div class="item"><div class="dot" style="background:#6b1d1d;opacity:0.85;">Unlikely</div><div class="key">--status-unlikely</div></div>
+    <div class="item"><div class="dot" style="background:#6b1d1d;">Eliminated</div><div class="key">--status-eliminated</div></div>
+  </div>
+</body></html>

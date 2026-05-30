@@ -1,0 +1,45 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "buildCommand": "echo no-build",
+  "installCommand": "echo no-install",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/heritage",  "destination": "/" },
+    { "source": "/hub",       "destination": "/hub" },
+    { "source": "/tree",      "destination": "/cason-tree" },
+    { "source": "/dashboard", "destination": "/ui_kits/family-tree-app" },
+    { "source": "/deck",      "destination": "/slides" },
+    { "source": "/system",    "destination": "/README.md" },
+    { "source": "/prompt",    "destination": "/research/edge-expansion-prompt.md" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*).css",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

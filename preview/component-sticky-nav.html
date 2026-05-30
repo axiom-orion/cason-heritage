@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 0; background: var(--deep-blue); font-family: var(--font-sans); }
+  .nav { background: rgba(26,39,68,0.95); backdrop-filter: blur(10px); display: flex; align-items: center; padding: 0; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+  .brand { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--gold-bright); padding: 12px 16px; border-right: 1px solid rgba(196,154,60,0.2); white-space: nowrap; }
+  .nav a { font-size: 11.5px; color: rgba(244,237,228,0.6); padding: 12px 10px; text-decoration: none; letter-spacing: 0.03em; }
+  .nav a.active { color: var(--gold-bright); }
+  .progress { height: 3px; background: linear-gradient(90deg, var(--gold-bright), var(--rust)); width: 62%; }
+  .caption { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(244,237,228,0.4); padding: 14px 16px 18px; }
+</style></head>
+<body>
+  <div class="nav">
+    <span class="brand">The Cason Line</span>
+    <a href="#">Before</a>
+    <a href="#">Map</a>
+    <a href="#" class="active">Thomas</a>
+    <a href="#">The Chain</a>
+    <a href="#">Evidence</a>
+    <a href="#">Ransom Sr.</a>
+    <a href="#">Generations</a>
+    <a href="#">Timeline</a>
+    <a href="#">The Pattern</a>
+  </div>
+  <div class="progress"></div>
+  <div class="caption">Sticky nav · reading-progress bar · active section in gold-bright</div>
+</body></html>

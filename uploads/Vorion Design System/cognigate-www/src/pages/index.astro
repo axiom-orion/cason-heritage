@@ -1,0 +1,440 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Cognigate — Decide first. Act second. ≤120ms." description="Apache-2.0 reference implementation of the BASIS standard. Sub-120ms decisions. Six SDKs. Cryptographic receipts.">
+<div data-screen-label="cognigate.dev · homepage">
+
+<div class="eco-strip">
+  <div class="row">
+    <span>// VORION ECOSYSTEM</span>
+    <a href="vorion-www.html" data-site="vorion">vorion.org</a><span class="sep">/</span>
+    <a href="cognigate-www.html" data-site="cognigate" aria-current="page">cognigate.dev</a><span class="sep">/</span>
+    <a href="agentanchor-www.html" data-site="agentanchor">agentanchorai.com</a><span class="sep">/</span>
+    <a href="aurais-www.html" data-site="aurais">aurais.net</a>
+    <span style="margin-left:auto; opacity:0.6;">apache-2.0 · v0.9.4 · build 8842</span>
+  </div>
+</div>
+
+<header class="site-nav">
+  <div class="row">
+    <a href="#" class="brand"><img src="assets/cognigate-logo.png" alt="" /> Cognigate <span class="property-tag">enforcement</span></a>
+    <nav class="links">
+      <a href="#why">Why a gate</a>
+      <a href="#sdks">SDKs</a>
+      <a href="#perf">Performance</a>
+      <a href="#docs">Docs</a>
+      <a href="#changelog">Changelog</a>
+    </nav>
+    <a href="https://github.com" class="cta" style="background: #0F172A; border-color: #0F172A;">★ 14.2k on GitHub →</a>
+  </div>
+</header>
+
+<section class="hero hero-cog">
+  <div class="page">
+    <div class="grid">
+      <div>
+        <span class="kicker">▸ The runtime gate for autonomous agents</span>
+        <h1>Decide first. <span class="accent">Act second.</span></h1>
+        <p class="lede">A policy decision point that wraps any tool call your agent makes. Sub-120ms decisions. Cryptographic receipts. Six SDKs. Apache-2.0. Reference implementation of the BASIS standard.</p>
+
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 32px; flex-wrap: wrap;">
+          <div class="install-line">
+            <span class="prompt">$</span>
+            <span>npm install @cognigate/sdk</span>
+            <span class="copy">⧉ COPY</span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.1em;">OR · pip install · go get · cargo add</span>
+        </div>
+
+        <div class="actions">
+          <a href="#" class="btn btn--lg">Read the docs <span class="arrow">→</span></a>
+          <a href="#" class="btn btn--ghost btn--lg">★ GitHub</a>
+        </div>
+
+        <div style="display: flex; gap: 28px; padding-top: 28px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.1em;">
+          <span>P50: <strong style="color: var(--site-accent);">38MS</strong></span>
+          <span>P99: <strong style="color: var(--site-accent);">112MS</strong></span>
+          <span>14.2K STARS</span>
+          <span>340 CONTRIBUTORS</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="code-frame">
+          <div class="tabs">
+            <div class="lights"><span></span><span></span><span></span></div>
+            <div class="tab active"><span class="dot"></span>agent.ts</div>
+            <div class="tab">policy.yaml</div>
+          </div>
+<pre><span class="com">// wrap any tool call. that's it.</span>
+<span class="kw">import</span> { <span class="var">Cognigate</span> } <span class="kw">from</span> <span class="str">"@cognigate/sdk"</span>;
+
+<span class="kw">const</span> <span class="var">gate</span> = <span class="kw">new</span> <span class="fn">Cognigate</span>({
+  <span class="var">policy</span>: <span class="str">"./policy.yaml"</span>,
+  <span class="var">agent</span>:  <span class="str">"market-scout-prod"</span>,
+});
+
+<span class="hi"><span class="kw">await</span> gate.<span class="fn">authorize</span>({
+  <span class="var">action</span>: <span class="str">"db.write"</span>,
+  <span class="var">scope</span>:  { <span class="var">table</span>: <span class="str">"orders"</span>, <span class="var">rows</span>: <span class="num">3</span> },
+  <span class="var">because</span>: <span class="str">"reconcile pending settlements"</span>,
+});</span>
+
+<span class="com">// → 38ms · ALLOW · receipt 0x9f2a…b41c</span>
+<span class="com">// every call signed, scoped, logged, replayable.</span></pre>
+          <div class="latency-band">
+            <span class="lbl">// LIVE</span>
+            <span class="val">DECIDED IN 38MS</span>
+            <div class="bar"><span></span></div>
+            <span class="lbl">P50 · 38</span>
+            <span class="lbl">P99 · 112</span>
+          </div>
+        </div>
+        <p style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); text-align: center; margin-top: 12px; letter-spacing: 0.1em;">// 11 LINES · WORKS WITH ANY AGENT FRAMEWORK</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why" style="background: var(--bg-alt);">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 01 · why a gate, not a wrapper</div>
+        <h2>Decision before action. Receipt after.</h2>
+      </div>
+      <p class="section-lede">Most "agent safety" tools are post-hoc — they log what happened. Cognigate decides what happens. Five things, every call.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="step">
+        <div class="num">[01]</div>
+        <div>
+          <h3>Authenticate the caller</h3>
+          <p>Verify agent identity (signed nonce, mTLS, OIDC — your choice). No anonymous calls reach a tool. Cryptographic, not header-based.</p>
+          <div class="code-frame" style="max-width: 580px;"><pre><span class="com">// gate verifies before evaluating</span>
+caller: <span class="str">"agent:claude-procurement"</span>
+sig:    <span class="str">"ed25519:9f2a…b41c"</span>
+attest: <span class="str">"basis://aa/T3/2026.04.18"</span></pre></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">[02]</div>
+        <div>
+          <h3>Evaluate scope vs. policy</h3>
+          <p>Match the requested action against the agent's declared scope and your runtime policy. WASM-compiled — same policy runs in the gate, in the SDK, in your CI lints.</p>
+          <div class="code-frame" style="max-width: 580px;"><pre><span class="kw">policy</span>:
+  <span class="var">market-scout</span>:
+    <span class="var">allow</span>:
+      - <span class="str">db.read</span>(<span class="str">"orders"</span>, <span class="str">"trades"</span>)
+      - <span class="str">db.write</span>(<span class="str">"orders"</span>, max_rows: <span class="num">10</span>)
+    <span class="var">deny</span>:
+      - <span class="str">db.write</span>(<span class="str">"customers"</span>)
+      - <span class="str">net.outbound</span>(<span class="str">"*"</span>)</pre></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">[03]</div>
+        <div>
+          <h3>Apply guardrails</h3>
+          <p>Rate limits, blast radius caps, time-of-day windows, kill-switch checks. All declarative. All per-agent. Hot-reload without restart.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">[04]</div>
+        <div>
+          <h3>Issue or deny</h3>
+          <p>Return ALLOW (with a scoped, expiring capability token) or DENY (with a structured reason). Some calls escalate to a human; the SDK surfaces it as an awaitable.</p>
+          <div class="decision-card" style="max-width: 580px;">
+            <div class="head"><span class="ok">●</span> ALLOW · 38ms · receipt 0x9f2a…b41c</div>
+            <div class="body" style="font-family: var(--font-mono); font-size: 12px; line-height: 1.7;"><div style="color:#94A3B8;">action</div><div>db.write(orders, rows=3)</div><div style="color:#94A3B8; margin-top:8px;">capability</div><div>cap_2nQ8…fA1 · expires 38ms</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">[05]</div>
+        <div>
+          <h3>Sign the receipt</h3>
+          <p>Append to the chain. Cryptographic, append-only, replayable. AgentAnchor reads it for tier attestation. Aurais reads it for security telemetry.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="perf">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 02 · performance</div>
+        <h2>Fast enough that you'll forget it's there.</h2>
+      </div>
+      <p class="section-lede">Benchmark from the public test harness, k6, n=10⁶ requests. Single-region, default policy, no caching tricks.</p>
+    </div>
+
+    <div class="perf-grid">
+      <div class="perf"><div class="lbl">// MEDIAN</div><div class="big">38ms</div><p class="desc">Authorize + sign + return. End to end. Network included.</p></div>
+      <div class="perf"><div class="lbl">// P99</div><div class="big">112ms</div><p class="desc">Tail latency. Under the budget for any user-facing flow.</p></div>
+      <div class="perf"><div class="lbl">// THROUGHPUT</div><div class="big">14k <small style="font-size:14px; font-weight:400;">rps</small></div><p class="desc">Per gate node. Linear horizontal scale. Zero shared state.</p></div>
+      <div class="perf"><div class="lbl">// AVAILABILITY</div><div class="big">99.99%</div><p class="desc">Cloud SLO. Self-hosted depends on your ops.</p></div>
+    </div>
+
+    <div style="margin-top: 56px; padding: 36px; background: var(--bg-alt); border-radius: 14px; display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;">
+      <div>
+        <div class="meta" style="font-family: var(--font-mono); font-size: 11px; color: var(--site-accent); letter-spacing: 0.18em;">// CONFORMANCE</div>
+        <h3 style="margin: 8px 0; font-size: 26px; letter-spacing: -0.015em;">Public test harness. Run it before you ship.</h3>
+        <p style="color: var(--fg-muted); margin: 0;">472 tests against the BASIS standard. Pass to claim T3 readiness.</p>
+      </div>
+      <div style="display: flex; gap: 24px; align-items: center;">
+        <div style="text-align: center;"><div style="font-family: var(--font-mono); font-size: 36px; font-weight: 700; color: #10B981;">472/472</div><div style="font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); letter-spacing: 0.18em;">PASSING ON HEAD</div></div>
+        <a href="#" class="btn">Run the suite →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sdks" style="background: var(--bg-alt);">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 03 · SDKs</div>
+        <h2>Six languages. Same API. Same policy file.</h2>
+      </div>
+    </div>
+
+    <div class="sdk-grid">
+      <div class="sdk-pill shipping">@cognigate/sdk<span class="v">node · 0.9.4</span></div>
+      <div class="sdk-pill shipping">cognigate<span class="v">python · 0.9.4</span></div>
+      <div class="sdk-pill shipping">cognigate-go<span class="v">go · 0.9.4</span></div>
+      <div class="sdk-pill shipping">cognigate-rs<span class="v">rust · 0.9.4</span></div>
+      <div class="sdk-pill shipping">Cognigate<span class="v">java · 0.9.2</span></div>
+      <div class="sdk-pill shipping">Cognigate<span class="v">.net · 0.9.0</span></div>
+      <div class="sdk-pill soon">cognigate-rb<span class="v">ruby · soon</span></div>
+      <div class="sdk-pill soon">cognigate-php<span class="v">php · soon</span></div>
+      <div class="sdk-pill soon">cognigate-ex<span class="v">elixir · soon</span></div>
+      <div class="sdk-pill soon">cognigate-swift<span class="v">swift · soon</span></div>
+      <div class="sdk-pill soon">cognigate-kt<span class="v">kotlin · soon</span></div>
+      <div class="sdk-pill soon">cli<span class="v">shell · soon</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="changelog">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 04 · changelog</div>
+        <h2>Shipping weekly since Aug 2025.</h2>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: 0;">
+      <div style="display: grid; grid-template-columns: 120px 100px 1fr; gap: 24px; padding: 18px 0; border-top: 1px solid var(--border);">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted);">2026.04.18</span>
+        <span class="hex">v 0.9.4</span>
+        <div><strong>WASM policies hot-reload.</strong> <span style="color: var(--fg-muted);">No restart. Policy signed by maintainer key, validated, swapped under live traffic.</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 100px 1fr; gap: 24px; padding: 18px 0; border-top: 1px solid var(--border);">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted);">2026.04.04</span>
+        <span class="hex">v 0.9.3</span>
+        <div><strong>Receipts now bind to AgentAnchor tier.</strong> <span style="color: var(--fg-muted);">Tier embedded in receipt; AA reads chain directly.</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 100px 1fr; gap: 24px; padding: 18px 0; border-top: 1px solid var(--border);">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted);">2026.03.21</span>
+        <span class="hex">v 0.9.2</span>
+        <div><strong>Java SDK GA.</strong> <span style="color: var(--fg-muted);">Same API surface. Maven Central.</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 100px 1fr; gap: 24px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted);">2026.03.07</span>
+        <span class="hex">v 0.9.1</span>
+        <div><strong>P99 down 38%.</strong> <span style="color: var(--fg-muted);">Kept-alive Ed25519 signers; better cold-path. <a href="#" style="color: var(--site-accent);">benchmark →</a></span></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; text-align: center;">
+      <a href="#" class="btn btn--ghost">Full changelog →</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background: linear-gradient(180deg, var(--bg) 0%, #050912 100%); color: #E2E8F0;">
+  <div class="page" style="text-align: center;">
+    <h2 style="font-size: clamp(36px, 4.5vw, 56px); font-weight: 700; letter-spacing: -0.025em; margin: 0 auto 16px; max-width: 22ch; line-height: 1.1; text-wrap: balance; color: #F1F5F9;">Wrap your first tool call in 11 lines.</h2>
+    <p style="font-size: 18px; color: #94A3B8; max-width: 56ch; margin: 0 auto 36px;">Apache-2.0. Self-host or use the cloud. Conformance suite is free, forever.</p>
+    <div class="install-line" style="margin: 0 auto 28px;">
+      <span class="prompt">$</span>
+      <span>npm install @cognigate/sdk && npx cognigate init</span>
+      <span class="copy">⧉ COPY</span>
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="#" class="btn btn--lg">Read the docs <span class="arrow">→</span></a>
+      <a href="#" class="btn btn--ghost btn--lg" style="color: #E2E8F0; border-color: #1E293B;">★ on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="page">
+    <div class="row">
+      <div class="brand-block">
+        <strong style="font-size: 18px; letter-spacing: -0.01em;">Cognigate · the gate</strong>
+        <div class="tag">// VORION ECOSYSTEM</div>
+        <p>Reference enforcement implementation of the BASIS standard. Apache-2.0. Sub-120ms by design.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="#">SDKs</a></li>
+        <li><a href="#">Policies</a></li>
+        <li><a href="#">Self-host</a></li>
+        <li><a href="#">Cognigate Cloud</a></li>
+      </ul></div>
+      <div><h4>Developers</h4><ul>
+        <li><a href="#">Docs</a></li>
+        <li><a href="#">API reference</a></li>
+        <li><a href="#">Changelog</a></li>
+        <li><a href="#">Status</a></li>
+      </ul></div>
+      <div><h4>Open source</h4><ul>
+        <li><a href="#">GitHub</a></li>
+        <li><a href="#">RFCs</a></li>
+        <li><a href="#">Discord</a></li>
+        <li><a href="#">License</a></li>
+      </ul></div>
+      <div><h4>Family</h4><ul>
+        <li><a href="vorion-www.html">Vorion.org</a></li>
+        <li><a href="agentanchor-www.html">AgentAnchor</a></li>
+        <li><a href="aurais-www.html">Aurais</a></li>
+      </ul></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 Vorion LLC · Apache-2.0</span>
+      <span>v 0.9.4 · build 8842 · status: ●all systems normal</span>
+    </div>
+  </div>
+</footer>
+
+</div>
+</BaseLayout>
+
+<style is:global>
+/* ── Cognigate is the dev-first property: terminals, code, latency lines ── */
+  .hero-cog { padding: 88px 0 64px; }
+  .hero-cog .grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center; }
+  .hero-cog .actions { display: flex; gap: 12px; margin-bottom: 28px; }
+
+  .install-line {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: #0F172A; color: #E2E8F0;
+    border-radius: 8px;
+    font-family: var(--font-mono); font-size: 13px;
+    border: 1px solid #1E293B;
+  }
+  .install-line .prompt { color: #10B981; }
+  .install-line .copy { margin-left: 12px; color: #64748B; cursor: pointer; font-size: 11px; letter-spacing: 0.1em; }
+  .install-line .copy:hover { color: #E2E8F0; }
+
+  /* Code preview */
+  .code-frame {
+    background: #0B1120; border-radius: 12px; overflow: hidden;
+    border: 1px solid #1E293B;
+    box-shadow: 0 24px 60px -28px rgba(15,23,42,0.4);
+  }
+  .code-frame .tabs {
+    display: flex; align-items: center; gap: 0;
+    background: #050912; border-bottom: 1px solid #1E293B;
+    padding: 0 8px; height: 38px;
+  }
+  .code-frame .tab {
+    padding: 0 14px; height: 100%; display: flex; align-items: center;
+    font-family: var(--font-mono); font-size: 11px; color: #64748B;
+    border-right: 1px solid #1E293B;
+  }
+  .code-frame .tab.active { background: #0B1120; color: #E2E8F0; }
+  .code-frame .tab .dot { width: 6px; height: 6px; border-radius: 50%; background: #10B981; margin-right: 8px; }
+  .code-frame .lights { display: flex; gap: 6px; padding: 0 12px 0 4px; }
+  .code-frame .lights span { width: 11px; height: 11px; border-radius: 50%; background: #1E293B; }
+  .code-frame pre {
+    margin: 0; padding: 24px 28px;
+    font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7;
+    color: #E2E8F0;
+    overflow: auto;
+  }
+  .code-frame .ln { color: #334155; user-select: none; padding-right: 14px; display: inline-block; width: 24px; text-align: right; }
+  .code-frame .kw { color: #C084FC; }
+  .code-frame .fn { color: #60A5FA; }
+  .code-frame .str { color: #34D399; }
+  .code-frame .num { color: #FBBF24; }
+  .code-frame .com { color: #475569; font-style: italic; }
+  .code-frame .var { color: #F1F5F9; }
+  .code-frame .pkg { color: #FB7185; }
+  .code-frame .hi { background: rgba(16,185,129,0.10); display: block; margin: 0 -28px; padding: 0 28px; border-left: 2px solid #10B981; }
+
+  /* Latency band */
+  .latency-band {
+    background: #050912; color: #E2E8F0;
+    padding: 12px 16px; border-top: 1px solid #1E293B;
+    display: grid; grid-template-columns: auto 1fr auto auto auto;
+    gap: 14px; align-items: center;
+    font-family: var(--font-mono); font-size: 11px;
+  }
+  .latency-band .lbl { color: #64748B; letter-spacing: 0.1em; }
+  .latency-band .val { color: #10B981; font-weight: 600; }
+  .latency-band .bar { height: 4px; background: #1E293B; border-radius: 2px; overflow: hidden; }
+  .latency-band .bar > span { display: block; height: 100%; background: linear-gradient(90deg, #10B981, #34D399); width: 28%; }
+
+  /* Decision panel */
+  .decision-card {
+    background: #0B1120; border: 1px solid #1E293B; border-radius: 12px;
+    overflow: hidden; color: #E2E8F0;
+  }
+  .decision-card .head {
+    background: #050912; padding: 14px 18px; border-bottom: 1px solid #1E293B;
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--font-mono); font-size: 11px; color: #64748B; letter-spacing: 0.1em;
+  }
+  .decision-card .head .ok { color: #10B981; }
+  .decision-card .body { padding: 18px; }
+
+  /* Steps timeline */
+  .timeline { display: grid; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 56px 1fr;
+    gap: 24px; padding: 24px 0;
+    border-top: 1px solid var(--border);
+  }
+  .step:first-child { border-top: none; }
+  .step .num {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--site-accent); padding-top: 4px;
+  }
+  .step h3 { font-size: 22px; margin: 0 0 10px; letter-spacing: -0.015em; }
+  .step p { color: var(--fg-muted); margin: 0 0 16px; max-width: 60ch; }
+
+  /* Stats / SDKs */
+  .sdk-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; }
+  .sdk-pill {
+    padding: 18px 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg); text-align: center;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sdk-pill .v { color: var(--fg-muted); font-size: 10px; }
+  .sdk-pill.shipping { border-color: var(--site-accent); color: var(--site-accent); }
+  .sdk-pill.soon { color: var(--fg-muted); border-style: dashed; }
+
+  .perf-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .perf {
+    padding: 28px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+  }
+  .perf .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--site-accent); }
+  .perf .big { font-family: var(--font-mono); font-size: 40px; font-weight: 700; letter-spacing: -0.025em; line-height: 1; margin: 12px 0 6px; }
+  .perf .desc { color: var(--fg-muted); font-size: 13px; margin: 0; line-height: 1.5; }
+
+  /* Hex chip */
+  .hex { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: #DCFCE7; color: #065F46; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; }
+
+  @media (max-width: 880px) {
+    .hero-cog .grid { grid-template-columns: 1fr; }
+    .sdk-grid { grid-template-columns: repeat(3,1fr); }
+    .perf-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>

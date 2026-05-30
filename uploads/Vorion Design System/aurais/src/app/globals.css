@@ -1,0 +1,6 @@
+@import "@vorionsys/design-tokens/tokens.css";
+@import "@vorionsys/design-tokens/site-shell.css";
+
+@import "tailwindcss";
+
+::selection { background: var(--site-accent); color: white; }

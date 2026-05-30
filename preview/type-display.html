@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 24px; background: var(--parchment); }
+  .row { display: flex; gap: 18px; align-items: flex-end; }
+  .specimen { flex: 1; }
+  .label { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faded); margin-bottom: 6px; }
+  .meta { font-family: var(--font-sans); font-size: 10px; color: var(--faded); margin-top: 4px; }
+  .display-xl { font-family: var(--font-display); font-weight: 900; font-size: 56px; color: var(--ink); letter-spacing: 0.04em; line-height: 1; }
+  .display-lg { font-family: var(--font-display); font-weight: 700; font-size: 36px; color: var(--rust); line-height: 1.1; }
+  .display-md { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--deep-blue); line-height: 1.2; }
+</style></head>
+<body>
+  <div class="row">
+    <div class="specimen">
+      <div class="label">H1 · Hero — Playfair Display 900</div>
+      <div class="display-xl">Into the Unknown</div>
+      <div class="meta">56px / 900 / +0.04em · for hero only</div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:18px;">
+    <div class="specimen">
+      <div class="label">H2 · Section — Playfair Display 700</div>
+      <div class="display-lg">The Migration</div>
+      <div class="meta">36px / 700 · rust on light, gold-bright on dark</div>
+    </div>
+    <div class="specimen">
+      <div class="label">H3 · Subhead — Playfair 700</div>
+      <div class="display-md">What He Built</div>
+      <div class="meta">22px / 700 · deep-blue</div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--parchment); }
+  .label { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faded); margin: 0 0 10px; }
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .swatch { border-radius: 10px; padding: 14px; height: 96px; display: flex; flex-direction: column; justify-content: space-between; }
+  .name { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+  .key { font-family: ui-monospace, monospace; font-size: 10px; opacity: 0.75; }
+</style></head>
+<body>
+  <div class="label">Surfaces — page, raised, highlight, warning</div>
+  <div class="row">
+    <div class="swatch" style="background:#f4ede4;border:1px solid rgba(139,69,19,0.15);color:#2c1810;"><div class="name">Page</div><div class="key">--bg / parchment</div></div>
+    <div class="swatch" style="background:#faf6f0;border:1px solid rgba(139,69,19,0.15);box-shadow:0 4px 20px rgba(44,24,16,0.08);color:#2c1810;"><div class="name">Raised</div><div class="key">--bg-raised / cream</div></div>
+    <div class="swatch" style="background:linear-gradient(135deg,#faf6f0,#fff8ec);border:2px solid #9a7b2d;color:#2c1810;"><div class="name">Highlight</div><div class="key">direct-line · gold wash</div></div>
+    <div class="swatch" style="background:linear-gradient(135deg,#fff8ec,#fef3e2);border:2px dashed #8b4513;color:#2c1810;"><div class="name">Gap / Unsolved</div><div class="key">dashed rust border</div></div>
+  </div>
+</body></html>

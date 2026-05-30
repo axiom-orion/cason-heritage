@@ -1,0 +1,18 @@
+{
+  "name": "@vorionsys/design-tokens",
+  "version": "0.1.0",
+  "description": "Vorion ecosystem design tokens — CSS variables, type system, per-property accents.",
+  "license": "Apache-2.0",
+  "publishConfig": { "access": "public" },
+  "main": "tokens.css",
+  "files": ["tokens.css", "site-shell.css", "README.md"],
+  "exports": {
+    ".":              "./tokens.css",
+    "./tokens.css":   "./tokens.css",
+    "./site-shell.css": "./site-shell.css"
+  },
+  "keywords": ["vorion", "basis", "design-tokens", "css-variables"],
+  "repository": { "type": "git", "url": "https://github.com/voriongit/design-tokens.git" },
+  "homepage": "https://vorion.org/design",
+  "sideEffects": ["*.css"]
+}

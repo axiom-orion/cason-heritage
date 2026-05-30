@@ -1,0 +1,39 @@
+# Vercel — link metadata is per-clone; re-establish with `vercel link`
+.vercel
+
+# Node / build
+node_modules
+.og-builder/node_modules
+
+# Design system handoff bundles — reference material, extracted from zips
+.design-handoff
+.design-handoff-v2
+*Design System*.zip
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+.vercel
+
+# --- not part of the served site (design tooling, decks, build cruft) ---
+.design-handoff/
+.og-builder/
+research/
+scrap/
+ui_kits/
+uploads/
+slides/
+SKILL.md
+*.zip
+*.pptx
+.vercel/
+
+preview/

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Into the Unknown — Family Tree App</title>
+<meta name="description" content="Interactive family-tree explorer for the Cason line — five visualizations of eleven generations from Hertfordshire (1608) to the Space Coast (1957).">
+<meta property="og:title" content="Into the Unknown — Cason Family Tree">
+<meta property="og:description" content="Five interactive visualizations of eleven Cason generations across four hundred years.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/dashboard">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="icon" href="../../assets/favicon.svg" />
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-serif); background: #f0eee9; color: var(--ink); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+  button { font-family: inherit; }
+  input { font-family: inherit; }
+  /* Artboard surfaces shouldn't expose horizontal scroll seams. */
+  [data-dc-slot] .dc-card { overflow: hidden; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="/ui_kits/family-tree-app/data.js"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/shared.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/V1_Atlas.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/V2_LongScroll.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/V3_Migration.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/V4_Vault.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/V5_Dashboard.jsx"></script>
+<script type="text/babel" src="/ui_kits/family-tree-app/design-canvas.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+const W = 1280;
+const H = 820;
+
+function App() {
+  return (
+    <DesignCanvas
+      title="Into the Unknown — Family Tree App"
+      subtitle="Four design directions for the Cason family-tree contribution app. Click expand on any artboard for fullscreen."
+    >
+      <DCSection
+        id="exploration"
+        title="Four directions"
+        subtitle="All share the same data, components, and visual language. Mix-and-match welcome."
+      >
+        <DCArtboard id="atlas" label="01 · The Atlas" width={W} height={H}>
+          <AtlasView />
+        </DCArtboard>
+        <DCArtboard id="long-scroll" label="02 · The Long Scroll" width={W} height={H}>
+          <LongScrollView />
+        </DCArtboard>
+        <DCArtboard id="migration" label="03 · The Migration" width={W} height={H}>
+          <MigrationView />
+        </DCArtboard>
+        <DCArtboard id="vault" label="04 · The Vault" width={W} height={H}>
+          <VaultView />
+        </DCArtboard>
+        <DCArtboard id="dashboard" label="05 · The Dashboard" width={W} height={H}>
+          <DashboardView />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

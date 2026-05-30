@@ -1,0 +1,12 @@
+{
+  "name": "cason-heritage-og-builder",
+  "private": true,
+  "version": "0.0.0",
+  "description": "One-time tool for generating og-image.png from og-image.html",
+  "scripts": {
+    "build": "node screenshot.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

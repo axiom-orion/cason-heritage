@@ -1,0 +1,671 @@
+---
+// =============================================================================
+// vorion.org/spec · BASIS 0.9 rendered
+// This file is itself signed into the chain at build time.
+// =============================================================================
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="BASIS · the specification · v 0.9"
+  description="The open standard for trustworthy autonomous agent action. Apache-2.0. Ratified 2026.03.18. 38 signatories."
+  site="vorion"
+  theme="light"
+>
+<div data-screen-label="vorion.org/spec · BASIS 0.9">
+
+<div class="eco-strip">
+  <div class="row">
+    <span>// VORION ECOSYSTEM</span>
+    <a href="vorion-www.html" data-site="vorion" aria-current="page">vorion.org</a><span class="sep">/</span>
+    <a href="cognigate-www.html" data-site="cognigate">cognigate.dev</a><span class="sep">/</span>
+    <a href="agentanchor-www.html" data-site="agentanchor">agentanchorai.com</a><span class="sep">/</span>
+    <a href="aurais-www.html" data-site="aurais">aurais.net</a>
+    <span style="margin-left:auto; opacity:0.6;">basis 0.9 · ratified 2026.03.18</span>
+  </div>
+</div>
+
+<header class="site-nav">
+  <div class="row">
+    <a href="vorion-www.html" class="brand"><img src="assets/orb-logo.png" alt="" /> Vorion</a>
+    <span class="crumb">/<span class="here"> the specification</span></span>
+    <nav class="links" style="margin-left: 32px;">
+      <a href="vorion-www.html#properties">Properties</a>
+      <a href="#" aria-current="page">Spec 0.9</a>
+      <a href="#">RFC archive</a>
+      <a href="#">Conformance</a>
+    </nav>
+    <a href="#" class="cta">Download PDF →</a>
+  </div>
+</header>
+
+<section class="cover">
+  <div class="page">
+    <div class="row">
+      <div>
+        <span class="stamp">A position document · ratified 2026.03.18</span>
+        <h1><em>BASIS.</em></h1>
+        <p class="subtitle">Behavioral Attestation Standard for Intelligent Systems · v 0.9</p>
+      </div>
+      <div class="meta">
+        <span>EDITORS</span><strong>The Vorion Consortium</strong>
+        <span>SIGNATORIES</span><strong>38</strong>
+        <span>AGENTS UNDER CHAIN</strong><strong>14,832</strong>
+        <span>LICENSE</strong><strong>Apache-2.0</strong>
+        <span>STATUS</strong><strong style="color:#047857;">● PRODUCTION</strong>
+        <span>NEXT</strong><strong>1.0 RFC freeze · 2026.10</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-grid">
+
+  <!-- ─── TOC ─────────────────────────────────────────────── -->
+  <nav class="toc">
+    <div class="h">// CONTENTS</div>
+    <ol>
+      <li><a href="#preamble"><span class="num">0</span><span>Preamble</span></a></li>
+      <li><a href="#art-1" class="active"><span class="num">I</span><span>Definitions</span></a></li>
+      <li><a href="#art-2"><span class="num">II</span><span>The five letters</span></a></li>
+      <li><a href="#art-3"><span class="num">III</span><span>Receipts &amp; the chain</span></a></li>
+      <li><a href="#art-4"><span class="num">IV</span><span>Conformance</span></a></li>
+      <li><a href="#art-5"><span class="num">V</span><span>Governance</span></a></li>
+      <li><a href="#signed"><span class="num">§</span><span>Signed</span></a></li>
+    </ol>
+    <div class="toc-status">
+      THIS DOCUMENT IS ITSELF<br>
+      <span class="signed">SIGNED IN THE CHAIN ▾</span>
+      <br>block <strong style="color: var(--fg);">8,422,108</strong>
+      <br>hash <strong style="color: var(--fg);">0x9f2a…b41c</strong>
+    </div>
+  </nav>
+
+  <!-- ─── MAIN COLUMN ─────────────────────────────────────── -->
+  <main class="doc">
+
+    <!-- PREAMBLE -->
+    <article id="preamble">
+      <div class="art-num">// ARTICLE 0</div>
+      <h2>Preamble.</h2>
+      <p class="lede">For two years the industry shipped autonomy and skipped accountability. The drawer is full. The drawer is on fire. This is the standard we use to put out the fire.</p>
+
+      <p><mark>BASIS</mark> defines the bare minimum that an agent runtime, a certification authority, and an operating console must observe so that any third party can verify the trustworthiness of an agent action <em>without trusting the vendor</em>. It is short on purpose. Everything else is implementation.</p>
+
+      <p>BASIS makes <strong>four guarantees</strong>, in this order:</p>
+      <ol>
+        <li><strong>Declared scope.</strong> Every agent ships with a signed manifest of what it can do. No undeclared capability is callable. Period.</li>
+        <li><strong>Authorized action.</strong> Every tool call is gated by a decision point that returns ALLOW, DENY, or ESCALATE in writing, with a cryptographic receipt.</li>
+        <li><strong>Continuous attestation.</strong> Reputation is not granted by paperwork; it accrues from clean event history.</li>
+        <li><strong>Public chain.</strong> The history is read-only public. No vendor controls the truth.</li>
+      </ol>
+
+      <p class="pull">Agent identity, scope, and reputation belong to the chain — not to the vendor.</p>
+    </article>
+
+    <!-- ART I -->
+    <article id="art-1">
+      <div class="art-num">// ARTICLE I</div>
+      <h2>Definitions.</h2>
+      <p class="lede">Spec language uses MUST, SHOULD, MAY per <code>RFC 2119</code>. Italicized terms have the meaning given in this article and no other.</p>
+
+      <h3><span class="secnum">§ 1.1</span> Agent, runtime, gate, attester</h3>
+
+      <div class="def">
+        <span class="label">Definition 1.1.1</span>
+        <div class="term">Agent.</div>
+        <p>A software process which (i) holds a long-lived cryptographic identity, (ii) declares a finite capability set in a signed <em>scope manifest</em>, and (iii) executes <em>tool calls</em> only through a conforming <em>gate</em>. A process that does not satisfy all three predicates is <em>not an agent under this specification</em>.</p>
+      </div>
+
+      <div class="def">
+        <span class="label">Definition 1.1.2</span>
+        <div class="term">Gate.</div>
+        <p>A decision point situated between an agent and an external tool. The gate accepts a <em>tool-call request</em>, evaluates it against the agent's <em>policy</em> and <em>scope manifest</em>, and emits a signed <em>verdict</em> — one of <code>ALLOW</code>, <code>DENY</code>, <code>ESCALATE</code> — before any side effect is permitted.</p>
+      </div>
+
+      <div class="def">
+        <span class="label">Definition 1.1.3</span>
+        <div class="term">Attester.</div>
+        <p>An entity which observes an agent's emitted chain entries over a contiguous window of at least <code>W<sub>min</sub></code> days and issues a signed <em>tier statement</em> binding the agent's public identity to a value <code>T ∈ {0,…,7}</code>. An attester MUST NOT be the same legal entity that operates the agent it attests.</p>
+      </div>
+
+      <h3><span class="secnum">§ 1.2</span> Wire types</h3>
+      <p>All BASIS messages are encoded as canonical-form CBOR (RFC 8949 § 4.2.1). The minimum object schemas required of a conformant implementation:</p>
+
+      <pre><span class="com"># scope manifest (v0.9)</span>
+<span class="yk">agent_id</span>:   <span class="kw">bytes</span>(<span class="num">32</span>)   <span class="com"># ed25519 public key</span>
+<span class="yk">scope</span>:      <span class="kw">array&lt;</span><span class="str">capability</span><span class="kw">&gt;</span>
+<span class="yk">signed_by</span>:  <span class="str">ed25519_sig</span>(<span class="yk">agent_id</span>, <span class="str">canonical(...)</span>)
+<span class="yk">version</span>:    <span class="kw">uint8</span>            <span class="com"># BASIS minor version</span>
+<span class="yk">expiry</span>:     <span class="kw">unixtime</span>         <span class="com"># MUST &le; now + 365 days</span></pre>
+
+      <p>A <em>capability</em> is a tuple <code>(verb, target, predicate)</code>. Verbs are drawn from the registered verb namespace (Appendix B). Targets are URIs. Predicates are a small calculus of permitted constraints — see § 2.3.</p>
+    </article>
+
+    <!-- ART II -->
+    <article id="art-2">
+      <div class="art-num">// ARTICLE II</div>
+      <h2>The five letters.</h2>
+      <p class="lede">The acronym BASIS denotes five runtime invariants, ordered. An action that violates any one of them does not exist as far as the chain is concerned.</p>
+
+      <h3><span class="secnum">§ 2.1</span> B · Behavior</h3>
+      <p><em>Every action's intent is declared before execution and matched at runtime.</em> A gate receiving a tool call MUST verify that the call's <code>verb</code> and <code>target</code> are present in the agent's current scope manifest. <strong>If they are not, the gate MUST emit DENY.</strong> No partial matching is permitted. No "close enough" is permitted.</p>
+
+      <h3><span class="secnum">§ 2.2</span> A · Authority</h3>
+      <p>An agent's <em>tier</em> bounds the verbs it may invoke; the tier-to-verb mapping is normative (Appendix C). A T2 agent attempting a T4-restricted verb MUST be denied even if the verb appears in its declared scope.</p>
+
+      <table>
+        <thead><tr><th>Tier</th><th>Name</th><th>Min. window</th><th>Issued by</th></tr></thead>
+        <tbody>
+          <tr><td class="var">T0</td><td>Sandbox</td><td>—</td><td>(default)</td></tr>
+          <tr><td class="var">T1</td><td>Declared</td><td>—</td><td>self-attest</td></tr>
+          <tr><td class="var">T2</td><td>Observed</td><td>30d</td><td>chain</td></tr>
+          <tr><td class="var">T3</td><td>Certified</td><td>90d</td><td>attester</td></tr>
+          <tr><td class="var">T4</td><td>Attested</td><td>90d + audit</td><td>attester + external auditor</td></tr>
+          <tr><td class="var">T5–T7</td><td>Trusted · Privileged · Autonomous</td><td>180d + quorum</td><td>attester + role quorum</td></tr>
+        </tbody>
+      </table>
+
+      <h3><span class="secnum">§ 2.3</span> S · Signature</h3>
+      <p>Every chain entry MUST be signed by the emitting agent with its ed25519 long-lived key, AND counter-signed by the gate that authorized the call. The gate's signature certifies <em>(i) the verdict at the time of emission</em> and <em>(ii) the chain head at which the entry is linked.</em></p>
+
+      <div class="require">
+        <span class="key must">MUST</span>
+        <p>Implementations MUST use ed25519 (RFC 8032). No other signature scheme is conformant in v0.9. Schemes for v1.0 are under RFC-0098.</p>
+      </div>
+      <div class="require">
+        <span class="key should">SHOULD</span>
+        <p>Implementations SHOULD rotate signing keys at intervals not exceeding 30 days, with key rotation itself an emitted chain entry.</p>
+      </div>
+      <div class="require">
+        <span class="key may">MAY</span>
+        <p>Implementations MAY anchor the rolling chain root to a permissionless DLT (the <em>CHAIN extension</em>) for external verification. This is OPTIONAL and is not used in conformance evaluation.</p>
+      </div>
+
+      <h3><span class="secnum">§ 2.4</span> I · Integrity</h3>
+      <p>The sequence of chain entries forms a Merkle DAG. Reordering or deletion of any entry SHALL be detectable in <code>O(log n)</code> time by inspection of the root. The current root MUST be published, signed, every 60 seconds at minimum.</p>
+
+      <h3><span class="secnum">§ 2.5</span> S · Scope</h3>
+      <p>An agent's scope is <em>monotone-decreasing</em> within an attestation window. Capabilities may be removed; they may not be added without re-attestation. A tier upgrade does not, of itself, expand scope.</p>
+    </article>
+
+    <!-- ART III -->
+    <article id="art-3">
+      <div class="art-num">// ARTICLE III</div>
+      <h2>Receipts &amp; the chain.</h2>
+      <p class="lede">A receipt is the unit of evidence. The chain is the ledger. Every conformant deployment writes both, on every call.</p>
+
+      <h3><span class="secnum">§ 3.1</span> The receipt object</h3>
+      <p>A receipt is a CBOR-encoded object satisfying the schema below. The receipt is the verdict, persisted; it is also the only artifact a third party may inspect to verify a call.</p>
+
+      <pre><span class="com"># receipt (v0.9)</span>
+<span class="yk">id</span>:          <span class="kw">bytes</span>(<span class="num">32</span>)        <span class="com"># sha256(canonical(receipt))</span>
+<span class="yk">agent</span>:       <span class="str">agent_id</span>
+<span class="yk">call</span>:        <span class="str">tool_call</span>        <span class="com"># verb, target, args (hashed)</span>
+<span class="yk">verdict</span>:     <span class="str">"ALLOW" | "DENY" | "ESCALATE"</span>
+<span class="yk">tier</span>:        <span class="kw">uint8</span>             <span class="com"># at time of call</span>
+<span class="yk">cap</span>:         <span class="str">capability_token</span>  <span class="com"># nil if DENY</span>
+<span class="yk">prev</span>:        <span class="str">receipt_id</span>        <span class="com"># chain link</span>
+<span class="yk">at</span>:          <span class="kw">unixtime_ns</span>
+<span class="yk">sig_agent</span>:   <span class="str">ed25519_sig</span>
+<span class="yk">sig_gate</span>:    <span class="str">ed25519_sig</span></pre>
+
+      <p>The <code>cap</code> field is a scoped capability token (RFC-0017). It is bearer-only, expires within the latency budget of the call, and grants exactly the permissions of the receipt — no more, no less.</p>
+
+      <h3><span class="secnum">§ 3.2</span> Chain construction</h3>
+      <p>The chain is an append-only, content-addressed sequence. Each receipt's <code>prev</code> field MUST reference the immediately previous receipt for the emitting agent. Cross-agent linking is performed by the <em>chain root</em>, which is signed by the gate every 60 seconds.</p>
+
+      <p>A gate that fails to emit a chain root within the 60-second window SHALL lose conformance for the affected window. The next attester observation period MUST exclude the affected window from its clean-days calculation.</p>
+
+      <h3><span class="secnum">§ 3.3</span> Read access</h3>
+      <p>The chain MUST be readable by any party, without authentication, with a read latency under <code>4 seconds</code> from commit. Read-side rate limits, where applied, MUST NOT distinguish between authenticated and unauthenticated callers.</p>
+    </article>
+
+    <!-- ART IV -->
+    <article id="art-4">
+      <div class="art-num">// ARTICLE IV</div>
+      <h2>Conformance.</h2>
+      <p class="lede">A conformant implementation passes the public test harness at one of three classes. The harness is open-source and reproducible end-to-end.</p>
+
+      <table>
+        <thead><tr><th>Class</th><th>Tests</th><th>Implies</th></tr></thead>
+        <tbody>
+          <tr><td class="var">Class 1</td><td>312 of 472</td><td>Read-side conformant. May verify but not emit.</td></tr>
+          <tr><td class="var">Class 2</td><td>418 of 472</td><td>Single-tier emit conformant. Suitable for T0–T2.</td></tr>
+          <tr><td class="var">Class 3</td><td>472 of 472</td><td>Full conformance. Required to emit T3+.</td></tr>
+        </tbody>
+      </table>
+
+      <p>The reference implementation, <a href="cognigate-www.html">Cognigate</a> ≥ v0.9.4, passes Class 3 on every supported runtime. Test harness output is itself a chain entry, allowing third-party verification of vendor claims.</p>
+    </article>
+
+    <!-- ART V -->
+    <article id="art-5">
+      <div class="art-num">// ARTICLE V</div>
+      <h2>Governance.</h2>
+      <p class="lede">BASIS is governed by a consortium of signatories under a public RFC process. No single signatory holds material authority over the specification.</p>
+
+      <p>Amendments require: <strong>(i)</strong> a published RFC with at least 30 days of public comment, <strong>(ii)</strong> sign-off by two editors, <strong>(iii)</strong> sign-off by two signatories not affiliated with the editors, and <strong>(iv)</strong> a clean run of the conformance suite against a reference implementation incorporating the change.</p>
+
+      <p>Adopting BASIS in a production deployment requires signing <em>Article V.A — the adoption commitment</em>, which is public, free, and revocable on 90 days notice. Signatories are listed in the public registry.</p>
+
+      <p class="pull">A standard works because someone signs it.</p>
+    </article>
+
+  </main>
+
+  <!-- ─── MARGINALIA ─────────────────────────────────────── -->
+  <aside class="marg">
+    <div class="item">
+      <span class="label">// version</span>
+      <strong>v 0.9</strong> · ratified 2026.03.18.<br>
+      Last edited 6 days ago by <em>m.halford@vorion</em>.
+    </div>
+    <div class="item">
+      <span class="label">// RFCs in flight</span>
+      <strong>RFC-0098</strong>: post-quantum signature suite for v1.0.<br>
+      <strong>RFC-0102</strong>: cross-chain receipt federation.
+    </div>
+    <div class="item">
+      <span class="label">// downloads</span>
+      <a href="#" style="color: var(--site-accent);">PDF (28 pp.)</a><br>
+      <a href="#" style="color: var(--site-accent);">CBOR schemas</a><br>
+      <a href="#" style="color: var(--site-accent);">arXiv: 2603.4221</a>
+    </div>
+    <div class="item">
+      <span class="label">// errata</span>
+      None outstanding for v0.9. Three errata closed in v0.8.x.
+    </div>
+    <div class="item">
+      <span class="label">// citations</span>
+      <strong>NIST AI RMF</strong><br>
+      <strong>IEEE P3128</strong><br>
+      <strong>MITRE ATLAS</strong><br>
+      <strong>OECD AI Observatory</strong>
+    </div>
+    <div class="item">
+      <span class="label">// next</span>
+      <strong>v 1.0</strong> · RFC freeze <em>2026.10</em><br>
+      Ratification target <em>2027.Q2</em>.<br>
+      ISO submission to follow.
+    </div>
+  </aside>
+
+</section>
+
+<!-- ─── SIGNED ─────────────────────────────────────────── -->
+<section class="signed" id="signed">
+  <div class="page">
+    <div class="row">
+      <div>
+        <span class="art-num" style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.22em; color: var(--site-accent); text-transform: uppercase;">// SIGNED</span>
+        <h2>This document is <em>itself</em> a chain entry.</h2>
+        <p>Every page of the BASIS specification is signed at the time of publication and entered into the same chain that conformant runtimes write to. You can verify the canonical bytes of the version you are reading right now match the hash below — without trusting Vorion, AgentAnchor, or the rendering of this page.</p>
+        <p style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="#" class="btn">basis://verify · this hash</a>
+          <a href="#" class="btn btn--ghost">Inspect canonical bytes</a>
+          <a href="vorion-www.html" class="btn btn--ghost">Back to vorion.org</a>
+        </p>
+      </div>
+      <div class="proof-card">
+        <div class="head">
+          <span>// chain entry · this document</span>
+          <span class="ok">VERIFIED</span>
+        </div>
+        <div class="body">
+          <div class="row"><span class="k">id</span><span class="v hash">0x9f2a4e21b41c7a8de3c4f5b8e1d2c4b8e1d2c4b8</span></div>
+          <div class="row"><span class="k">title</span><span class="v">BASIS · the specification</span></div>
+          <div class="row"><span class="k">version</span><span class="v">0.9 · ratified 2026.03.18</span></div>
+          <div class="row"><span class="k">editors</span><span class="v">m.halford, k.ito, r.cason</span></div>
+          <div class="row"><span class="k">block</span><span class="v violet">8,422,108</span></div>
+          <div class="row"><span class="k">prev</span><span class="v hash">0x77a8c0bb1322b5e3a9f01c2bbb4d017722e0c1</span></div>
+          <div class="row"><span class="k">at</span><span class="v">2026-03-18T17:42:08.214Z</span></div>
+          <div class="row"><span class="k">sig.agent</span><span class="v sig">ed25519:f7a9d2c104a31eef…b41c</span></div>
+          <div class="row"><span class="k">sig.gate</span><span class="v sig">ed25519:6eb7…3e09</span></div>
+          <div class="row"><span class="k">canonical</span><span class="v">cbor · 41,272 bytes</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="page">
+    <div class="row">
+      <div class="brand-block">
+        <strong style="font-size: 18px; letter-spacing: -0.01em;">Vorion · the standard</strong>
+        <div class="tag">// CONSORTIUM · EST. 2025</div>
+        <p>BASIS defines · Cognigate enforces · AgentAnchor certifies · Aurais operates · Kaizen cultivates.</p>
+      </div>
+      <div><h4>Standard</h4><ul>
+        <li><a href="#">BASIS 0.9 (this page)</a></li>
+        <li><a href="#">RFC archive</a></li>
+        <li><a href="#">Conformance</a></li>
+        <li><a href="#">Errata</a></li>
+      </ul></div>
+      <div><h4>Properties</h4><ul>
+        <li><a href="cognigate-www.html">Cognigate</a></li>
+        <li><a href="agentanchor-www.html">AgentAnchor</a></li>
+        <li><a href="aurais-www.html">Aurais</a></li>
+        <li><a href="#">Kaizen (soon)</a></li>
+      </ul></div>
+      <div><h4>Governance</h4><ul>
+        <li><a href="#">Signatories</a></li>
+        <li><a href="#">Article V.A</a></li>
+        <li><a href="#">Working groups</a></li>
+      </ul></div>
+      <div><h4>Company</h4><ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="index.html">Design system</a></li>
+      </ul></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 Vorion LLC · BASIS Apache-2.0</span>
+      <span>// document hash 0x9f2a…b41c · canonical 41,272 bytes</span>
+    </div>
+  </div>
+</footer>
+
+</div>
+</BaseLayout>
+
+<style is:global>
+/* =============================================================================
+     /spec — BASIS · the specification. The one place serif is licensed.
+     Editorial, rigorous, signed-by-chain at the bottom.
+     ============================================================================= */
+
+  body { background: var(--bg); }
+  .crumb { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.06em; padding: 0 16px; }
+  .crumb .here { color: var(--site-accent); }
+
+  /* COVER */
+  .cover {
+    padding: 64px 0 56px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cover .row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 56px; align-items: end; }
+  .cover .stamp {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--site-accent);
+    padding: 8px 14px; border: 1px solid var(--site-accent); border-radius: 4px;
+    margin-bottom: 32px;
+  }
+  .cover .stamp::before { content: "▸"; }
+  .cover h1 {
+    font-family: var(--font-serif); font-weight: 500;
+    font-size: clamp(48px, 6vw, 84px);
+    letter-spacing: -0.025em;
+    line-height: 1.0;
+    margin: 0 0 8px;
+  }
+  .cover h1 em { font-style: italic; color: var(--site-accent); }
+  .cover .subtitle {
+    font-family: var(--font-serif); font-style: italic; font-weight: 400;
+    font-size: 24px; letter-spacing: -0.01em; color: var(--fg-muted);
+    margin: 0;
+  }
+  .cover .meta {
+    display: grid; grid-template-columns: auto auto; gap: 8px 28px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted);
+    letter-spacing: 0.06em;
+    text-align: right;
+    padding-bottom: 8px;
+  }
+  .cover .meta strong { color: var(--fg); font-weight: 600; font-family: var(--font-body); font-size: 14px; letter-spacing: -0.01em; display: block; margin-top: 2px; }
+
+  /* MAIN LAYOUT — three columns */
+  .doc-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 720px) 220px;
+    gap: 56px;
+    padding: 56px 0 0;
+    max-width: 1280px; margin: 0 auto;
+    padding-left: 32px; padding-right: 32px;
+  }
+
+  /* TOC */
+  .toc {
+    font-family: var(--font-mono); font-size: 11px;
+    position: sticky; top: 80px; align-self: start;
+    max-height: calc(100vh - 96px); overflow-y: auto;
+  }
+  .toc .h {
+    font-size: 10px; letter-spacing: 0.22em; color: var(--fg-muted);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .toc ol {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: 2px;
+  }
+  .toc a {
+    display: grid; grid-template-columns: 40px 1fr;
+    gap: 4px;
+    padding: 4px 8px; border-radius: 4px;
+    color: var(--fg-subtle); letter-spacing: 0.02em;
+  }
+  .toc a:hover { background: var(--bg-alt); color: var(--fg); }
+  .toc a.active {
+    background: var(--site-accent-soft);
+    color: var(--site-accent-dim);
+    font-weight: 600;
+  }
+  .toc a .num { color: var(--site-accent); font-weight: 600; }
+  .toc .toc-status {
+    margin-top: 24px; padding: 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 10.5px; color: var(--fg-muted); line-height: 1.6;
+  }
+  .toc .toc-status .signed { color: #047857; font-weight: 600; }
+
+  /* MAIN COLUMN — serif reading */
+  .doc {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--fg);
+  }
+  .doc article { padding-bottom: 56px; border-bottom: 1px solid var(--border); margin-bottom: 56px; }
+  .doc article:last-child { border-bottom: none; }
+  .doc h2 {
+    font-family: var(--font-serif); font-weight: 600;
+    font-size: 36px; line-height: 1.15; letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  .doc .art-num {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--site-accent);
+    margin-bottom: 8px;
+  }
+  .doc h3 {
+    font-family: var(--font-serif); font-weight: 500;
+    font-size: 24px; line-height: 1.25; letter-spacing: -0.015em;
+    margin: 40px 0 16px;
+    color: var(--fg);
+  }
+  .doc h3 .secnum {
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.06em;
+    color: var(--site-accent); margin-right: 12px; font-weight: 600;
+    vertical-align: 2px;
+  }
+  .doc p { margin: 0 0 18px; text-wrap: pretty; }
+  .doc p.lede { font-size: 22px; line-height: 1.5; color: var(--fg-muted); margin-bottom: 32px; }
+  .doc em { font-style: italic; }
+  .doc strong { font-weight: 600; }
+  .doc mark { background: color-mix(in oklab, var(--site-accent) 18%, transparent); padding: 0 4px; border-radius: 2px; color: var(--fg); }
+
+  /* Inline & code */
+  .doc code {
+    font-family: var(--font-mono); font-size: 14px;
+    background: var(--bg-alt); padding: 1px 6px; border-radius: 3px;
+    color: var(--fg); border: 1px solid var(--border);
+  }
+  .doc pre {
+    background: #0B1120; color: #E2E8F0;
+    border-radius: 8px;
+    padding: 18px 22px;
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.7;
+    overflow: auto;
+    margin: 20px 0 24px;
+  }
+  .doc pre .com { color: #64748B; font-style: italic; }
+  .doc pre .kw { color: #C084FC; }
+  .doc pre .str { color: #34D399; }
+  .doc pre .num { color: #FBBF24; }
+  .doc pre .yk { color: #93C5FD; }
+  .doc pre .ln { color: #334155; display: inline-block; width: 22px; user-select: none; padding-right: 12px; text-align: right; }
+
+  /* Definition box */
+  .def {
+    border-left: 3px solid var(--site-accent);
+    padding: 16px 22px;
+    background: var(--bg-alt);
+    margin: 24px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .def .label {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--site-accent); text-transform: uppercase; font-weight: 600;
+  }
+  .def .term {
+    font-family: var(--font-serif); font-style: italic;
+    font-size: 19px; margin: 4px 0 4px; color: var(--fg);
+  }
+  .def p { margin-bottom: 0; font-size: 16px; line-height: 1.55; }
+
+  /* Pull quote */
+  .pull {
+    font-family: var(--font-serif); font-style: italic;
+    font-size: 30px; line-height: 1.3; letter-spacing: -0.01em;
+    margin: 32px 0;
+    color: var(--fg);
+    border-left: 3px solid var(--site-accent);
+    padding-left: 28px;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+
+  /* MUST/SHOULD callout */
+  .require {
+    display: grid; grid-template-columns: 80px 1fr; gap: 18px;
+    padding: 16px 0; border-top: 1px solid var(--border);
+    align-items: start; font-size: 16px;
+  }
+  .require:last-of-type { border-bottom: 1px solid var(--border); }
+  .require .key {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--site-accent); font-weight: 700;
+    padding-top: 2px;
+  }
+  .require .key.must { color: var(--danger); }
+  .require .key.should { color: var(--warning); }
+  .require .key.may { color: var(--fg-muted); }
+  .require p { margin: 0; }
+
+  /* Ordered list */
+  .doc ol, .doc ul { padding-left: 28px; margin: 16px 0 24px; }
+  .doc ol li, .doc ul li { margin: 8px 0; }
+  .doc ol.lower-roman { list-style: lower-roman; }
+
+  /* Tables — formal */
+  .doc table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-body); font-size: 13.5px;
+    margin: 20px 0 28px;
+  }
+  .doc table th, .doc table td {
+    text-align: left; padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc table th {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 500; color: var(--fg-muted);
+    background: var(--bg-alt);
+  }
+  .doc table td.var { font-family: var(--font-mono); font-size: 12px; }
+
+  /* MARGINALIA */
+  .marg { padding-top: 0; }
+  .marg .item {
+    font-family: var(--font-mono); font-size: 11px; line-height: 1.55;
+    color: var(--fg-muted); letter-spacing: 0.02em;
+    padding: 12px 0; border-top: 1px dashed var(--border);
+  }
+  .marg .item:first-child { border-top: none; }
+  .marg .item .label {
+    color: var(--site-accent); font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: 10px; display: block; margin-bottom: 4px;
+  }
+  .marg .item strong { color: var(--fg); font-weight: 600; }
+
+  /* SIGNED FOOTER — proof block */
+  .signed {
+    margin-top: 80px;
+    padding: 56px 0 80px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-alt);
+  }
+  .signed .row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; }
+  .signed h2 {
+    font-family: var(--font-serif); font-weight: 500;
+    font-size: 36px; line-height: 1.2; letter-spacing: -0.02em;
+    margin: 0 0 12px; color: var(--fg);
+    text-wrap: balance;
+  }
+  .signed h2 em { font-style: italic; color: var(--site-accent); }
+  .signed p { font-size: 16px; color: var(--fg-muted); margin: 0 0 16px; }
+
+  .proof-card {
+    background: #0B1120; color: #E2E8F0;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid #1E293B;
+    font-family: var(--font-mono); font-size: 12px;
+  }
+  .proof-card .head {
+    padding: 12px 16px;
+    background: #050912;
+    border-bottom: 1px solid #1E293B;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10.5px; letter-spacing: 0.1em; color: #64748B;
+  }
+  .proof-card .head .ok { color: #34D399; }
+  .proof-card .head .ok::before { content: "●"; margin-right: 6px; }
+  .proof-card .body { padding: 14px 16px; line-height: 1.7; }
+  .proof-card .row { display: grid; grid-template-columns: 80px 1fr; gap: 12px; padding: 2px 0; }
+  .proof-card .k { color: #64748B; }
+  .proof-card .v { color: #E2E8F0; word-break: break-all; }
+  .proof-card .v.hash { color: #A78BFA; }
+  .proof-card .v.sig { color: #6EE7B7; }
+  .proof-card .v.violet { color: #C4B5FD; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .doc-grid { grid-template-columns: 1fr; max-width: 720px; gap: 0; }
+    .toc { position: static; max-height: none; margin-bottom: 40px; }
+    .marg { display: none; }
+    .signed .row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .cover .row { grid-template-columns: 1fr; }
+    .cover .meta { text-align: left; }
+  }
+</style>
+
+<script is:inline>
+/* Active TOC link tracking */
+  const links = document.querySelectorAll('.toc a');
+  const targets = [...document.querySelectorAll('article[id], section[id]')];
+  function update() {
+    let active = null;
+    for (const t of targets) {
+      const top = t.getBoundingClientRect().top;
+      if (top - 140 < 0) active = t.id;
+    }
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + active));
+  }
+  window.addEventListener('scroll', update);
+  update();
+</script>

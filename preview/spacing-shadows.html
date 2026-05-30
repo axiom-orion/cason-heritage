@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 28px; background: var(--parchment); }
+  .label { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faded); margin: 0 0 18px; }
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .box { width: 96px; height: 64px; background: var(--cream); border-radius: 10px; border: 1px solid rgba(139,69,19,0.15); }
+  .name { font-family: var(--font-sans); font-size: 11px; font-weight: 700; color: var(--ink); }
+  .num { font-family: ui-monospace, monospace; font-size: 9.5px; color: var(--faded); text-align: center; line-height: 1.3; }
+</style></head>
+<body>
+  <div class="label">Shadows — warm cast, never gray</div>
+  <div class="row">
+    <div class="item"><div class="box" style="box-shadow:0 2px 12px rgba(44,24,16,0.08);"></div><div class="name">shadow-1</div><div class="num">subtle paper<br>0 2px 12px / .08</div></div>
+    <div class="item"><div class="box" style="box-shadow:0 4px 20px rgba(44,24,16,0.08);"></div><div class="name">shadow-2</div><div class="num">default card<br>0 4px 20px / .08</div></div>
+    <div class="item"><div class="box" style="box-shadow:0 8px 30px rgba(44,24,16,0.15);"></div><div class="name">shadow-3</div><div class="num">hover raised<br>0 8px 30px / .15</div></div>
+    <div class="item"><div class="box" style="box-shadow:0 10px 40px rgba(44,24,16,0.2);"></div><div class="name">shadow-4</div><div class="num">hero / map<br>0 10px 40px / .2</div></div>
+  </div>
+</body></html>

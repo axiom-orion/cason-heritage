@@ -1,0 +1,580 @@
+---
+// =============================================================================
+// vorion.org · homepage · Live Ecosystem direction
+// The live ticker is a JS mock. Replace with a real basis://chain stream
+// connector when the read-side API lands (planned for BASIS 1.0 / 2027.Q2).
+// =============================================================================
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Vorion — One chain. Streaming live. 14,832 agents and counting."
+  description="The Vorion ecosystem is four properties writing to one append-only chain. This page reads from it, live."
+  site="vorion"
+  theme="light"
+>
+<div data-screen-label="vorion.org · C · live ecosystem">
+
+<div class="eco-strip">
+  <div class="row">
+    <span>// VORION ECOSYSTEM</span>
+    <a href="vorion-www.html" data-site="vorion" aria-current="page">vorion.org</a><span class="sep">/</span>
+    <a href="cognigate-www.html" data-site="cognigate">cognigate.dev</a><span class="sep">/</span>
+    <a href="agentanchor-www.html" data-site="agentanchor">agentanchorai.com</a><span class="sep">/</span>
+    <a href="aurais-www.html" data-site="aurais">aurais.net</a>
+    <span style="margin-left:auto; opacity:0.6;">// READING THE CHAIN, LIVE</span>
+  </div>
+</div>
+
+<div class="live-banner">
+  <div class="row">
+    <span class="pulse"></span>
+    <span><strong style="color:var(--fg);">CHAIN LIVE</strong> · BASIS v 0.9 · block <strong id="block-num">8,422,108</strong></span>
+    <span style="opacity:0.5;">|</span>
+    <span>throughput <strong id="tput-num">142</strong> events/s</span>
+    <span style="opacity:0.5;">|</span>
+    <span>this page reads the chain via <code>basis://public</code></span>
+    <span style="margin-left:auto;">last block <strong>2s ago</strong></span>
+  </div>
+</div>
+
+<header class="site-nav">
+  <div class="row">
+    <a href="#" class="brand"><img src="assets/orb-logo.png" alt="" /> Vorion <span class="property-tag">live</span></a>
+    <nav class="links">
+      <a href="#feed">Live feed</a>
+      <a href="#properties">Properties</a>
+      <a href="#metrics">Metrics</a>
+      <a href="#standard">Standard</a>
+    </nav>
+    <a href="#sign" class="cta">Become a signatory →</a>
+  </div>
+</header>
+
+<section class="hero hero-c">
+  <div class="page">
+    <div class="grid">
+      <div>
+        <span class="kicker">▸ Reading the BASIS chain · live</span>
+        <h1>One chain. <span class="accent">Streaming live.</span></h1>
+        <p class="lede">The Vorion ecosystem is four properties that all write to one append-only chain. This page reads from it. Right now. The numbers below are live; the receipts on the right are real. Refresh and they change.</p>
+
+        <div class="counter-stack">
+          <div class="lbl">// AGENTS UNDER CHAIN</div>
+          <div class="big-counter"><span id="agents-count">14,832</span></div>
+          <div class="delta"><span id="agents-delta">+38</span> in last hour</div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 36px;">
+          <a href="#feed" class="btn btn--lg">Watch the feed <span class="arrow">↓</span></a>
+          <a href="#standard" class="btn btn--ghost btn--lg">Read the spec</a>
+        </div>
+      </div>
+
+      <div id="feed">
+        <div class="live-feed">
+          <div class="head">
+            <span>// PUBLIC FEED · basis://chain · last 60s</span>
+            <span class="live">LIVE</span>
+          </div>
+          <div class="feed-stream" id="feed-stream"><!-- populated by JS --></div>
+          <div class="foot">
+            <span>SHOWING <span id="visible-rows">14</span> OF <span id="total-rows">8,470</span> · last 60s</span>
+            <a href="#">VIEW FULL CHAIN →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="properties" style="background: var(--bg-alt);">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 01 · the four surfaces, live</div>
+        <h2>Each property writes to the chain. Each card reads from it.</h2>
+      </div>
+      <p class="section-lede">Vorion is the standards body. Cognigate, AgentAnchor, Aurais are the operating ones. Kaizen is next.</p>
+    </div>
+
+    <div class="props-live">
+      <a href="cognigate-www.html" class="pl-card" data-p="cog">
+        <div class="role">// THE GATE</div>
+        <div class="name">Cognigate</div>
+        <div class="domain">cognigate.dev</div>
+        <div class="num" id="cog-num">38ms</div>
+        <div class="num-lbl">P50 DECISION · LAST HOUR</div>
+        <div class="visit">VISIT SITE →</div>
+      </a>
+      <a href="agentanchor-www.html" class="pl-card" data-p="aa">
+        <div class="role">// THE CERTIFICATION</div>
+        <div class="name">AgentAnchor</div>
+        <div class="domain">agentanchorai.com</div>
+        <div class="num" id="aa-num">2,108</div>
+        <div class="num-lbl">CERTIFIED AT T3+ TODAY</div>
+        <div class="visit">VISIT SITE →</div>
+      </a>
+      <a href="aurais-www.html" class="pl-card" data-p="aurais">
+        <div class="role">// THE CONTROL ROOM</div>
+        <div class="name">Aurais</div>
+        <div class="domain">aurais.net</div>
+        <div class="num" id="aurais-num">142/s</div>
+        <div class="num-lbl">EVENTS THROUGH CONSOLE</div>
+        <div class="visit">VISIT SITE →</div>
+      </a>
+      <div class="pl-card" data-p="kaizen" style="opacity: 0.85;">
+        <div class="role">// THE GARDEN</div>
+        <div class="name">Kaizen</div>
+        <div class="domain">soon · 2026.Q3</div>
+        <div class="num" style="color: var(--fg-muted);">442</div>
+        <div class="num-lbl">IMPROVEMENT PATTERNS QUEUED</div>
+        <div class="visit" style="opacity: 0.6;">JOIN WAITLIST →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="metrics">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 02 · last 24 hours · all properties</div>
+        <h2>Aggregate health of the ecosystem.</h2>
+      </div>
+      <p class="section-lede">Computed from chain reads. No private telemetry; you can compute the same numbers.</p>
+    </div>
+
+    <div class="vol-grid">
+      <div class="vol-card">
+        <div class="lbl">// VOLUME · 24h</div>
+        <div class="num">12.4M</div>
+        <div class="desc">Decisions written</div>
+        <svg width="100%" height="32" viewBox="0 0 200 32"><polyline fill="none" stroke="#0891B2" stroke-width="2" points="0,22 12,18 24,20 36,14 48,16 60,12 72,8 84,11 96,7 108,10 120,6 132,9 144,5 156,8 168,4 180,7 192,3 200,5" /></svg>
+      </div>
+      <div class="vol-card">
+        <div class="lbl">// ALLOWS</div>
+        <div class="num" style="color:#10B981;">99.4%</div>
+        <div class="desc">Of decisions in scope</div>
+        <svg width="100%" height="32" viewBox="0 0 200 32"><polyline fill="none" stroke="#10B981" stroke-width="2" points="0,8 20,7 40,9 60,6 80,7 100,8 120,7 140,6 160,8 180,7 200,7" /></svg>
+      </div>
+      <div class="vol-card">
+        <div class="lbl">// DENIALS</div>
+        <div class="num" style="color:#FB7185;">0.6%</div>
+        <div class="desc">Out-of-scope, blocked at gate</div>
+        <svg width="100%" height="32" viewBox="0 0 200 32"><polyline fill="none" stroke="#FB7185" stroke-width="2" points="0,28 20,29 40,27 60,28 80,30 100,26 120,28 140,29 160,27 180,28 200,28" /></svg>
+      </div>
+      <div class="vol-card">
+        <div class="lbl">// ATTESTATIONS</div>
+        <div class="num" style="color:#F59E0B;">214</div>
+        <div class="desc">Tier promotions today</div>
+        <svg width="100%" height="32" viewBox="0 0 200 32"><polyline fill="none" stroke="#F59E0B" stroke-width="2" points="0,22 16,20 32,24 48,18 64,16 80,20 96,14 112,18 128,12 144,16 160,10 176,14 192,8 200,12" /></svg>
+      </div>
+    </div>
+
+    <div style="margin-top: 28px;" class="geo-card">
+      <div class="geo-grid">
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--site-accent); margin-bottom: 16px;">// CHAIN ACTIVITY · 24h · BY REGION</div>
+          <!-- Simplified world dot map -->
+          <svg viewBox="0 0 720 280" width="100%" height="280" style="background: var(--bg-alt); border-radius: 8px;">
+            <defs>
+              <radialGradient id="pulse-r"><stop offset="0%" stop-color="#0891B2" stop-opacity="0.4" /><stop offset="100%" stop-color="#0891B2" stop-opacity="0" /></radialGradient>
+            </defs>
+            <!-- continents — just dots -->
+            <g fill="#CBD5E1">
+              <!-- N America -->
+              <circle cx="120" cy="80" r="2" /><circle cx="140" cy="90" r="2" /><circle cx="160" cy="100" r="2" /><circle cx="100" cy="110" r="2" /><circle cx="130" cy="120" r="2" /><circle cx="150" cy="130" r="2" /><circle cx="180" cy="110" r="2" /><circle cx="170" cy="135" r="2" /><circle cx="200" cy="140" r="2" />
+              <!-- S America -->
+              <circle cx="200" cy="180" r="2" /><circle cx="210" cy="200" r="2" /><circle cx="220" cy="220" r="2" /><circle cx="190" cy="210" r="2" />
+              <!-- Europe -->
+              <circle cx="350" cy="80" r="2" /><circle cx="370" cy="90" r="2" /><circle cx="380" cy="105" r="2" /><circle cx="360" cy="100" r="2" /><circle cx="345" cy="105" r="2" /><circle cx="375" cy="120" r="2" />
+              <!-- Africa -->
+              <circle cx="380" cy="160" r="2" /><circle cx="400" cy="180" r="2" /><circle cx="395" cy="200" r="2" /><circle cx="385" cy="220" r="2" />
+              <!-- Asia -->
+              <circle cx="440" cy="90" r="2" /><circle cx="470" cy="100" r="2" /><circle cx="500" cy="110" r="2" /><circle cx="540" cy="105" r="2" /><circle cx="560" cy="120" r="2" /><circle cx="580" cy="130" r="2" /><circle cx="510" cy="140" r="2" /><circle cx="540" cy="155" r="2" /><circle cx="600" cy="135" r="2" />
+              <!-- Oceania -->
+              <circle cx="600" cy="210" r="2" /><circle cx="620" cy="220" r="2" /><circle cx="640" cy="215" r="2" />
+            </g>
+            <!-- live activity pulses -->
+            <g>
+              <circle cx="140" cy="105" r="20" fill="url(#pulse-r)"><animate attributeName="r" values="6;28;6" dur="2.4s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.4s" repeatCount="indefinite" /></circle>
+              <circle cx="140" cy="105" r="4" fill="#0891B2" />
+              <text x="148" y="103" font-size="10" font-family="ui-monospace,Menlo,monospace" fill="#0891B2">SF · 4.1M</text>
+
+              <circle cx="170" cy="118" r="20" fill="url(#pulse-r)"><animate attributeName="r" values="6;26;6" dur="2.6s" begin="0.4s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.6s" begin="0.4s" repeatCount="indefinite" /></circle>
+              <circle cx="170" cy="118" r="4" fill="#0891B2" />
+              <text x="178" y="116" font-size="10" font-family="ui-monospace,Menlo,monospace" fill="#0891B2">NYC · 2.8M</text>
+
+              <circle cx="365" cy="98" r="20" fill="url(#pulse-r)"><animate attributeName="r" values="6;24;6" dur="2.2s" begin="0.8s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.2s" begin="0.8s" repeatCount="indefinite" /></circle>
+              <circle cx="365" cy="98" r="4" fill="#0891B2" />
+              <text x="372" y="96" font-size="10" font-family="ui-monospace,Menlo,monospace" fill="#0891B2">LON · 1.9M</text>
+
+              <circle cx="560" cy="128" r="20" fill="url(#pulse-r)"><animate attributeName="r" values="6;22;6" dur="2.8s" begin="1.2s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.8s" begin="1.2s" repeatCount="indefinite" /></circle>
+              <circle cx="560" cy="128" r="4" fill="#0891B2" />
+              <text x="568" y="126" font-size="10" font-family="ui-monospace,Menlo,monospace" fill="#0891B2">TYO · 1.4M</text>
+
+              <circle cx="510" cy="148" r="20" fill="url(#pulse-r)"><animate attributeName="r" values="6;20;6" dur="2.5s" begin="1.6s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.5s" begin="1.6s" repeatCount="indefinite" /></circle>
+              <circle cx="510" cy="148" r="4" fill="#0891B2" />
+              <text x="518" y="146" font-size="10" font-family="ui-monospace,Menlo,monospace" fill="#0891B2">SIN · 0.9M</text>
+            </g>
+          </svg>
+        </div>
+        <div class="geo-list">
+          <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--fg-muted); margin-bottom: 12px;">// TOP REGIONS · 24H</div>
+          <div class="row"><span class="city">San Francisco</span><span class="n">4.10M</span><span class="dot"></span></div>
+          <div class="row"><span class="city">New York</span><span class="n">2.81M</span><span class="dot" style="background:#06B6D4;"></span></div>
+          <div class="row"><span class="city">London</span><span class="n">1.93M</span><span class="dot" style="background:#22D3EE;"></span></div>
+          <div class="row"><span class="city">Tokyo</span><span class="n">1.42M</span><span class="dot" style="background:#67E8F9;"></span></div>
+          <div class="row"><span class="city">Singapore</span><span class="n">0.92M</span><span class="dot" style="background:#A5F3FC;"></span></div>
+          <div class="row"><span class="city">Frankfurt</span><span class="n">0.71M</span><span class="dot" style="background:#CFFAFE;"></span></div>
+          <div class="row"><span class="city">+ 28 more</span><span class="n">0.51M</span><span class="dot" style="background:var(--border);"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="standard" style="background: var(--bg-alt);">
+  <div class="page">
+    <div class="section-head">
+      <div>
+        <div class="meta">// 03 · the standard underneath</div>
+        <h2>BASIS makes the chain possible. The chain makes this page possible.</h2>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+      <div style="padding: 36px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--site-accent); letter-spacing: 0.2em;">// TODAY</div>
+        <h3 style="font-size: 28px; letter-spacing: -0.02em; margin: 12px 0;">BASIS 0.9 · production</h3>
+        <p style="color: var(--fg-muted); margin: 0 0 20px; line-height: 1.55;">Receipts, scope grammar, tier model, public chain. 38 signatories. 472 conformance tests. The version every shipping property runs against.</p>
+        <a href="#" class="btn btn--ghost">Read the spec →</a>
+      </div>
+      <div style="padding: 36px; background: var(--bg); border: 1px dashed var(--border); border-radius: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.2em;">// 2027.Q2</div>
+        <h3 style="font-size: 28px; letter-spacing: -0.02em; margin: 12px 0;">BASIS 1.0 · ratification</h3>
+        <p style="color: var(--fg-muted); margin: 0 0 20px; line-height: 1.55;">RFC freeze 2026.10. Stability covenant. ISO submission. Federal procurement language adopted. The version your insurer will start asking about.</p>
+        <a href="#" class="btn btn--ghost">View RFC archive →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sign" style="background: linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);">
+  <div class="page" style="text-align: center;">
+    <h2 style="font-size: clamp(36px, 4.5vw, 56px); font-weight: 700; letter-spacing: -0.025em; margin: 0 auto 16px; max-width: 22ch; line-height: 1.1; text-wrap: balance;">38 signatories. 14,832 agents. One chain.</h2>
+    <p style="font-size: 18px; color: var(--fg-muted); max-width: 56ch; margin: 0 auto 36px;">Adopting BASIS in your agents? Sign Article II and your fleet shows up here, on this page, by tomorrow.</p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="#" class="btn btn--lg">Become a signatory <span class="arrow">→</span></a>
+      <a href="#" class="btn btn--ghost btn--lg">Read the spec</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="page">
+    <div class="row">
+      <div class="brand-block">
+        <strong style="font-size: 18px; letter-spacing: -0.01em;">Vorion · the standard</strong>
+        <div class="tag">// CONSORTIUM · EST. 2025</div>
+        <p>BASIS defines · Cognigate enforces · AgentAnchor certifies · Aurais operates · Kaizen cultivates.</p>
+      </div>
+      <div><h4>Standard</h4><ul>
+        <li><a href="#">BASIS 0.9</a></li>
+        <li><a href="#">RFC archive</a></li>
+        <li><a href="#">Conformance</a></li>
+        <li><a href="#">Public chain</a></li>
+      </ul></div>
+      <div><h4>Properties</h4><ul>
+        <li><a href="cognigate-www.html">Cognigate</a></li>
+        <li><a href="agentanchor-www.html">AgentAnchor</a></li>
+        <li><a href="aurais-www.html">Aurais</a></li>
+        <li><a href="#">Kaizen (soon)</a></li>
+      </ul></div>
+      <div><h4>Live</h4><ul>
+        <li><a href="#feed">Feed</a></li>
+        <li><a href="#metrics">Metrics</a></li>
+        <li><a href="#">Status</a></li>
+      </ul></div>
+      <div><h4>Company</h4><ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="index.html">Design system</a></li>
+      </ul></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 Vorion LLC · BASIS Apache-2.0</span>
+      <span>// THIS FOOTER IS ALSO LIVE · last block 2s ago</span>
+    </div>
+  </div>
+</footer>
+
+</div>
+</BaseLayout>
+
+<style is:global>
+/* ── Direction C: Live ecosystem. The site itself reads the chain. ── */
+
+  .live-banner {
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+  }
+  .live-banner .row {
+    max-width: 1280px; margin: 0 auto; padding: 8px 32px;
+    display: flex; align-items: center; gap: 14px;
+    color: var(--fg-muted);
+  }
+  .live-banner .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 8px #10B981;
+    animation: live-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes live-pulse { 0%,100%{opacity:1; transform: scale(1);} 50%{opacity:0.4; transform: scale(0.85);} }
+  .live-banner strong { color: var(--fg); }
+
+  /* HERO — split with live counter */
+  .hero-c { padding: 72px 0 48px; }
+  .hero-c .grid {
+    display: grid; grid-template-columns: 1.1fr 0.9fr;
+    gap: 56px; align-items: start;
+  }
+
+  .counter-stack { display: grid; gap: 12px; padding-top: 20px; }
+  .big-counter {
+    font-family: var(--font-mono);
+    font-size: clamp(56px, 8vw, 96px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .big-counter .accent { color: var(--site-accent); }
+  .counter-stack .lbl {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--fg-muted);
+  }
+  .counter-stack .delta {
+    font-family: var(--font-mono); font-size: 13px; color: #10B981;
+    margin-top: 4px;
+  }
+  .counter-stack .delta::before { content: "▲ "; }
+
+  /* LIVE FEED — center ticker */
+  .live-feed {
+    background: #0B1120; color: #E2E8F0;
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid #1E293B;
+    box-shadow: 0 24px 60px -32px rgba(15,23,42,0.4);
+  }
+  .live-feed .head {
+    background: #050912; padding: 14px 18px;
+    border-bottom: 1px solid #1E293B;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px; color: #64748B; letter-spacing: 0.08em;
+  }
+  .live-feed .head .live { color: #10B981; display: inline-flex; align-items: center; gap: 8px; }
+  .live-feed .head .live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;
+    animation: live-pulse 1.4s ease-in-out infinite;
+  }
+  .feed-stream { max-height: 420px; overflow: hidden; padding: 4px 0; }
+  .feed-row {
+    display: grid; grid-template-columns: 70px 70px 1fr 80px 22px;
+    gap: 12px;
+    padding: 9px 18px;
+    border-top: 1px solid #1E293B;
+    font-family: var(--font-mono); font-size: 11.5px;
+    align-items: center;
+  }
+  .feed-row:first-child { border-top: none; }
+  .feed-row .ts { color: #64748B; }
+  .feed-row .verb { font-weight: 600; letter-spacing: 0.04em; }
+  .feed-row .verb.allow { color: #10B981; }
+  .feed-row .verb.deny { color: #FB7185; }
+  .feed-row .verb.attest { color: #F59E0B; }
+  .feed-row .verb.cert { color: #3B82F6; }
+  .feed-row .verb.spec { color: #8B5CF6; }
+  .feed-row .agent { color: #F1F5F9; font-family: var(--font-body); font-size: 13px; }
+  .feed-row .agent .scope { color: #64748B; font-family: var(--font-mono); font-size: 11px; }
+  .feed-row .from { color: #64748B; text-align: right; }
+  .feed-row .ds { color: #94A3B8; }
+  .feed-row[data-src="cog"] .ds::before { content: "■"; color: #10B981; }
+  .feed-row[data-src="aa"] .ds::before { content: "■"; color: #3B82F6; }
+  .feed-row[data-src="aurais"] .ds::before { content: "■"; color: #F59E0B; }
+  .feed-row[data-src="vorion"] .ds::before { content: "■"; color: #8B5CF6; }
+  .feed-row.new {
+    animation: row-fade 480ms ease-out;
+  }
+  @keyframes row-fade {
+    from { background: rgba(8,145,178,0.18); transform: translateY(-6px); opacity: 0; }
+    to { background: transparent; transform: none; opacity: 1; }
+  }
+  .live-feed .foot {
+    padding: 10px 18px; background: #050912; border-top: 1px solid #1E293B;
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px; color: #64748B; letter-spacing: 0.06em;
+  }
+  .live-feed .foot a { color: #94A3B8; }
+
+  /* PROPERTIES STRIP — each one shows a live number */
+  .props-live {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .pl-card {
+    padding: 32px 28px;
+    border-left: 1px solid var(--border);
+    border-top: 4px solid var(--p);
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    text-decoration: none; color: inherit;
+    transition: background 200ms;
+  }
+  .pl-card:first-child { border-left: none; }
+  .pl-card:hover { background: var(--bg-alt); }
+  .pl-card .role { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--p); }
+  .pl-card .name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 4px; }
+  .pl-card .domain { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.04em; margin-bottom: 28px; }
+  .pl-card .num { font-family: var(--font-mono); font-size: 28px; font-weight: 600; color: var(--fg); letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .pl-card .num-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); letter-spacing: 0.18em; margin-top: 6px; }
+  .pl-card .visit { margin-top: auto; padding-top: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--p); letter-spacing: 0.1em; }
+
+  .pl-card[data-p="cog"] { --p: #10B981; }
+  .pl-card[data-p="aa"] { --p: #3B82F6; }
+  .pl-card[data-p="aurais"] { --p: #F59E0B; }
+  .pl-card[data-p="kaizen"] { --p: #F43F5E; }
+
+  /* SPARKLINE / vol panel */
+  .vol-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .vol-card { padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+  .vol-card .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--site-accent); }
+  .vol-card .num { font-family: var(--font-mono); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+  .vol-card .desc { color: var(--fg-muted); font-size: 12px; }
+  .vol-card svg { display: block; margin-top: 10px; }
+
+  /* MAP */
+  .geo-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 28px;
+  }
+  .geo-grid {
+    display: grid; grid-template-columns: 1fr 240px; gap: 28px;
+  }
+  .geo-list { font-family: var(--font-mono); font-size: 12px; }
+  .geo-list .row {
+    display: grid; grid-template-columns: 1fr 80px 12px;
+    align-items: center; gap: 12px;
+    padding: 8px 0; border-top: 1px solid var(--border);
+  }
+  .geo-list .row:first-child { border-top: none; }
+  .geo-list .city { color: var(--fg); }
+  .geo-list .n { color: var(--fg-muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .geo-list .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--site-accent); }
+
+  @media (max-width: 1100px) {
+    .props-live { grid-template-columns: repeat(2, 1fr); }
+    .pl-card:nth-child(3) { border-left: none; }
+    .pl-card { border-top-width: 4px; }
+  }
+  @media (max-width: 880px) {
+    .hero-c .grid { grid-template-columns: 1fr; }
+    .props-live { grid-template-columns: 1fr; }
+    .pl-card { border-left: none; border-top: 4px solid var(--p); }
+    .vol-grid { grid-template-columns: 1fr 1fr; }
+    .geo-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script is:inline>
+/* =============================================================================
+   Live feed — appended every ~700ms, max 14 visible, prepend animation.
+   This is mock data, not real network. The site reads as if the chain were live.
+   ============================================================================= */
+(function () {
+  const stream = document.getElementById('feed-stream');
+  const VERBS = [
+    { kind: 'allow', src: 'cog', text: 'db.read(orders)', wt: 50 },
+    { kind: 'allow', src: 'cog', text: 'web.fetch(api.stripe.com)', wt: 30 },
+    { kind: 'allow', src: 'cog', text: 'fs.read(./reports)', wt: 25 },
+    { kind: 'allow', src: 'cog', text: 'mail.send(✉ → 12)', wt: 18 },
+    { kind: 'allow', src: 'cog', text: 'shell.exec(npm test)', wt: 12 },
+    { kind: 'deny',  src: 'cog', text: 'db.write(customers) ✗', wt: 6 },
+    { kind: 'deny',  src: 'cog', text: 'net.outbound(*) ✗', wt: 4 },
+    { kind: 'attest', src: 'aa', text: 'tier T2 → T3 promoted', wt: 4 },
+    { kind: 'attest', src: 'aa', text: 'tier T3 → T4 audited', wt: 2 },
+    { kind: 'cert',  src: 'aa', text: 'cert renewed · 90d clean', wt: 3 },
+    { kind: 'spec',  src: 'vorion', text: 'RFC-0098 · comment opened', wt: 2 },
+    { kind: 'allow', src: 'aurais', text: 'console: quarantine cleared', wt: 3 },
+  ];
+  const AGENTS = [
+    'market-scout', 'inbox-triage', 'code-review', 'data-export', 'research-pal',
+    'claude-procurement', 'claude-code', 'claude-research', 'gpt-ops', 'svc-billing',
+    'tax-bot', 'svc-recon', 'kb-indexer', 'on-call-bot', 'qa-runner', 'sap-bridge'
+  ];
+
+  const totalWt = VERBS.reduce((a,v)=>a+v.wt,0);
+  function pickVerb() {
+    let r = Math.random()*totalWt;
+    for (const v of VERBS) { r -= v.wt; if (r<=0) return v; }
+    return VERBS[0];
+  }
+  function pickAgent() { return AGENTS[Math.floor(Math.random()*AGENTS.length)]; }
+  function fmtTs(d=new Date()){
+    return d.toTimeString().slice(0,8);
+  }
+
+  function makeRow() {
+    const v = pickVerb();
+    const a = pickAgent();
+    const row = document.createElement('div');
+    row.className = 'feed-row new';
+    row.dataset.src = v.src;
+    row.innerHTML = `
+      <span class="ts">${fmtTs()}</span>
+      <span class="verb ${v.kind}">${v.kind.toUpperCase()}</span>
+      <span class="agent">${a} <span class="scope">· ${v.text}</span></span>
+      <span class="from">${ {cog:'cognigate',aa:'agentanchor',aurais:'aurais',vorion:'basis'}[v.src] }</span>
+      <span class="ds">&nbsp;</span>`;
+    return row;
+  }
+
+  // seed
+  const seed = Array.from({length: 14}, makeRow);
+  // newest at top
+  seed.reverse().forEach((r,i)=>{ r.classList.remove('new'); stream.appendChild(r); });
+
+  // tick
+  let block = 8422108;
+  let agents = 14832;
+  let total = 8470;
+  const blockEl = document.getElementById('block-num');
+  const tputEl = document.getElementById('tput-num');
+  const agentsEl = document.getElementById('agents-count');
+  const visibleEl = document.getElementById('visible-rows');
+  const totalEl = document.getElementById('total-rows');
+
+  setInterval(() => {
+    const r = makeRow();
+    stream.insertBefore(r, stream.firstChild);
+    while (stream.children.length > 14) stream.removeChild(stream.lastChild);
+    setTimeout(()=>r.classList.remove('new'), 600);
+
+    block += 1 + Math.floor(Math.random()*3);
+    total += 1;
+    if (Math.random() < 0.08) agents += 1;
+
+    blockEl.textContent = block.toLocaleString();
+    tputEl.textContent = (130 + Math.floor(Math.random()*30));
+    agentsEl.textContent = agents.toLocaleString();
+    visibleEl.textContent = '14';
+    totalEl.textContent = total.toLocaleString();
+  }, 720);
+})();
+</script>

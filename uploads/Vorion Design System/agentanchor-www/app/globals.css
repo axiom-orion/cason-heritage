@@ -1,0 +1,6 @@
+@import "@vorionsys/design-tokens/tokens.css";
+@import "@vorionsys/design-tokens/site-shell.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

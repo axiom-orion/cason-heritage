@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 24px 60px; background: var(--parchment); position: relative; }
+  .wrap { position: relative; padding: 8px 0; }
+  .spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; transform: translateX(-50%); background: linear-gradient(180deg, var(--gold), var(--rust), var(--deep-blue)); }
+  .row { display: flex; justify-content: flex-start; margin-bottom: 14px; position: relative; }
+  .row.right { justify-content: flex-end; }
+  .card { background: var(--cream); border-radius: 8px; border: 1px solid rgba(139,69,19,0.15); padding: 10px 14px; width: 42%; box-shadow: 0 2px 12px rgba(44,24,16,0.08); position: relative; font-family: var(--font-sans); font-size: 12px; color: var(--ink); }
+  .card .nm { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+  .card .dt { color: var(--faded); font-size: 11px; }
+  .card::after { content: ''; position: absolute; top: 14px; width: 12px; height: 12px; background: var(--gold); border: 3px solid var(--cream); border-radius: 50%; box-shadow: 0 0 0 3px var(--gold); }
+  .row:not(.right) .card::after { right: -34px; }
+  .row.right .card::after { left: -34px; }
+</style></head>
+<body>
+  <div class="wrap">
+    <div class="spine"></div>
+    <div class="row"><div class="card"><div class="nm">Thomas Sr.</div><div class="dt">1608 – 1651 · Virginia</div></div></div>
+    <div class="row right"><div class="card"><div class="nm">James the Orphan</div><div class="dt">c.1655 – 1722 · Princess Anne</div></div></div>
+    <div class="row"><div class="card"><div class="nm">William</div><div class="dt">c.1695 – 1764 · VA → NC</div></div></div>
+  </div>
+</body></html>

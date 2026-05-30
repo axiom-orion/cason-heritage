@@ -1,0 +1,247 @@
+/* =============================================================================
+   VORION SITES — shared marketing-site shell
+   Loads after tokens.css. Provides the universal nav, footer, hero, and
+   section primitives every Vorion property uses. data-site swaps the accent.
+   ============================================================================= */
+
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+@supports (font-variation-settings: normal) { html { font-family: "Inter var", system-ui, sans-serif; } }
+body { background: var(--bg); color: var(--fg); font-size: 16px; line-height: 1.6; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--site-accent); color: white; }
+code, pre { font-family: var(--font-mono); }
+
+/* ── PAGE FRAME ──────────────────────────────────────────────────────────── */
+.page { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.page-wide { max-width: 1440px; margin: 0 auto; padding: 0 32px; }
+
+/* ── TOP NAV ─────────────────────────────────────────────────────────────── */
+.site-nav {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.site-nav .row {
+  max-width: 1280px; margin: 0 auto; padding: 0 32px;
+  height: 60px; display: flex; align-items: center; gap: 28px;
+}
+.site-nav .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
+}
+.site-nav .brand img, .site-nav .brand .glyph {
+  width: 22px; height: 22px; object-fit: contain; display: block;
+}
+.site-nav .brand .glyph {
+  border-radius: 50%;
+  background: var(--site-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--site-accent) 18%, transparent);
+}
+.site-nav .property-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.site-nav nav.links {
+  display: flex; gap: 22px; margin-left: auto;
+  font-size: 14px; color: var(--fg-subtle);
+}
+.site-nav nav.links a:hover { color: var(--site-accent); }
+.site-nav .cta {
+  font-size: 13px; padding: 7px 14px; border-radius: 6px;
+  background: var(--site-accent); color: white !important;
+  font-weight: 500;
+}
+.site-nav .cta:hover { background: var(--site-accent-dim); }
+
+/* Cross-property strip — shows family at top, all four sites linkable */
+.eco-strip {
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.eco-strip .row {
+  max-width: 1280px; margin: 0 auto; padding: 8px 32px;
+  display: flex; align-items: center; gap: 18px;
+  color: var(--fg-muted);
+}
+.eco-strip a {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--fg-subtle);
+  padding: 1px 0;
+}
+.eco-strip a::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+}
+.eco-strip a[data-site="vorion"]::before { background: #0891B2; }
+.eco-strip a[data-site="basis"]::before { background: #8B5CF6; }
+.eco-strip a[data-site="cognigate"]::before { background: #10B981; }
+.eco-strip a[data-site="agentanchor"]::before { background: #3B82F6; }
+.eco-strip a[data-site="aurais"]::before { background: #F59E0B; }
+.eco-strip a[data-site="kaizen"]::before { background: #F43F5E; }
+.eco-strip a[aria-current="page"] { color: var(--fg); font-weight: 600; }
+.eco-strip a:hover { color: var(--fg); }
+.eco-strip .sep { opacity: 0.3; }
+
+/* ── HERO ────────────────────────────────────────────────────────────────── */
+.hero { padding: 96px 0 80px; }
+.hero .kicker {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--site-accent);
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 28px;
+}
+.hero .kicker::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--site-accent);
+  box-shadow: 0 0 8px var(--site-accent);
+  animation: hero-pulse 2s ease-in-out infinite;
+}
+@keyframes hero-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.hero h1 {
+  font-size: clamp(48px, 6vw, 84px);
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  margin: 0 0 28px 0;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.hero h1 .accent { color: var(--site-accent); }
+.hero p.lede {
+  font-size: 21px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+  max-width: 60ch;
+  margin: 0 0 36px 0;
+}
+
+/* ── SECTION ─────────────────────────────────────────────────────────────── */
+section.section { padding: 88px 0; border-top: 1px solid var(--border); }
+.section-head { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 48px; }
+.section-head .meta {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--site-accent); margin-bottom: 12px;
+}
+.section-head h2 {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0;
+  max-width: 22ch;
+  text-wrap: balance;
+}
+.section-head p.section-lede {
+  font-size: 17px; color: var(--fg-muted); max-width: 44ch; margin: 0;
+}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+  background: var(--site-accent); color: white;
+  border: 1px solid var(--site-accent);
+  cursor: pointer; transition: all 160ms;
+}
+.btn:hover { background: var(--site-accent-dim); border-color: var(--site-accent-dim); }
+.btn--ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn--ghost:hover { border-color: var(--site-accent); color: var(--site-accent); background: transparent; }
+.btn--lg { height: 52px; padding: 0 26px; font-size: 15px; border-radius: 10px; }
+.btn .arrow { font-family: var(--font-mono); }
+
+/* ── FOOTER ──────────────────────────────────────────────────────────────── */
+.site-footer { border-top: 1px solid var(--border); padding: 64px 0 48px; background: var(--bg-alt); }
+.site-footer .row { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 48px; }
+.site-footer h4 { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-muted); margin: 0 0 16px 0; font-weight: 500; }
+.site-footer ul { list-style: none; padding: 0; margin: 0; }
+.site-footer li { margin: 6px 0; font-size: 14px; }
+.site-footer a:hover { color: var(--site-accent); }
+.site-footer .legal { display: flex; justify-content: space-between; padding-top: 32px; margin-top: 48px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.05em; }
+.site-footer .brand-block .tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-muted); margin-top: 8px; }
+.site-footer .brand-block p { font-size: 13px; color: var(--fg-muted); margin: 16px 0 0 0; max-width: 30ch; }
+
+/* ── SHARED PRIMITIVES ───────────────────────────────────────────────────── */
+.tier-pip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px;
+  border: 1px solid currentColor;
+  background: color-mix(in oklab, currentColor 8%, transparent);
+}
+.tier-pip[data-tier="0"] { color: #94A3B8; }
+.tier-pip[data-tier="1"] { color: #FBBF24; }
+.tier-pip[data-tier="2"] { color: #34D399; }
+.tier-pip[data-tier="3"] { color: #60A5FA; }
+.tier-pip[data-tier="4"] { color: #A78BFA; }
+.tier-pip[data-tier="5"] { color: #F472B6; }
+.tier-pip[data-tier="6"] { color: #FB923C; }
+.tier-pip[data-tier="7"] { color: #F43F5E; }
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--fg-muted);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.eyebrow .num { color: var(--site-accent); }
+
+/* Proof chain row — used on every property */
+.proof-row {
+  display: grid;
+  grid-template-columns: 16px 80px 1fr 110px 90px 24px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 14px;
+  font-family: var(--font-mono); font-size: 11.5px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+}
+.proof-row:first-child { border-top: none; }
+.proof-row .ts { color: var(--fg-muted); }
+.proof-row .verdict { font-weight: 600; letter-spacing: 0.05em; }
+.proof-row .verdict.allow { color: #34D399; }
+.proof-row .verdict.deny { color: #FB7185; }
+.proof-row .verdict.escalate { color: #FBBF24; }
+.proof-row .agent { color: var(--fg); font-weight: 500; font-family: var(--font-body); font-size: 13px; }
+.proof-row .agent .desc { color: var(--fg-muted); font-weight: 400; }
+.proof-row .hash { color: var(--fg-muted); }
+.proof-row .dot::before { content: "●"; color: var(--site-accent); }
+.proof-row.new { animation: row-in 360ms ease-out; }
+@keyframes row-in {
+  from { background: color-mix(in oklab, var(--site-accent) 12%, transparent); transform: translateX(-4px); opacity: 0; }
+  to { background: transparent; transform: none; opacity: 1; }
+}
+
+/* dark surface variant for proof viewers etc. */
+.surface-dark {
+  background: #020617;
+  color: #E2E8F0;
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+}
+.surface-dark .proof-row { border-top-color: #1E293B; }
+.surface-dark .proof-row .ts, .surface-dark .proof-row .hash { color: #64748B; }
+.surface-dark .proof-row .agent { color: #F1F5F9; }
+.surface-dark .proof-row .agent .desc { color: #94A3B8; }
+
+/* Responsive */
+@media (max-width: 880px) {
+  .page, .page-wide { padding: 0 20px; }
+  .hero { padding: 64px 0 48px; }
+  section.section { padding: 56px 0; }
+  .site-footer .row { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .site-nav nav.links { display: none; }
+  .section-head { flex-direction: column; align-items: flex-start; }
+}

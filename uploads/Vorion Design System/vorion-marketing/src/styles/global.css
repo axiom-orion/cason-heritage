@@ -1,0 +1,12 @@
+/* =============================================================================
+   global.css · vorion-marketing
+   Loads the design system + Tailwind. That's it. Page-specific CSS lives in
+   each .astro page's <style is:global> block.
+   ============================================================================= */
+
+@import "@vorionsys/design-tokens/tokens.css";
+@import "@vorionsys/design-tokens/site-shell.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

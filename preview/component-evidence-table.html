@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--parchment); }
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 13px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 12px rgba(44,24,16,0.08); }
+  thead tr { border-bottom: 3px solid var(--rust); text-align: left; background: var(--cream); }
+  th { padding: 11px 14px; color: var(--rust); font-weight: 700; }
+  td { padding: 11px 14px; vertical-align: top; }
+  tr.eliminated { border-bottom: 1px solid rgba(139,69,19,0.1); background: rgba(107,29,29,0.05); }
+  tr.leading { background: rgba(45,90,74,0.1); }
+  tr.secondary { background: rgba(196,154,60,0.1); }
+  .status-eliminated { color: var(--blood); font-weight: 700; }
+  .status-leading { color: var(--sea-green); font-weight: 700; }
+  .status-secondary { color: var(--gold); font-weight: 700; }
+</style></head>
+<body>
+  <table>
+    <thead><tr><th>Son</th><th>Dates</th><th>Fate</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr class="eliminated"><td><strong>Cannon Sr.</strong></td><td>c.1724–c.1779</td><td>Left for SC. Will omits Ransom.</td><td class="status-eliminated">ELIMINATED</td></tr>
+      <tr class="secondary"><td><strong>Henry</strong></td><td>c.1732–aft.1823</td><td>1823 deeds show separate local branch.</td><td class="status-secondary">SECONDARY</td></tr>
+      <tr class="leading"><td><strong>James</strong></td><td>c.1727–?</td><td>No land records. Landless = reason to leave.</td><td class="status-leading">LEADING</td></tr>
+    </tbody>
+  </table>
+</body></html>

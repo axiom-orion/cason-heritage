@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Cason Audit · 2026</title>
+<meta name="description" content="The Cason Line audit deck — an eleven-generation American family history re-examined under primary-source discipline. What survives. What doesn't. What's left to dig.">
+<meta property="og:title" content="The Cason Audit · 2026">
+<meta property="og:description" content="An eleven-generation American family history, re-examined under primary-source discipline. What survives, what doesn't, what's left to dig.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/deck">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/colors_and_type.css">
+<!-- Self-hosted brand fonts (drop real files in assets/fonts/ to activate) -->
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+
+<script type="application/json" id="speaker-notes">
+[
+  "Open by naming the project: we set out to write the Cason family story across eleven generations from 1608 to today. This deck is the audit of that work — what survived rigor and what didn't.",
+  "The frame: two kinds of facts. The person is a real, documented historical figure. The origin story attached to him is a different category of claim and needs to be tested separately. Don't confuse them.",
+  "The arithmetic: take birth ~1604, run to a present-day descendant, force it into ten generational intervals — you need ~37-40 years per generation. That's not how families work. The count is ~12, and a generation is missing.",
+  "1665 — the demographic bottleneck. Two of Thomas Sr.'s three sons died in one year. The line passed through one ten-year-old boy. James the Orphan is the funnel — everyone alive today descends from him.",
+  "What survives the audit unscathed. Every record from Ransom Cason Sr. forward — Florida Pioneer cert, Alachua will book, Civil War pension, census ladder — is independently anchored. The Florida branch is solid.",
+  "The quarantine. Nine claims about the English origin and earliest American chapter that we discard. They are derivative IGI-era contamination. Don't let them propagate to relatives, lineage applications, or new compilations.",
+  "The hole. Between William⁴ Cason (~1691) and Ransom Sr. (~1763) is one nominal link spanning 72 years. That's two generations, not one. The slot is unfilled. This is the load-bearing weakness in the entire pedigree.",
+  "What we're digging. Y-DNA Big Y-700 ordered, ~5 weeks until results. Pitt County NC deed books 1750-1800 next in queue. Three Lincs/Cambs Casson baptisms surfaced and pending image inspection.",
+  "Closing: the line is real. The story is being rewritten. The willingness to move — that's what they actually passed down. We move next."
+]
+</script>
+
+<style>
+:root {
+  --slide-bg: var(--parchment);
+  --slide-fg: var(--ink);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: var(--font-serif); background: #0a0a0a; }
+
+deck-stage section {
+  width: 100%; height: 100%;
+  background: #faf6ec;  /* near-white for maximum text contrast */
+  color: #1a0e08;       /* near-black ink */
+  padding: 88px 96px;
+  display: flex; flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* shared slide chrome */
+.eyebrow {
+  font-family: var(--font-sans); font-size: 16px; font-weight: 700;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+.slide-title {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: 84px; line-height: 1.02; letter-spacing: 0.015em;
+  color: var(--ink); margin: 0 0 18px;
+  max-width: 22ch;
+}
+.slide-title.rust { color: var(--rust); }
+.slide-sub {
+  font-family: var(--font-serif);
+  font-size: 30px; line-height: 1.4; color: #1a0e08;
+  max-width: 52ch; margin: 0 0 32px;
+  font-weight: 500;
+}
+.slide-body {
+  font-family: var(--font-serif); font-size: 24px; line-height: 1.55;
+  color: #1a0e08; max-width: 56ch;
+  font-weight: 500;
+}
+.slide-body strong { font-weight: 600; }
+.slide-body em { font-style: italic; color: var(--rust); }
+
+.page-num {
+  position: absolute; bottom: 36px; right: 48px;
+  font-family: var(--font-sans); font-size: 12px;
+  letter-spacing: 0.3em; color: var(--gold);
+}
+.brand-foot {
+  position: absolute; bottom: 36px; left: 48px;
+  font-family: var(--font-sans); font-size: 12px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink); opacity: 0.6;
+}
+
+/* dark slide */
+.dark {
+  background: #0d1730;  /* deeper than --deep-blue */
+  color: #ffffff;       /* max contrast */
+}
+.dark .slide-title { color: #ffffff; }
+.dark .slide-title.rust { color: #f5d063; }
+.dark .slide-sub { color: #ffffff; }
+.dark .slide-body { color: #ffffff; }
+.dark .eyebrow { color: #f5d063; }
+.dark .page-num { color: rgba(255,255,255,0.65); }
+.dark .brand-foot { color: rgba(255,255,255,0.55); }
+
+/* table-of-things layout */
+.split {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+  flex: 1;
+}
+.col h3 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 36px; color: var(--rust); margin: 0 0 18px;
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 12px;
+}
+.dark .col h3 { color: var(--gold-bright); border-color: rgba(196,154,60,0.4); }
+.col ul { list-style: none; padding: 0; margin: 0; }
+.col li {
+  font-family: var(--font-serif); font-size: 22px;
+  line-height: 1.5; padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.18);
+  color: #1a0e08; font-weight: 500;
+}
+.dark .col li { color: #ffffff; border-color: rgba(255,255,255,0.22); }
+.col li strong { font-weight: 600; }
+.col li.strike {
+  text-decoration: line-through;
+  text-decoration-color: rgba(107,29,29,0.6);
+  color: var(--ink);
+}
+
+/* stat row */
+.stat-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+  margin: 40px 0;
+}
+.stat .stat-num {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: 84px; line-height: 1; color: var(--blood);
+  letter-spacing: -0.01em;
+}
+.dark .stat .stat-num { color: var(--gold-bright); }
+.stat .stat-lbl {
+  font-family: var(--font-sans); font-size: 14px;
+  color: var(--ink); margin-top: 10px;
+  letter-spacing: 0.05em; line-height: 1.4;
+}
+.dark .stat .stat-lbl { color: var(--cream); }
+
+/* spine + dates ribbon */
+.ribbon {
+  font-family: var(--font-sans); font-size: 14px;
+  letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold-bright);
+  margin-top: 24px;
+}
+
+/* the math diagram */
+.math {
+  display: flex; align-items: center; gap: 24px;
+  margin: 32px 0;
+  font-family: var(--font-display); font-size: 44px;
+  color: var(--ink);
+}
+.dark .math { color: var(--cream); }
+.math .x { color: var(--rust); font-style: italic; }
+.math .eq { color: var(--gold); }
+.math .bad { color: var(--blood); font-weight: 700; }
+
+/* timeline-style slide */
+.gap-viz {
+  display: grid; grid-template-columns: 1fr 200px 1fr; align-items: center;
+  margin: 40px 0; gap: 24px;
+}
+.gap-viz .end {
+  background: var(--cream); border: 1px solid rgba(139,69,19,0.2);
+  border-left: 4px solid var(--gold);
+  padding: 24px;
+}
+.gap-viz .end h4 {
+  font-family: var(--font-display); font-size: 28px; margin: 0 0 6px;
+  color: var(--ink);
+}
+.gap-viz .end .meta {
+  font-family: var(--font-sans); font-size: 13px; color: var(--ink);
+  letter-spacing: 0.05em;
+}
+.gap-viz .span {
+  text-align: center;
+  font-family: var(--font-display); font-weight: 900;
+  color: var(--blood);
+  background: rgba(107,29,29,0.05);
+  border: 2px dashed var(--blood);
+  padding: 24px 12px;
+  border-radius: 8px;
+}
+.gap-viz .span .num { font-size: 56px; line-height: 1; }
+.gap-viz .span .lbl {
+  font-family: var(--font-sans); font-size: 12px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--blood); margin-top: 8px;
+}
+
+/* dig log on the final slide */
+.dig-log { font-family: ui-monospace, 'SF Mono', monospace; font-size: 16px; margin-top: 20px; }
+.dig-log .row {
+  display: grid; grid-template-columns: 110px 1fr 130px;
+  gap: 20px; padding: 12px 0;
+  border-bottom: 1px solid rgba(196,154,60,0.28);
+  line-height: 1.5;
+}
+.dark .dig-log .row { border-color: rgba(196,154,60,0.28); }
+.dig-log .ts { color: var(--gold); font-weight: 600; }
+.dark .dig-log .ts { color: var(--gold-bright); }
+.dig-log .what { color: var(--ink); font-family: var(--font-serif); font-weight: 500; }
+.dark .dig-log .what { color: var(--cream); }
+.dig-log .verdict {
+  font-family: var(--font-sans); font-size: 12px;
+  font-weight: 700; letter-spacing: 0.12em; text-align: right;
+}
+.dig-log .v-primary { color: var(--sea-green); }
+.dark .dig-log .v-primary { color: #10B981; }
+.dig-log .v-pending { color: var(--gold); }
+.dig-log .v-disproven { color: var(--blood); }
+.dark .dig-log .v-disproven { color: #FB7185; }
+.dig-log .v-negative { color: var(--blood); }
+.dark .dig-log .v-negative { color: #FB7185; }
+
+/* hero title slide */
+.hero-slide { justify-content: center; align-items: center; text-align: center; }
+.hero-slide .slide-title { font-size: 120px; max-width: 18ch; }
+.hero-slide .slide-sub { text-align: center; font-size: 22px; }
+
+.spine-rule {
+  width: 80px; height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--rust));
+  margin: 30px auto;
+}
+</style>
+</head>
+<body>
+
+<script src="/slides/deck-stage.js"></script>
+
+<deck-stage data-aspect="16:9">
+
+<!-- ── SLIDE 1 · TITLE ─────────────────────────────────────────────── -->
+<section class="dark hero-slide">
+  <div class="eyebrow">audit report · may 2026</div>
+  <h1 class="slide-title">Into the Unknown</h1>
+  <div class="spine-rule"></div>
+  <p class="slide-sub">An eleven-generation American family history — re-examined under primary-source discipline. What survives. What doesn't. What's left to dig.</p>
+  <div class="ribbon">the cason line · c.1604 — present</div>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">01 / 09</div>
+</section>
+
+<!-- ── SLIDE 2 · THE FRAME ─────────────────────────────────────────── -->
+<section>
+  <div class="eyebrow">02 · the frame</div>
+  <h2 class="slide-title rust">Two kinds of facts.</h2>
+  <p class="slide-sub">A claim about a person, and a claim about that person's origin story, are different things. Test them separately.</p>
+  <div class="split" style="margin-top: 30px;">
+    <div class="col">
+      <h3>The person</h3>
+      <ul>
+        <li><strong>Thomas Casson</strong></li>
+        <li>Lower Norfolk Co., VA</li>
+        <li>Headright of Capt. Thomas Harwood</li>
+        <li>VA Patent Book 1, p.124 · 7 Jul 1635</li>
+        <li>1642 deposition · age 38 · b. ~1604</li>
+        <li>Estate 1652 · 28,170 lbs tobacco</li>
+        <li style="border:none;"><strong style="color:var(--sea-green);">→ confirmed by primary records</strong></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>The origin story</h3>
+      <ul>
+        <li class="strike">Baptized Digswell, Hertfordshire</li>
+        <li class="strike">26 June 1608</li>
+        <li class="strike">Son of John Cason</li>
+        <li class="strike">Crossed Atlantic ~1629</li>
+        <li class="strike">Wife: Elizabeth Alcott</li>
+        <li class="strike">Church Warden, Lynnhaven Parish</li>
+        <li style="border:none;"><strong style="color:var(--blood);">→ derivative artifact · discard</strong></li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">02 / 09</div>
+</section>
+
+<!-- ── SLIDE 3 · THE MATH ─────────────────────────────────────────── -->
+<section>
+  <div class="eyebrow">03 · the count</div>
+  <h2 class="slide-title rust">The "eleven generations" is folklore.</h2>
+  <p class="slide-sub">Anchored to a documented birth around 1604, run forward to a descendant born today. The arithmetic doesn't fit.</p>
+  <div class="math">
+    <span>~422 years</span>
+    <span class="eq">÷</span>
+    <span class="x">10 intervals</span>
+    <span class="eq">=</span>
+    <span class="bad">~40 yrs / generation</span>
+  </div>
+  <p class="slide-body">Families don't average forty-year generations across four centuries. <strong>The line is closer to twelve generations than eleven.</strong> A person is missing — and we can locate the slot.</p>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">03 / 09</div>
+</section>
+
+<!-- ── SLIDE 4 · THE FUNNEL POINT ─────────────────────────────────── -->
+<section class="dark">
+  <div class="eyebrow">04 · the funnel point</div>
+  <h2 class="slide-title rust">1665. Age ten.</h2>
+  <p class="slide-sub">A demographic bottleneck that nearly ended the name.</p>
+  <div class="stat-row">
+    <div class="stat">
+      <div class="stat-num">2 of 3</div>
+      <div class="stat-lbl">Thomas Sr.'s sons died in 1665</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">10</div>
+      <div class="stat-lbl">Age of the surviving heir, James</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-lbl">Other male Casons left in the colony</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1722</div>
+      <div class="stat-lbl">James died · Will Book 3, p.448 · six children</div>
+    </div>
+  </div>
+  <p class="slide-body">Every Cason alive today descends from one ten-year-old boy. No guardianship record survives. What survives is what he did.</p>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">04 / 09</div>
+</section>
+
+<!-- ── SLIDE 5 · WHAT'S ANCHORED ──────────────────────────────────── -->
+<section>
+  <div class="eyebrow">05 · what's anchored</div>
+  <h2 class="slide-title rust">The Florida spine is solid.</h2>
+  <p class="slide-sub">Everything downstream of Ransom Cason Sr. (~1763) is independently primary-sourced and inherits zero risk from the audit upstream.</p>
+  <ul style="font-family:var(--font-serif); font-size:22px; line-height:1.7; color:var(--ink); list-style:none; padding:0; margin:24px 0; columns:2; column-gap: 48px;">
+    <li>· Glynn Co. GA land warrants 1799 (Book 6, ff.66 & 71)</li>
+    <li>· Alachua Co. FL Will Book A, pp. 35–36</li>
+    <li>· Florida Pioneer Certificate #2015S0027</li>
+    <li>· 1830, 1840 census placements</li>
+    <li>· Lt. Ransom 2 · 7th FL Infantry CSA</li>
+    <li>· Pension A00841 (Florida Memory)</li>
+    <li>· Surrender at Bennett Place, 26 Apr 1865</li>
+    <li>· Tustenuggee Methodist Cemetery, Fort White</li>
+    <li>· CR 778 farmhouse · extant</li>
+    <li>· Brevard County migration, 1957</li>
+  </ul>
+  <p class="slide-body" style="font-style:italic; color:var(--ink);">Eleven primary anchors. From the moment the family enters Florida, the documentary trail is dense.</p>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">05 / 09</div>
+</section>
+
+<!-- ── SLIDE 6 · QUARANTINE ───────────────────────────────────────── -->
+<section>
+  <div class="eyebrow">06 · the quarantine</div>
+  <h2 class="slide-title rust">Nine claims. Discard.</h2>
+  <p class="slide-sub">Stitched together by IGI-era patron submissions. If a source repeats them, flag the source as contaminated.</p>
+  <ul style="font-family:var(--font-serif); font-size:20px; line-height:1.65; color:var(--ink); list-style:none; padding:0; margin-top:24px;">
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× Baptized 26 June 1608, Digswell, Hertfordshire</li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× Son of John Cason</li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× John Cason, "stockholder in the Virginia Land Company" <em style="color:var(--blood); font-style:normal; font-family:var(--font-sans); font-size:13px; letter-spacing:0.1em;">— FABRICATED</em></li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× Atlantic crossing ~1629</li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× Birth year 1608 <em style="color:var(--rust); font-style:normal; font-family:var(--font-sans); font-size:13px; letter-spacing:0.1em;">— use ~1604</em></li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× Wife "Elizabeth Alcott" <em style="color:var(--rust); font-style:normal; font-family:var(--font-sans); font-size:13px; letter-spacing:0.1em;">— Elizabeth (Keeling) Leighton</em></li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× "Church Warden, Lynnhaven Parish"</li>
+    <li class="strike" style="padding:8px 0; border-bottom:1px solid rgba(107,29,29,0.15);">× "Eleven generations" as a hard count</li>
+    <li class="strike" style="padding:8px 0;">× Steeple Morden, Cambridgeshire fallback</li>
+  </ul>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">06 / 09</div>
+</section>
+
+<!-- ── SLIDE 7 · THE HOLE ─────────────────────────────────────────── -->
+<section>
+  <div class="eyebrow">07 · the load-bearing hole</div>
+  <h2 class="slide-title rust">Generation 5 is unfilled.</h2>
+  <p class="slide-sub">72 years across one nominal link is implausible as a single generation. The slot is real. It needs a name.</p>
+  <div class="gap-viz">
+    <div class="end">
+      <h4>William⁴ Cason</h4>
+      <div class="meta">b. ~1691 · Princess Anne Co., VA<br>d. 1764 · Pitt Co., NC<br>m. Jane Cannon, 1721</div>
+    </div>
+    <div class="span">
+      <div class="num">72 yrs</div>
+      <div class="lbl">▸ two generations</div>
+    </div>
+    <div class="end">
+      <h4>Ransom Cason Sr.</h4>
+      <div class="meta">b. ~1763 · Pitt Co., NC<br>d. 1853 · Alachua Co., FL<br>Florida Pioneer #2015S0027</div>
+    </div>
+  </div>
+  <p class="slide-body" style="font-size:20px;">Leading candidate: William⁴'s son <strong>James (c.1727)</strong> — landless, no surviving deeds. Pitt Co. tax lists 1755–1770 returned zero hits. <em>Y-DNA across William⁴'s six sons' lines is the resolution path.</em></p>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">07 / 09</div>
+</section>
+
+<!-- ── SLIDE 8 · WHAT WE'RE DIGGING ────────────────────────────────── -->
+<section class="dark">
+  <div class="eyebrow">08 · the dig stream</div>
+  <h2 class="slide-title rust">In progress.</h2>
+  <p class="slide-sub">Six findings in the last thirty days. Two primary, one negative, one disproven, two pending.</p>
+  <div class="dig-log">
+    <div class="row"><span class="ts">2026-05-22</span><span class="what">Pitt Co. NC tax lists 1755–1770 · ZERO HITS for James Cason</span><span class="verdict v-negative">NEGATIVE</span></div>
+    <div class="row"><span class="ts">2026-05-19</span><span class="what">VA Patent Book 1, p.124 · Thomas Casson re-photographed</span><span class="verdict v-primary">PRIMARY</span></div>
+    <div class="row"><span class="ts">2026-05-15</span><span class="what">3 Casson baptisms surfaced · Lincs / Cambs</span><span class="verdict v-pending">PENDING</span></div>
+    <div class="row"><span class="ts">2026-05-11</span><span class="what">Digswell parish register 1600–1640 · no Cason · disproven</span><span class="verdict v-disproven">DISPROVEN</span></div>
+    <div class="row"><span class="ts">2026-05-08</span><span class="what">FamilyTreeDNA Big Y-700 ordered · ~5 wks to results</span><span class="verdict v-pending">PENDING</span></div>
+    <div class="row"><span class="ts">2026-04-30</span><span class="what">Lower Norfolk Order Books · 5 court appearances confirmed</span><span class="verdict v-primary">PRIMARY</span></div>
+  </div>
+  <p class="slide-body" style="margin-top:20px; font-size:18px; color:var(--gold-bright); font-family:ui-monospace, monospace;">▸ next dig: Pitt Co. NC <em>deed books</em> 1750–1800</p>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">08 / 09</div>
+</section>
+
+<!-- ── SLIDE 9 · CLOSING ──────────────────────────────────────────── -->
+<section class="dark hero-slide">
+  <div class="eyebrow">09 · closing</div>
+  <h2 class="slide-title" style="font-size:80px;">The vehicle changes.</h2>
+  <h2 class="slide-title" style="font-size:80px; color: var(--gold-bright); margin-top:-10px;">The instinct doesn't.</h2>
+  <div class="spine-rule"></div>
+  <p class="slide-sub" style="max-width:680px;">From Thomas's cargo ship to Robert's rockets. The line is real. The story is being rewritten under primary-source discipline. The inheritance is the willingness to move.</p>
+  <div class="ribbon">we move next.</div>
+  <div class="brand-foot">the cason line · audit may 2026</div>
+  <div class="page-num">09 / 09</div>
+</section>
+
+</deck-stage>
+
+</body>
+</html>
