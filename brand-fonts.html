@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Fonts · Cason Heritage</title>
+  <link rel="stylesheet" href="/colors_and_type.css">
+<!-- Self-hosted brand fonts (drop real files in assets/fonts/ to activate) -->
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-serif);
+      background: var(--parchment);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 48px 32px;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 900;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+
+    .subtitle {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 32px;
+    }
+
+    /* Warning banner */
+    .warning {
+      background: var(--bg-warning);
+      border: 1px solid var(--border-gold);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .warning.hidden { display: none; }
+
+    .warning-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--rust);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      font-family: var(--font-sans);
+    }
+
+    .warning-content h2 {
+      margin: 0 0 6px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--rust);
+    }
+
+    .warning-content p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--fg-1);
+    }
+
+    /* Success state */
+    .success {
+      background: #e6f4e6;
+      border: 1px solid #2d5a4a;
+      border-radius: 8px;
+      padding: 16px 20px;
+      color: #1a3a2a;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .success.visible { display: block; }
+
+    /* Instructions card */
+    .instructions {
+      background: #fff;
+      border: 1px solid var(--border-hairline);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+
+    .instructions h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      margin: 0 0 12px;
+      color: var(--deep-blue);
+    }
+
+    .instructions p {
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      color: var(--fg-1);
+    }
+
+    .instructions ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--fg-2);
+    }
+
+    .instructions li { margin-bottom: 4px; }
+
+    /* Action area */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    button.primary {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      background: var(--deep-blue);
+      color: var(--cream);
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    button.primary:hover {
+      background: #0f1c33;
+      transform: translateY(-1px);
+    }
+    button.primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--fg-2);
+      border: 1px solid var(--border-medium);
+      padding: 13px 22px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Font mapping UI */
+    .mapping {
+      display: none;
+      margin-bottom: 32px;
+    }
+    .mapping.visible { display: block; }
+
+    .font-role {
+      background: white;
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+
+    .font-role label {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .font-role .filename {
+      font-family: var(--font-mono, ui-monospace, monospace);
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--bg-highlight);
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Live preview */
+    .preview-section {
+      margin-top: 40px;
+      display: none;
+    }
+    .preview-section.visible { display: block; }
+
+    .preview-header {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--faded);
+      margin-bottom: 12px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .preview-card {
+      background: white;
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      padding: 28px 32px;
+      min-height: 220px;
+    }
+
+    .preview-card.deck {
+      background: #0a0a0a;
+      color: #f4ede4;
+    }
+
+    .preview-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 12px;
+    }
+
+    .preview-title {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 42px;
+      line-height: 0.98;
+      letter-spacing: -0.01em;
+      margin: 0 0 12px;
+    }
+
+    .preview-body {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      line-height: 1.55;
+      max-width: 42ch;
+    }
+
+    .preview-deck .preview-title { color: #f4ede4; font-size: 38px; }
+    .preview-deck .preview-body { color: rgba(244,237,228,0.85); }
+
+    /* Status footer */
+    .status {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--faded);
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .status strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Brand Fonts</h1>
+    <div class="subtitle">Cason Heritage Design System</div>
+
+    <!-- Warning -->
+    <div id="warning" class="warning">
+      <div class="warning-icon">!</div>
+      <div class="warning-content">
+        <h2>Missing brand fonts</h2>
+        <p>The slide deck and heritage site previews are currently using substitute typefaces. Upload your licensed brand font files to see the real typography.</p>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div id="success" class="success">
+      <strong>Brand fonts applied.</strong> Previews are now using your uploaded files. Refresh the slide deck or heritage site pages to see the change in full context.
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h3>How to finish it</h3>
+      <p>In the file dialog that opened, navigate to wherever your brand font files live and select them. These are usually .woff2, .woff, .ttf, or .otf files. Based on your design system, you'll want to grab the fonts for your Display &amp; Headings style and your Body Serif style (your deck headings use a bold sans, and the heritage site uses a serif — so you likely have at least two font families to upload). Select them all and confirm in the dialog.</p>
+      <p>Once they upload, the "Missing brand fonts" warning should clear, and both your slide deck and heritage site previews will re-render with the real typography instead of the substitutes.</p>
+    </div>
+
+    <div class="action-bar">
+      <button id="selectBtn" class="primary">Select brand font files…</button>
+      <button id="clearBtn" class="secondary" style="display:none">Clear uploaded fonts</button>
+    </div>
+
+    <!-- Mapping / Selected files -->
+    <div id="mapping" class="mapping">
+      <div class="font-role">
+        <label>Display &amp; Headings (deck titles, heroes)</label>
+        <div id="displayFile" class="filename">— no file selected —</div>
+      </div>
+      <div class="font-role">
+        <label>Body Serif (heritage site body text, longform)</label>
+        <div id="serifFile" class="filename">— no file selected —</div>
+      </div>
+      <button id="applyBtn" class="primary" style="margin-top: 12px;" disabled>Apply these fonts to previews</button>
+    </div>
+
+    <!-- Live Previews -->
+    <div id="previews" class="preview-section">
+      <div class="preview-header">Live preview (using your selected files)</div>
+      <div class="preview-grid">
+        <!-- Deck preview -->
+        <div class="preview-card preview-deck">
+          <div class="preview-label">Slide deck — title slide</div>
+          <div id="deckTitle" class="preview-title">The Cason Audit</div>
+          <div id="deckBody" class="preview-body">Eleven generations. Primary sources only. What survives the audit.</div>
+        </div>
+
+        <!-- Heritage site preview -->
+        <div class="preview-card">
+          <div class="preview-label">Heritage site — narrative</div>
+          <div id="siteTitle" class="preview-title" style="font-size: 32px; margin-bottom: 10px;">Into the Unknown</div>
+          <div id="siteBody" class="preview-body" style="font-size: 15.5px;">Thomas Cason was born about 1604 in Hertfordshire, England. By 1635 he had crossed the Atlantic and settled in Virginia. Everything after that is documented.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status">
+      Currently using <strong>Google Fonts CDN</strong> (Playfair Display + Source Serif 4 + Source Sans 3) as fallbacks.<br>
+      Uploaded files are loaded locally in this browser session only. For permanent self-hosting, place the .woff2 files in <code>assets/fonts/</code> and import <code>local-fonts.css</code>.
+    </div>
+
+    <details style="margin-top: 32px; font-family: var(--font-sans); font-size: 13px; color: var(--faded);">
+      <summary style="cursor: pointer; color: var(--gold);">Where to download the real font files</summary>
+      <div style="margin-top: 12px; padding-left: 12px; line-height: 1.6;">
+        <strong>Playfair Display</strong> (Display &amp; Headings):<br>
+        • <a href="https://fonts.google.com/specimen/Playfair+Display" target="_blank" style="color: var(--fg-link)">Google Fonts — download the family</a><br>
+        • Or use <a href="https://fontsource.org/fonts/playfair-display" target="_blank" style="color: var(--fg-link)">Fontsource</a> if you ever move to a bundler (<code>@fontsource/playfair-display</code>)<br><br>
+
+        <strong>Source Serif 4</strong> (Body Serif):<br>
+        • <a href="https://fonts.google.com/specimen/Source+Serif+4" target="_blank" style="color: var(--fg-link)">Google Fonts — download the family</a><br>
+        • <a href="https://fontsource.org/fonts/source-serif-4" target="_blank" style="color: var(--fg-link)">Fontsource package</a><br><br>
+
+        <strong>Tip:</strong> Always download the WOFF2 files (best size + quality). If you purchase professional cuts from the foundries (Playfair has paid extensions, Source Serif has a full commercial family), drop those files here instead — the names in <code>local-fonts.css</code> are just suggestions.
+      </div>
+    </details>
+  </div>
+
+  <input type="file" id="fileInput" multiple accept=".woff2,.woff,.ttf,.otf" style="display:none" />
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const selectBtn = document.getElementById('selectBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const mapping = document.getElementById('mapping');
+    const applyBtn = document.getElementById('applyBtn');
+    const warning = document.getElementById('warning');
+    const success = document.getElementById('success');
+    const previews = document.getElementById('previews');
+
+    const displayFileEl = document.getElementById('displayFile');
+    const serifFileEl = document.getElementById('serifFile');
+
+    let selectedFiles = [];
+    let displayFontUrl = null;
+    let serifFontUrl = null;
+
+    // Trigger native file dialog exactly as described
+    selectBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      selectedFiles = files;
+      mapping.classList.add('visible');
+
+      // Simple heuristic assignment based on filename
+      const displayMatch = files.find(f => /display|heading|title|playfair|bold|black|900|700/i.test(f.name));
+      const serifMatch = files.find(f => /serif|body|text|source.?serif|regular|book/i.test(f.name));
+
+      let remaining = files.filter(f => f !== displayMatch && f !== serifMatch);
+
+      // Assign
+      if (displayMatch) {
+        displayFileEl.textContent = displayMatch.name;
+        displayFileEl.dataset.fileName = displayMatch.name;
+      } else if (remaining.length) {
+        displayFileEl.textContent = remaining[0].name + ' (assigned as Display)';
+        displayFileEl.dataset.fileName = remaining[0].name;
+        remaining.shift();
+      } else {
+        displayFileEl.textContent = files[0].name;
+        displayFileEl.dataset.fileName = files[0].name;
+      }
+
+      if (serifMatch) {
+        serifFileEl.textContent = serifMatch.name;
+        serifFileEl.dataset.fileName = serifMatch.name;
+      } else if (remaining.length) {
+        serifFileEl.textContent = remaining[0].name + ' (assigned as Body Serif)';
+        serifFileEl.dataset.fileName = remaining[0].name;
+      } else if (files.length > 1) {
+        serifFileEl.textContent = files[1].name;
+        serifFileEl.dataset.fileName = files[1].name;
+      }
+
+      applyBtn.disabled = false;
+    });
+
+    applyBtn.addEventListener('click', async () => {
+      // Create object URLs for the selected files and inject @font-face
+      const displayFile = selectedFiles.find(f => f.name === displayFileEl.dataset.fileName) || selectedFiles[0];
+      const serifFile = selectedFiles.find(f => f.name === serifFileEl.dataset.fileName) || selectedFiles[1] || selectedFiles[0];
+
+      if (displayFontUrl) URL.revokeObjectURL(displayFontUrl);
+      if (serifFontUrl) URL.revokeObjectURL(serifFontUrl);
+
+      displayFontUrl = URL.createObjectURL(displayFile);
+      serifFontUrl = URL.createObjectURL(serifFile);
+
+      // Inject dynamic font faces for this session
+      injectFontFaces(displayFontUrl, serifFontUrl, displayFile.name, serifFile.name);
+
+      // Update live previews
+      updateLivePreviews();
+
+      // Clear warning + show success
+      warning.classList.add('hidden');
+      success.classList.add('visible');
+      previews.classList.add('visible');
+
+      clearBtn.style.display = 'inline-block';
+      selectBtn.textContent = 'Replace font files…';
+
+      // Persist choice in this browser for the session
+      localStorage.setItem('cason-brand-fonts-applied', 'true');
+    });
+
+    function injectFontFaces(displayUrl, serifUrl, displayName, serifName) {
+      // Remove any previous injection
+      const oldStyle = document.getElementById('brand-font-override');
+      if (oldStyle) oldStyle.remove();
+
+      const style = document.createElement('style');
+      style.id = 'brand-font-override';
+      style.textContent = `
+        @font-face {
+          font-family: 'Brand Display';
+          src: url('${displayUrl}') format('woff2');
+          font-weight: 400 900;
+          font-style: normal;
+          font-display: swap;
+        }
+        @font-face {
+          font-family: 'Brand Serif';
+          src: url('${serifUrl}') format('woff2');
+          font-weight: 300 700;
+          font-style: normal italic;
+          font-display: swap;
+        }
+
+        /* Override the design system variables for previews */
+        :root {
+          --font-display: 'Brand Display', var(--font-display);
+          --font-serif: 'Brand Serif', var(--font-serif);
+        }
+
+        /* Make the live preview cards use them immediately */
+        .preview-title { font-family: 'Brand Display', var(--font-display) !important; }
+        .preview-body { font-family: 'Brand Serif', var(--font-serif) !important; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    function updateLivePreviews() {
+      // The CSS overrides above + the cards already have the right classes
+      // We just ensure the section is visible (already done in click handler)
+    }
+
+    clearBtn.addEventListener('click', () => {
+      // Revoke URLs
+      if (displayFontUrl) URL.revokeObjectURL(displayFontUrl);
+      if (serifFontUrl) URL.revokeObjectURL(serifFontUrl);
+
+      const oldStyle = document.getElementById('brand-font-override');
+      if (oldStyle) oldStyle.remove();
+
+      // Reset UI
+      selectedFiles = [];
+      displayFileEl.textContent = '— no file selected —';
+      serifFileEl.textContent = '— no file selected —';
+      delete displayFileEl.dataset.fileName;
+      delete serifFileEl.dataset.fileName;
+
+      mapping.classList.remove('visible');
+      previews.classList.remove('visible');
+      success.classList.remove('visible');
+      warning.classList.remove('hidden');
+
+      clearBtn.style.display = 'none';
+      selectBtn.textContent = 'Select brand font files…';
+      applyBtn.disabled = true;
+
+      localStorage.removeItem('cason-brand-fonts-applied');
+    });
+
+    // On load, restore previous session choice if present
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('cason-brand-fonts-applied') === 'true') {
+        // We can't restore the actual File objects across page loads,
+        // so we just show a helpful note that they previously applied fonts in this browser.
+        const note = document.createElement('div');
+        note.style.cssText = 'font-family:var(--font-sans);font-size:12px;color:var(--faded);margin-top:-12px;margin-bottom:24px;';
+        note.textContent = 'Fonts were applied earlier in this browser session. Use "Select brand font files…" again to reload them for this tab.';
+        selectBtn.parentNode.insertBefore(note, selectBtn.nextSibling);
+      }
+    });
+
+    // Keyboard hint
+    console.log('%c[Brand Fonts] Press "S" to open the file selector', 'color:#8b4513');
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 's' && document.activeElement.tagName === 'BODY') {
+        fileInput.click();
+      }
+    });
+  </script>
+</body>
+</html>

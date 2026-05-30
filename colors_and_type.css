@@ -1,0 +1,257 @@
+/* ============================================================
+   Cason Heritage — Colors & Typography
+   The voice of an heirloom document: parchment, ink, gold leaf,
+   rust, deep navy. Pioneer-era American printing meets a
+   modern reading surface.
+   ============================================================ */
+
+/* Google Fonts fallback (CDN) */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+/* 
+  For self-hosted fonts:
+  - Drop real font files into /assets/fonts/ using the exact names in local-fonts.css
+  - Load /assets/fonts/local-fonts.css AFTER this file in your HTML
+  - The local CSS will override the font stacks with your files.
+*/
+
+:root {
+  /* ── PRIMITIVES — paper & ink ── */
+  --parchment:     #f4ede4;   /* primary page background */
+  --cream:         #faf6f0;   /* card surfaces, raised paper */
+  --ink:           #2c1810;   /* body text, the "written" color */
+  --faded:         #7a6e62;   /* secondary text, archivist's hand */
+
+  /* ── PRIMITIVES — heritage accents ── */
+  --rust:          #8b4513;   /* section heads, the "scribe red" */
+  --gold:          #9a7b2d;   /* dividers, hairlines, marginalia */
+  --gold-bright:   #d4a825;   /* gilt accents on dark backgrounds */
+  --deep-blue:     #1a2744;   /* night-sky, sticky nav, closing */
+  --sea-green:     #2d5a4a;   /* maps, locations, "frontier" */
+  --blood:         #6b1d1d;   /* hero stat numbers, gravity */
+
+  /* ── SEMANTIC — surfaces ── */
+  --bg:                var(--parchment);
+  --bg-raised:         var(--cream);
+  --bg-highlight:      #fff8ec;            /* cream + gold wash */
+  --bg-warning:        #fef3e2;            /* cream + rust wash */
+  --bg-danger:         #fef0f0;            /* eliminated rows */
+  --bg-dark:           var(--deep-blue);   /* hero, nav, footer */
+  --bg-dark-overlay:   #1a2744dd;
+
+  /* ── SEMANTIC — text ── */
+  --fg-1:              var(--ink);          /* primary text */
+  --fg-2:              var(--faded);        /* secondary, captions, dates */
+  --fg-accent:         var(--rust);         /* section heads (light bg) */
+  --fg-accent-2:       var(--deep-blue);    /* sub-heads (light bg) */
+  --fg-on-dark:        var(--cream);        /* hero/footer text */
+  --fg-on-dark-2:      rgba(244,237,228,0.7);
+  --fg-on-dark-3:      rgba(244,237,228,0.4);
+  --fg-link:           var(--rust);
+  --fg-link-on-dark:   var(--gold-bright);
+
+  /* ── SEMANTIC — borders & lines ── */
+  --border-hairline:   rgba(139,69,19,0.15);
+  --border-medium:     rgba(139,69,19,0.3);
+  --border-gold:       var(--gold);
+  --divider-on-dark:   rgba(196,154,60,0.2);
+
+  /* ── STATUS COLORS (evidence-board scale) ── */
+  --status-leading:    var(--sea-green);    /* "Leading candidate" */
+  --status-secondary:  var(--gold);
+  --status-possible:   var(--faded);
+  --status-unlikely:   var(--blood);
+  --status-eliminated: var(--blood);
+
+  /* ── TYPE FAMILIES ── */
+  --font-display:  'Playfair Display', 'Iowan Old Style', Georgia, serif;
+  --font-serif:    'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans:     'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ── TYPE SCALE — fluid, document-first ── */
+  --fs-hero:       clamp(2.5rem, 6vw, 5rem);     /* H1, hero */
+  --fs-display:    2.5rem;                       /* closing H2 */
+  --fs-h1:         2.2rem;                       /* section H2 */
+  --fs-h2:         2rem;                         /* narrative H2 */
+  --fs-h3:         1.4rem;                       /* H3 */
+  --fs-pullquote:  1.5rem;
+  --fs-stat:       2.2rem;
+  --fs-body-lg:    1.1rem;
+  --fs-body:       1.05rem;
+  --fs-body-sm:    0.95rem;
+  --fs-meta:       0.85rem;
+  --fs-eyebrow:    0.72rem;   /* small-caps tags */
+  --fs-mini:       0.7rem;
+
+  /* ── LINE HEIGHT ── */
+  --lh-tight:      1.2;
+  --lh-snug:       1.4;
+  --lh-body:       1.7;
+  --lh-loose:      1.8;
+
+  /* ── LETTERSPACING ── */
+  --ls-eyebrow:    0.15em;
+  --ls-uppercase:  0.2em;
+  --ls-wide:       0.3em;
+  --ls-tight:      0.04em;
+
+  /* ── SPACING (8pt base) ── */
+  --space-1:       4px;
+  --space-2:       8px;
+  --space-3:       12px;
+  --space-4:       16px;
+  --space-5:       24px;
+  --space-6:       32px;
+  --space-7:       48px;
+  --space-8:       64px;
+  --space-9:       80px;
+  --space-10:      96px;
+
+  /* ── RADIUS ── */
+  --r-sm:          4px;
+  --r-md:          8px;
+  --r-lg:          10px;
+  --r-xl:          12px;
+  --r-pill:        999px;
+
+  /* ── SHADOWS — paper rising off paper ── */
+  --shadow-1:      0 2px 12px rgba(44,24,16,0.08);
+  --shadow-2:      0 4px 20px rgba(44,24,16,0.08);
+  --shadow-3:      0 8px 30px rgba(44,24,16,0.15);
+  --shadow-4:      0 10px 40px rgba(44,24,16,0.2);
+  --shadow-hero:   0 2px 20px rgba(0,0,0,0.5);
+  --shadow-nav:    0 2px 20px rgba(0,0,0,0.3);
+
+  /* ── TIMING ── */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast:        0.2s;
+  --t-base:        0.3s;
+  --t-slow:        0.5s;
+  --t-reveal:      0.8s;
+
+  /* ── GRADIENTS ── */
+  --gradient-hero:    linear-gradient(180deg, var(--deep-blue) 0%, var(--bg-dark-overlay) 40%, var(--parchment) 100%);
+  --gradient-closing: linear-gradient(180deg, var(--parchment), var(--deep-blue));
+  --gradient-rule:    linear-gradient(90deg, transparent, rgba(196,154,60,0.4), transparent);
+  --gradient-spine:   linear-gradient(180deg, var(--gold), var(--rust), var(--deep-blue));
+  --gradient-progress:linear-gradient(90deg, var(--gold-bright), var(--rust));
+}
+
+/* ============================================================
+   SEMANTIC TYPE — drop into any document
+   ============================================================ */
+
+body {
+  font-family: var(--font-serif);
+  background: var(--bg);
+  color: var(--fg-1);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, .h1-hero {
+  font-family: var(--font-display);
+  font-size: var(--fs-hero);
+  font-weight: 900;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  color: var(--fg-on-dark);
+  text-shadow: var(--shadow-hero);
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  color: var(--fg-accent);
+  line-height: var(--lh-snug);
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  color: var(--fg-accent-2);
+  line-height: var(--lh-snug);
+}
+
+p, .p {
+  font-family: var(--font-serif);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg-1);
+}
+
+.subtitle, .eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.section-sub {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--fg-2);
+  text-align: center;
+}
+
+.pullquote {
+  font-family: var(--font-display);
+  font-size: var(--fs-pullquote);
+  font-style: italic;
+  color: var(--fg-accent);
+  text-align: center;
+  line-height: 1.5;
+  padding: var(--space-6);
+  border-top: 2px solid var(--border-gold);
+  border-bottom: 2px solid var(--border-gold);
+}
+
+.meta, .date, .caption {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--fg-2);
+}
+
+.dates {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  letter-spacing: var(--ls-wide);
+  color: var(--gold-bright);
+  text-transform: uppercase;
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: var(--fs-stat);
+  font-weight: 900;
+  color: var(--blood);
+  line-height: 1;
+}
+
+.stat-label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--fg-2);
+}
+
+a, .link {
+  color: var(--fg-link);
+  text-decoration: underline;
+  text-decoration-color: var(--border-medium);
+  text-underline-offset: 2px;
+  transition: color var(--t-fast);
+}
+a:hover { color: var(--gold); }
+
+code, .mono {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+  font-size: 0.92em;
+  background: var(--bg-highlight);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  color: var(--ink);
+}

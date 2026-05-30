@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Cason Line — UI Kit</title>
+<link rel="icon" href="../../assets/favicon.svg" />
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 50px; }
+  body { font-family: var(--font-serif); background: var(--parchment); color: var(--ink); line-height: 1.7; overflow-x: hidden; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="Narrative.jsx"></script>
+<script type="text/babel" src="Hero.jsx"></script>
+<script type="text/babel" src="StickyNav.jsx"></script>
+<script type="text/babel" src="MapSection.jsx"></script>
+<script type="text/babel" src="GenCard.jsx"></script>
+<script type="text/babel" src="Timeline.jsx"></script>
+<script type="text/babel" src="EvidenceTable.jsx"></script>
+<script type="text/babel" src="Closing.jsx"></script>
+<script type="text/babel" src="SourcesFooter.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useRef } = React;
+
+function App() {
+  const [navVisible, setNavVisible] = useState(false);
+  const [active, setActive] = useState('prologue');
+  const [progress, setProgress] = useState(0);
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(Math.min(100, (scrollTop / docHeight) * 100));
+
+      const hero = document.getElementById('hero-anchor');
+      if (hero) {
+        const rect = hero.getBoundingClientRect();
+        setNavVisible(rect.bottom < 0);
+      }
+
+      // Update active section
+      const sections = ['prologue', 'map', 'part1', 'part2', 'evidence', 'part3', 'timeline', 'closing'];
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (el) {
+          const r = el.getBoundingClientRect();
+          if (r.top < 200 && r.bottom > 200) { setActive(id); break; }
+        }
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollTo = id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 50;
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+
+  return (
+    <>
+      <StickyNav visible={navVisible} active={active} progress={progress} onClick={scrollTo} />
+
+      <div id="hero-anchor">
+        <Hero onBegin={() => scrollTo('prologue')} />
+      </div>
+      <Seam from="var(--deep-blue)" to="var(--parchment)" height={72} />
+
+      <Narrative id="prologue" h2="Before" sub="The decade that almost ended the name">
+        <NP>Thomas Cason was baptized June 26, 1608, at Digswell, Hertfordshire, the son of John Cason. Around 1628, he crossed the Atlantic to Virginia. He was twenty years old. The colony had existed for twenty-one years and had already consumed thousands of lives.</NP>
+        <NP>He survived. He built a tobacco plantation in Lynnhaven Parish, Lower Norfolk County. He married Elizabeth Alcott around 1635. He became <strong>Church Warden</strong> — a man the community trusted. When he died in 1651, his estate inventory listed <strong>28,170 pounds of tobacco</strong>.</NP>
+        <NP>Then the decade of death. <strong>Sarah Poole Cason</strong> died August 21, 1661. The boy James was six. <strong>Thomas Cason Jr.</strong> died 1665. James was ten. <strong>James the elder</strong> — Thomas Sr.'s firstborn — also died in 1665. He had never married.</NP>
+        <Pullquote>By 1665, a ten-year-old boy named James was the sole surviving male Cason in the Virginia colony.</Pullquote>
+        <NP>We do not know who raised him. No guardianship record survives. What survives is what he did.</NP>
+      </Narrative>
+
+      <Divider />
+
+      <MapSection />
+
+      <Divider />
+
+      <Narrative id="part1" h2="Part I: The Atlantic Crossing" sub="Thomas Cason — Hertfordshire to Virginia, c.1628">
+        <NP>The England Thomas Cason grew up in was collapsing. The population had doubled in a century — from 2.3 million to 4.8 million — and the country could not feed itself. Half the population lived at or below poverty.</NP>
+        <NP>Richard Hakluyt, the great colonial promoter, spoke plainly about what Virginia offered: a place to put England's <em>"multitudes of loyterers and idle vagabondes."</em> The pamphlets promised something different — fertile land, abundant game, rivers teeming with fish.</NP>
+        <Pullquote>"Of the first 3,000 immigrants to Virginia, only 600 survived. Eighty percent mortality."</Pullquote>
+        <StatGrid stats={[
+          { num: '80%', label: 'Mortality, first generation of Virginia settlers' },
+          { num: '60/500', label: 'Survivors of the Starving Time, winter 1609-10' },
+          { num: '347', label: 'Colonists killed in a single morning, 1622 Massacre' },
+          { num: '6-10 wks', label: 'Atlantic crossing duration, favorable winds' },
+        ]} />
+        <NH3>What He Built</NH3>
+        <NP>Thomas arrived around 1628 at age twenty. His name is listed on the <strong>memorial wall at the Jamestown museum</strong>. He did not merely survive. He thrived. When he died in 1651, his estate inventory listed <strong>28,170 pounds of tobacco</strong>.</NP>
+      </Narrative>
+
+      <Divider />
+
+      <EvidenceTable />
+
+      <Divider />
+
+      <Narrative id="part3" h2="Part III: Into the Territory" sub="Ransom Cason Sr. — North Carolina to Florida, 1823">
+        <NP>After the Revolutionary War, Ransom moved south into Georgia — Glynn County, then deeper into the state. He married <strong>Phoebe Munden</strong>. They raised eight children. In 1822, Ransom began liquidating. A man does not sell everything unless he is going somewhere.</NP>
+        <Pullquote>"He was sixty years old. He had a wife, eight children, and stability in Georgia. The rational choice was to stay. Instead, he loaded his family onto wagons and pointed them south."</Pullquote>
+        <StatGrid stats={[
+          { num: '~8,000', label: 'Florida population at U.S. acquisition, 1821' },
+          { num: '0', label: 'Roads into interior Florida, 1823' },
+          { num: '~300', label: 'Total settler population, Alachua area' },
+          { num: '7 yrs', label: 'Second Seminole War duration (1835-42)' },
+        ]} />
+      </Narrative>
+
+      <Divider />
+
+      <Timeline />
+
+      <Divider />
+
+      <Seam from="var(--parchment)" to="var(--deep-blue)" height={72} />
+      <Closing />
+
+      <SourcesFooter />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

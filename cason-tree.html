@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="en" data-site="vorion" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Cason Line · audit-verified lineage ledger</title>
+<meta name="description" content="Companion forensic-ledger view to 'Into the Unknown: The Cason Line.' Every ancestor as a verified record; every claim as a tier-graded citation; every brick wall as an open work item.">
+<meta property="og:title" content="The Cason Line · Audit-Verified Lineage Ledger">
+<meta property="og:description" content="A forensic re-examination of the Cason line — every ancestor a verified record, every claim a tier-graded citation, every brick wall an open work item.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/tree">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ─── VORION DESIGN TOKENS (inlined v1.0) ─────────────────────────────── */
+:root {
+  --vorion-primary:#0891B2; --vorion-secondary:#1E293B;
+  --vorion-deep:#0B1A2E; --vorion-silver:#C9D2DC; --vorion-spark:#4DA8FF;
+  --site-accent:#0891B2; --site-accent-dim:#0E7490; --site-accent-soft:#CFFAFE;
+
+  --neutral-50:#F8FAFC; --neutral-100:#F1F5F9; --neutral-200:#E2E8F0;
+  --neutral-300:#CBD5E1; --neutral-500:#64748B; --neutral-700:#334155;
+  --neutral-900:#0F172A; --neutral-950:#020617;
+
+  --success:#10B981; --danger:#EF4444; --warning:#F59E0B; --info:#3B82F6; --violet:#8B5CF6;
+
+  --bg:#FFFFFF; --bg-alt:var(--neutral-50); --bg-deep:var(--neutral-100);
+  --fg:var(--vorion-secondary); --fg-muted:var(--neutral-500); --fg-subtle:var(--neutral-700);
+  --border:var(--neutral-200); --border-strong:var(--neutral-300);
+
+  --font-display:"Inter", system-ui, sans-serif;
+  --font-body:"Inter", system-ui, sans-serif;
+  --font-mono:"Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-1: 0 1px 2px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.05);
+  --shadow-2: 0 4px 12px -2px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+  --shadow-3: 0 12px 32px -8px rgba(15,23,42,0.12), 0 4px 8px rgba(15,23,42,0.04);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--fg); font-size: 15px; line-height: 1.55; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+::selection { background: var(--site-accent); color: white; }
+
+/* ─── ECO-STRIP ──────────────────────────────────────────────────────── */
+.eco-strip {
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.eco-strip .row {
+  max-width: 1440px; margin: 0 auto; padding: 8px 32px;
+  display: flex; align-items: center; gap: 18px;
+  color: var(--fg-muted);
+}
+.eco-strip a {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--fg-subtle);
+  padding: 1px 0;
+}
+.eco-strip a::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+}
+.eco-strip a[data-site="heritage"]::before  { background: #9a7b2d; }
+.eco-strip a[data-site="tree"]::before      { background: #0891B2; }
+.eco-strip a[data-site="dashboard"]::before { background: #8B5CF6; }
+.eco-strip a[data-site="research"]::before  { background: #10B981; }
+.eco-strip a[aria-current="page"] { color: var(--fg); font-weight: 600; }
+.eco-strip a:hover { color: var(--fg); }
+.eco-strip .sep { opacity: 0.3; }
+.eco-strip .meta-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.eco-strip .pulse {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--success);
+}
+.eco-strip .pulse::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success); box-shadow: 0 0 6px var(--success);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ─── TOPBAR ─────────────────────────────────────────────────────────── */
+.site-nav {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.site-nav .row {
+  max-width: 1440px; margin: 0 auto; padding: 0 32px;
+  height: 62px; display: flex; align-items: center; gap: 28px;
+}
+.site-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.site-nav .brand .glyph {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--site-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--site-accent) 18%, transparent);
+}
+.site-nav .property-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.site-nav nav.links { display: flex; gap: 22px; margin-left: auto; font-size: 14px; color: var(--fg-subtle); }
+.site-nav nav.links a:hover { color: var(--site-accent); }
+.site-nav .cta {
+  font-size: 13px; padding: 7px 14px; border-radius: 6px;
+  background: var(--site-accent); color: white !important; font-weight: 500;
+}
+.site-nav .cta:hover { background: var(--site-accent-dim); }
+
+/* ─── HERO ───────────────────────────────────────────────────────────── */
+.hero { padding: 72px 0 56px; max-width: 1440px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+.hero .kicker {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--site-accent);
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 28px;
+}
+.hero .kicker::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--site-accent);
+  box-shadow: 0 0 8px var(--site-accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+.hero h1 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  max-width: 22ch;
+  text-wrap: balance;
+}
+.hero h1 .accent { color: var(--site-accent); }
+.hero p.lede {
+  font-size: 18px; line-height: 1.55;
+  color: var(--fg-muted);
+  max-width: 64ch;
+  margin: 0 0 28px 0;
+}
+.hero .actions { display: flex; gap: 12px; margin-bottom: 32px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+  background: var(--site-accent); color: white;
+  border: 1px solid var(--site-accent);
+  cursor: pointer; transition: all 160ms;
+}
+.btn:hover { background: var(--site-accent-dim); border-color: var(--site-accent-dim); }
+.btn--ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn--ghost:hover { border-color: var(--site-accent); color: var(--site-accent); background: transparent; }
+.btn .arrow { font-family: var(--font-mono); }
+
+/* Hero stats strip */
+.hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.hero-stats .cell {
+  padding: 20px 24px;
+  border-right: 1px solid var(--border);
+}
+.hero-stats .cell:last-child { border-right: none; }
+.hero-stats .lbl {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--fg-muted); margin-bottom: 8px;
+}
+.hero-stats .val {
+  font-size: 32px; font-weight: 600; letter-spacing: -0.02em;
+  color: var(--fg); line-height: 1;
+}
+.hero-stats .val.accent { color: var(--site-accent); }
+.hero-stats .val.warn { color: var(--warning); }
+.hero-stats .val.danger { color: var(--danger); }
+.hero-stats .sub {
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted);
+  margin-top: 6px; letter-spacing: 0.04em;
+}
+
+/* ─── SECTION CHROME ─────────────────────────────────────────────────── */
+section.section { padding: 80px 0; border-top: 1px solid var(--border); }
+.section-inner { max-width: 1440px; margin: 0 auto; padding: 0 32px; }
+.section-head { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 40px; }
+.section-head .meta {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--site-accent); margin-bottom: 10px;
+}
+.section-head h2 {
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1; margin: 0;
+  max-width: 22ch; text-wrap: balance;
+}
+.section-head p.section-lede {
+  font-size: 16px; color: var(--fg-muted); max-width: 44ch; margin: 0;
+}
+
+/* ─── DARK TOPOLOGY SURFACE ──────────────────────────────────────────── */
+.topo {
+  background: #020617;
+  color: #E2E8F0;
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+  padding: 28px 28px 24px;
+}
+.topo-head {
+  display: flex; justify-content: space-between; align-items: end;
+  margin-bottom: 22px; flex-wrap: wrap; gap: 12px;
+}
+.topo-head .title {
+  font-size: 16px; font-weight: 600; color: #F1F5F9; letter-spacing: -0.005em;
+}
+.topo-head .sub {
+  font-family: var(--font-mono); font-size: 11px;
+  color: #64748B; letter-spacing: 0.06em; margin-top: 2px;
+}
+.topo-head .legend {
+  display: flex; gap: 18px;
+  font-family: var(--font-mono); font-size: 10px; color: #64748B; letter-spacing: 0.1em;
+}
+.topo-head .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.topo-head .legend .d { width: 7px; height: 7px; border-radius: 50%; }
+
+.topo svg { width: 100%; height: 520px; display: block; cursor: default; }
+.topo .lane-label {
+  font-family: var(--font-mono); font-size: 10px;
+  fill: #64748B; letter-spacing: 0.18em; text-transform: uppercase;
+}
+.topo .lane-count { font-family: var(--font-mono); font-size: 10px; fill: #94A3B8; }
+.topo .lane-rule { stroke: #1E293B; stroke-dasharray: 2 4; }
+.topo .node-label {
+  font-family: "Inter", sans-serif; font-size: 10.5px;
+  fill: #CBD5E1; font-weight: 500;
+}
+.topo .node-label.direct { fill: #F1F5F9; }
+.topo .node-label.disproven { fill: #FB7185; text-decoration: line-through; }
+.topo .person-dot { transition: r 0.2s; cursor: pointer; }
+.topo .person-dot:hover { r: 7; }
+.topo .selected-halo {
+  fill: none; stroke: var(--site-accent); stroke-width: 1.5; stroke-dasharray: 3 3;
+}
+
+/* ─── INVENTORY TABLE ────────────────────────────────────────────────── */
+.inv {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.inv-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.inv-head h3 { font-size: 14px; color: var(--fg); margin: 0; font-weight: 600; }
+.inv-head .filters {
+  display: flex; gap: 6px;
+  font-family: var(--font-mono); font-size: 10px;
+}
+.inv-head .chip {
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--fg-muted); cursor: pointer; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 500;
+  background: var(--bg);
+}
+.inv-head .chip:hover { border-color: var(--site-accent); color: var(--site-accent); }
+.inv-head .chip.on { color: var(--site-accent); border-color: var(--site-accent); background: var(--site-accent-soft); }
+.inv-head .chip.alert { color: var(--danger); border-color: var(--danger); background: color-mix(in oklab, var(--danger) 8%, transparent); }
+
+table.inv-tab {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--font-mono); font-size: 12px;
+}
+.inv-tab th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 10px; color: var(--fg-muted); letter-spacing: 0.18em;
+  text-transform: uppercase; font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.inv-tab td {
+  padding: 11px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  color: var(--fg-subtle);
+}
+.inv-tab tbody tr { cursor: pointer; }
+.inv-tab tbody tr:hover td { background: var(--bg-alt); color: var(--fg); }
+.inv-tab tbody tr.selected td { background: var(--site-accent-soft); color: var(--fg); }
+.inv-tab tbody tr.selected td:first-child { border-left: 2px solid var(--site-accent); padding-left: 14px; }
+.inv-tab .dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  margin-right: 8px; vertical-align: middle;
+}
+.inv-tab .dot.ok { background: var(--success); }
+.inv-tab .dot.warn { background: var(--warning); }
+.inv-tab .dot.alert { background: var(--danger); box-shadow: 0 0 6px color-mix(in oklab, var(--danger) 50%, transparent); }
+.inv-tab .dot.unk { background: var(--neutral-300); }
+.inv-tab .name { color: var(--fg); font-family: var(--font-body); font-weight: 500; font-size: 13.5px; }
+.inv-tab .role { color: var(--fg-muted); font-size: 11px; }
+.inv-tab .surface {
+  display: inline-block; padding: 2px 7px; border-radius: 3px;
+  background: var(--bg-deep); color: var(--fg-muted);
+  font-size: 10px; letter-spacing: 0.06em;
+}
+.inv-tab .ago { color: var(--fg-muted); }
+
+/* Tier pip — encodes evidence tier */
+.tier-pip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+.tier-pip[data-t="primary"]        { color: #10B981; background: rgba(16,185,129,0.12); }
+.tier-pip[data-t="derivative"]     { color: #F59E0B; background: rgba(245,158,11,0.12); }
+.tier-pip[data-t="circumstantial"] { color: #3B82F6; background: rgba(59,130,246,0.12); }
+.tier-pip[data-t="lore"]           { color: #8B5CF6; background: rgba(139,92,246,0.12); }
+.tier-pip[data-t="missing"]        { color: #FB7185; background: rgba(251,113,133,0.14); }
+.tier-pip[data-t="disproven"]      { color: #94A3B8; background: rgba(148,163,184,0.16); text-decoration: line-through; }
+
+/* ─── DOSSIER GRID (three-pane for selected person) ──────────────────── */
+.dossier {
+  display: grid; grid-template-columns: 320px 1fr 320px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.dossier .col { padding: 22px 22px; border-right: 1px solid var(--border); }
+.dossier .col:last-child { border-right: none; }
+.dossier h4 {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--fg-muted); text-transform: uppercase;
+  margin: 0 0 12px;
+}
+.dossier h2 {
+  font-size: 22px; letter-spacing: -0.015em; font-weight: 600;
+  color: var(--fg); margin: 4px 0 4px;
+}
+.dossier .meta {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--fg-muted); letter-spacing: 0.04em; margin-bottom: 16px;
+}
+.dossier .kicker {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--site-accent);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.dossier .kicker::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--site-accent);
+}
+
+.kv {
+  display: grid; grid-template-columns: 88px 1fr;
+  gap: 6px 14px;
+  font-family: var(--font-mono); font-size: 12px;
+}
+.kv .k { color: var(--fg-muted); }
+.kv .v { color: var(--fg); word-break: break-word; }
+.kv .v.warn { color: var(--danger); }
+.kv .v.ok { color: var(--success); }
+
+.narrative {
+  font-family: var(--font-body); font-size: 14px; line-height: 1.7;
+  color: var(--fg-subtle);
+}
+.narrative strong { color: var(--fg); font-weight: 600; }
+
+.cite-list { font-family: var(--font-mono); font-size: 12px; }
+.cite-list .row {
+  display: grid; grid-template-columns: 64px 1fr 88px;
+  gap: 10px; align-items: baseline;
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+.cite-list .row:first-child { border-top: none; }
+.cite-list .ts { color: var(--fg-muted); }
+.cite-list .what { color: var(--fg); font-family: var(--font-body); font-size: 13px; line-height: 1.4; }
+.cite-list .what .src { color: var(--fg-muted); font-family: var(--font-mono); font-size: 11px; display: block; margin-top: 2px; }
+.cite-list .verdict {
+  font-weight: 600; letter-spacing: 0.06em; text-align: right;
+}
+.cite-list .verdict.primary { color: var(--success); }
+.cite-list .verdict.derivative { color: var(--warning); }
+.cite-list .verdict.circumstantial { color: var(--info); }
+.cite-list .verdict.disproven { color: var(--danger); }
+
+/* 11-category dossier coverage */
+.coverage-list { display: grid; gap: 6px; }
+.coverage-list .row {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 8px; align-items: center;
+  padding: 7px 10px;
+  background: var(--bg-alt); border-radius: 4px;
+  font-family: var(--font-mono); font-size: 11.5px;
+  border-left: 3px solid var(--neutral-300);
+}
+.coverage-list .row[data-t="primary"]        { border-left-color: var(--success); }
+.coverage-list .row[data-t="derivative"]     { border-left-color: var(--warning); }
+.coverage-list .row[data-t="circumstantial"] { border-left-color: var(--info); }
+.coverage-list .row[data-t="missing"]        { border-left-color: var(--danger); background: color-mix(in oklab, var(--danger) 4%, var(--bg-alt)); }
+.coverage-list .row[data-t="disputed"]       { border-left-color: var(--danger); }
+.coverage-list .row .lbl { color: var(--fg); display: flex; align-items: baseline; gap: 6px; }
+.coverage-list .row .lbl .glyph { color: var(--fg-muted); font-size: 12px; width: 12px; }
+
+/* Action buttons */
+.rail-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  margin: 14px 0 8px;
+}
+.rail-actions button {
+  padding: 8px 10px;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: var(--font-mono); font-weight: 600;
+  text-align: left;
+}
+.rail-actions button:hover { border-color: var(--site-accent); color: var(--site-accent); }
+.rail-actions .primary {
+  grid-column: 1 / -1;
+  background: var(--site-accent); color: white; border-color: var(--site-accent);
+  text-align: center;
+}
+.rail-actions .primary:hover { background: var(--site-accent-dim); color: white; }
+
+/* ─── DISPROVEN PANEL ────────────────────────────────────────────────── */
+.disproven {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.disproven .head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--danger) 4%, var(--bg-alt));
+  display: flex; align-items: center; justify-content: space-between;
+}
+.disproven .head h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--fg); }
+.disproven .head .kicker {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--danger);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.disproven .head .kicker::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--danger);
+}
+.disproven .body { padding: 4px 0; }
+.disproven .item {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 16px; padding: 14px 20px; border-top: 1px solid var(--border);
+  align-items: start;
+}
+.disproven .item:first-child { border-top: none; }
+.disproven .item .claim {
+  font-family: var(--font-body); font-size: 14px;
+  color: var(--fg); font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--danger) 50%, transparent);
+  text-decoration-thickness: 1.5px;
+}
+.disproven .item .why {
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted);
+  margin-top: 4px; letter-spacing: 0.04em; line-height: 1.55;
+  text-decoration: none;
+}
+.disproven .item .verdict {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--danger);
+  white-space: nowrap;
+}
+
+/* ─── BRICK WALLS / PRIORITIES ───────────────────────────────────────── */
+.priorities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.priorities .card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.priorities .card .head { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.priorities .card .pri {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.priorities .card[data-pri="1"] .pri { color: var(--danger); }
+.priorities .card[data-pri="2"] .pri { color: var(--warning); }
+.priorities .card[data-pri="3"] .pri { color: var(--info); }
+.priorities .card[data-pri="1"] { border-top: 3px solid var(--danger); }
+.priorities .card[data-pri="2"] { border-top: 3px solid var(--warning); }
+.priorities .card[data-pri="3"] { border-top: 3px solid var(--info); }
+.priorities .card h4 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg); }
+.priorities .card .state {
+  padding: 12px 18px;
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--fg-subtle); line-height: 1.55;
+}
+.priorities .card .actions { padding: 0 18px 16px; }
+.priorities .card .action {
+  font-family: var(--font-mono); font-size: 11.5px;
+  padding: 8px 12px; margin-bottom: 5px;
+  background: var(--bg-alt); border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 4px;
+}
+.priorities .card .action .rec { color: var(--fg); line-height: 1.5; font-family: var(--font-body); font-size: 12.5px; }
+.priorities .card .action .repo { color: var(--site-accent); font-size: 10px; letter-spacing: 0.04em; margin-top: 3px; display: block; }
+
+/* ─── FOOTER ─────────────────────────────────────────────────────────── */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 56px 0 40px; background: var(--bg-alt);
+}
+.site-footer .row {
+  max-width: 1440px; margin: 0 auto; padding: 0 32px;
+  display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px;
+}
+.site-footer .brand-block .tag {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--fg-muted); margin-top: 8px;
+}
+.site-footer .brand-block p { font-size: 13px; color: var(--fg-muted); margin: 16px 0 0 0; max-width: 36ch; }
+.site-footer h4 {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--fg-muted);
+  margin: 0 0 14px 0; font-weight: 500;
+}
+.site-footer ul { list-style: none; padding: 0; margin: 0; }
+.site-footer li { margin: 6px 0; font-size: 13px; color: var(--fg-subtle); }
+.site-footer a:hover { color: var(--site-accent); }
+.site-footer .contribute-btn {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 7px 14px;
+  border: 1px solid color-mix(in oklab, var(--site-accent) 45%, transparent);
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--site-accent);
+  transition: background .2s, color .2s;
+}
+.site-footer .contribute-btn:hover { background: color-mix(in oklab, var(--site-accent) 12%, transparent); }
+.site-footer .legal {
+  max-width: 1440px; margin: 0 auto; padding: 32px 32px 0;
+  display: flex; justify-content: space-between;
+  margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--fg-muted); letter-spacing: 0.04em;
+}
+
+/* ─── PRINT — dossier-only export ─────────────────────────────────── */
+@media print {
+  @page { size: letter; margin: 0.6in; }
+  body { background: white !important; color: #111 !important; }
+  /* hide everything except the dossier section */
+  .eco-strip, .site-nav, .hero, .hero-stats,
+  #topology, #inventory, #disproven, #priorities, #sibling, #field-log,
+  .site-footer, .print-hide { display: none !important; }
+  /* lift dossier to fill the printed page */
+  section.section { padding: 0 !important; border: none !important; }
+  .section-inner { padding: 0 !important; max-width: none !important; }
+  .section-head { margin-bottom: 18px !important; gap: 8px !important; }
+  .section-head h2 { font-size: 28px !important; }
+  .section-head .meta { color: #666 !important; }
+  .dossier {
+    display: block !important; grid-template-columns: none !important;
+    border: none !important; border-radius: 0 !important;
+    box-shadow: none !important; background: white !important;
+  }
+  .dossier .col {
+    border-right: none !important; border-bottom: 1px solid #ddd !important;
+    padding: 14px 0 !important; break-inside: avoid;
+  }
+  .dossier .col:last-child { border-bottom: none !important; }
+  .dossier h2 { font-size: 20px !important; }
+  .narrative { color: #222 !important; }
+  .narrative strong { color: #000 !important; }
+  .cite-list .what { font-size: 12px !important; }
+  .cite-list .src { color: #666 !important; }
+  .kv .v { color: #111 !important; }
+  .tier-pip { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  /* footer for the print */
+  .print-footer {
+    display: block !important;
+    font-family: var(--font-mono); font-size: 10px;
+    color: #888; margin-top: 24px;
+    border-top: 1px solid #ddd; padding-top: 12px;
+  }
+}
+.print-footer { display: none; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .priorities { grid-template-columns: 1fr; }
+  .dossier { grid-template-columns: 1fr; }
+  .dossier .col { border-right: none; border-bottom: 1px solid var(--border); }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  .hero-stats .cell:nth-child(2) { border-right: none; }
+  .hero-stats .cell:nth-child(1), .hero-stats .cell:nth-child(2) { border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 720px) {
+  .topo svg { height: 380px; }
+  .hero-stats { grid-template-columns: 1fr; }
+  .hero-stats .cell { border-right: none; border-bottom: 1px solid var(--border); }
+  .hero-stats .cell:last-child { border-bottom: none; }
+  .site-footer .row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── ECO-STRIP ─────────────────────────────────────────────────────── -->
+<div class="eco-strip">
+  <div class="row">
+    <a data-site="heritage" href="cason-heritage/index.html">heritage.cason</a>
+    <span class="sep">/</span>
+    <a data-site="tree" aria-current="page">tree.cason</a>
+    <span class="sep">/</span>
+    <a data-site="dashboard" href="ui_kits/family-tree-app/index.html">dashboard.cason</a>
+    <span class="sep">/</span>
+    <a data-site="research" href="research/edge-expansion-prompt.md">research.cason</a>
+    <div class="meta-right">
+      <span class="pulse">AUDIT LIVE · 6 records updated this month</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOPBAR ────────────────────────────────────────────────────────── -->
+<header class="site-nav">
+  <div class="row">
+    <a href="cason-heritage/index.html" class="brand">
+      <span class="glyph"></span>
+      The Cason Line
+      <span class="property-tag">tree</span>
+    </a>
+    <nav class="links">
+      <a href="#topology">topology</a>
+      <a href="#inventory">ledger</a>
+      <a href="#dossier">dossier</a>
+      <a href="#disproven">quarantine</a>
+      <a href="#priorities">brick walls</a>
+      <a href="#sibling">sibling line</a>
+      <a href="#field-log">field log</a>
+    </nav>
+    <a href="cason-heritage/index.html" class="cta">Read the narrative →</a>
+  </div>
+</header>
+
+<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <span class="kicker">// audit-verified lineage</span>
+  <h1>Every ancestor a record. Every claim a <span class="accent">tier</span>. Every brick wall a work item.</h1>
+  <p class="lede">
+    Companion forensic ledger to <em>Into the Unknown: The Cason Line.</em>
+    Eleven (~twelve) generations under primary-source discipline.
+    The Florida spine is anchored. The Gen 5 link is the load-bearing hole.
+    The English origin remains unproven and the 1608 Digswell story is in quarantine.
+  </p>
+  <div class="actions">
+    <a href="#topology" class="btn">Open the topology <span class="arrow">↓</span></a>
+    <a href="#priorities" class="btn btn--ghost">View open brick walls</a>
+  </div>
+</section>
+
+<!-- ─── HERO STATS ────────────────────────────────────────────────────── -->
+<div style="max-width:1440px; margin:0 auto; padding: 0 32px;">
+<div class="hero-stats">
+  <div class="cell">
+    <div class="lbl">// LINEAGE SPAN</div>
+    <div class="val">~422 yrs</div>
+    <div class="sub">c.1604 → present · ~12 generations</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">// RECORDS ON FILE</div>
+    <div class="val accent">61</div>
+    <div class="sub">individuals · 11 direct · 50 collateral</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">// EVIDENCE TIERS</div>
+    <div class="val">
+      <span style="color:var(--success);">●</span> 28
+      <span style="color:var(--warning); margin-left:6px;">●</span> 17
+      <span style="color:var(--info); margin-left:6px;">●</span> 8
+      <span style="color:var(--danger); margin-left:6px;">●</span> 8
+    </div>
+    <div class="sub">primary · derivative · circ. · missing</div>
+  </div>
+  <div class="cell">
+    <div class="lbl">// OPEN BRICK WALLS</div>
+    <div class="val danger">3</div>
+    <div class="sub">1 load-bearing · 1 origin · 1 ethical</div>
+  </div>
+</div>
+</div>
+
+<!-- ─── TOPOLOGY ──────────────────────────────────────────────────────── -->
+<section class="section" id="topology">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta">// 01 · TOPOLOGY</div>
+      <h2>The lineage as a layered surface</h2>
+    </div>
+    <p class="section-lede">Generations are lanes. Direct line glows cyan. Branches dim to slate. Unsolved nodes pulse red. The Gen 5 hole is rendered as a gap.</p>
+  </div>
+
+  <div class="topo">
+    <div class="topo-head">
+      <div>
+        <div class="title">Lineage topology · 1604 → present</div>
+        <div class="sub">11 lanes · 11 direct-line nodes · 50 collateral · 1 unfilled slot</div>
+      </div>
+      <div class="legend">
+        <span><span class="d" style="background:#22D3EE"></span> DIRECT</span>
+        <span><span class="d" style="background:#64748B"></span> COLLATERAL</span>
+        <span><span class="d" style="background:#FB7185"></span> UNSOLVED</span>
+        <span><span class="d" style="background:#94A3B8; opacity:0.4"></span> DISPROVEN</span>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 1280 520" xmlns="http://www.w3.org/2000/svg">
+      <!-- 11 horizontal lanes for generations -->
+      <g>
+        <!-- Lane lines + labels -->
+        <line x1="20" y1="44" x2="1260" y2="44" class="lane-rule"/>
+        <text x="20" y="38" class="lane-label">GEN 01 · CROSSING</text>
+        <text x="1260" y="38" class="lane-count" text-anchor="end">c.1604 · Thomas Casson</text>
+
+        <line x1="20" y1="86" x2="1260" y2="86" class="lane-rule"/>
+        <text x="20" y="80" class="lane-label">GEN 02 · LYNNHAVEN</text>
+        <text x="1260" y="80" class="lane-count" text-anchor="end">3 children · 2 dead 1665</text>
+
+        <line x1="20" y1="128" x2="1260" y2="128" class="lane-rule"/>
+        <text x="20" y="122" class="lane-label">GEN 03 · THE ORPHAN</text>
+        <text x="1260" y="122" class="lane-count" text-anchor="end">James, sole male Cason 1665</text>
+
+        <line x1="20" y1="170" x2="1260" y2="170" class="lane-rule"/>
+        <text x="20" y="164" class="lane-label">GEN 04 · CAROLINA MOVE</text>
+        <text x="1260" y="164" class="lane-count" text-anchor="end">William⁴ · VA → NC, 1723</text>
+
+        <!-- GEN 5 GAP — rendered as a broken / red dashed line -->
+        <line x1="20" y1="212" x2="1260" y2="212" stroke="#FB7185" stroke-width="1.2" stroke-dasharray="8 6" opacity="0.7"/>
+        <text x="20" y="206" class="lane-label" style="fill:#FB7185;">GEN 05 · ▸ UNFILLED · PRIORITY 1</text>
+        <text x="1260" y="206" class="lane-count" text-anchor="end" style="fill:#FB7185;">72 yrs across one nominal link</text>
+
+        <line x1="20" y1="254" x2="1260" y2="254" class="lane-rule"/>
+        <text x="20" y="248" class="lane-label">GEN 06 · FLORIDA CROSSING</text>
+        <text x="1260" y="248" class="lane-count" text-anchor="end">Ransom Sr. · 1823, age 60</text>
+
+        <line x1="20" y1="296" x2="1260" y2="296" class="lane-rule"/>
+        <text x="20" y="290" class="lane-label">GEN 07 · THE BUILDER</text>
+        <text x="1260" y="290" class="lane-count" text-anchor="end">James Green · 8 sibs in FL</text>
+
+        <line x1="20" y1="338" x2="1260" y2="338" class="lane-rule"/>
+        <text x="20" y="332" class="lane-label">GEN 08 · WAR</text>
+        <text x="1260" y="332" class="lane-count" text-anchor="end">Lt. Ransom 2 · 7th FL CSA</text>
+
+        <line x1="20" y1="380" x2="1260" y2="380" class="lane-rule"/>
+        <text x="20" y="374" class="lane-label">GEN 09 · WESTWARD MOVE</text>
+        <text x="1260" y="374" class="lane-count" text-anchor="end">Thadeous · m. 1882 Columbia Co.</text>
+
+        <line x1="20" y1="422" x2="1260" y2="422" class="lane-rule"/>
+        <text x="20" y="416" class="lane-label">GEN 10 · THIRTEEN</text>
+        <text x="1260" y="416" class="lane-count" text-anchor="end">Carl Columbus · 13 children</text>
+
+        <line x1="20" y1="464" x2="1260" y2="464" class="lane-rule"/>
+        <text x="20" y="458" class="lane-label">GEN 11 · SPACE COAST</text>
+        <text x="1260" y="458" class="lane-count" text-anchor="end">Robert Sr. · b.1933 · Titusville 1957</text>
+      </g>
+
+      <!-- ── GEN 1 nodes ── -->
+      <!-- Thomas Casson (direct, selected) -->
+      <line x1="620" y1="44" x2="620" y2="86" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+      <circle cx="620" cy="44" r="6" fill="#22D3EE" class="person-dot" data-id="thomas-sr"/>
+      <circle cx="620" cy="44" r="14" class="selected-halo" id="halo-thomas-sr"/>
+      <text x="630" y="40" class="node-label direct">Thomas Casson · c.1604–1651</text>
+
+      <!-- ── GEN 2 ── -->
+      <line x1="540" y1="86" x2="540" y2="86" stroke="#64748B" stroke-width="1"/>
+      <line x1="540" y1="86" x2="700" y2="86" stroke="#64748B" stroke-width="0.8" opacity="0.5"/>
+      <line x1="620" y1="86" x2="620" y2="128" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <circle cx="540" cy="86" r="4" fill="#64748B" class="person-dot" data-id="james-1634"/>
+      <text x="540" y="104" text-anchor="middle" class="node-label" style="font-size:9.5px;">James · c.1634–1665</text>
+
+      <circle cx="620" cy="86" r="6" fill="#22D3EE" class="person-dot" data-id="thomas-jr"/>
+      <text x="630" y="82" class="node-label direct">Thomas Jr. · d.1665</text>
+
+      <circle cx="700" cy="86" r="4" fill="#64748B" class="person-dot" data-id="ruth"/>
+      <text x="700" y="104" text-anchor="middle" class="node-label" style="font-size:9.5px;">Ruth · m. Woodhouse</text>
+
+      <!-- ── GEN 3 ── -->
+      <circle cx="620" cy="128" r="6" fill="#22D3EE" class="person-dot" data-id="james-orphan"/>
+      <text x="630" y="124" class="node-label direct">James the Orphan · 1655–1722</text>
+      <line x1="620" y1="128" x2="620" y2="170" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+      <!-- siblings of his children (gen 4) -->
+
+      <!-- ── GEN 4 ── -->
+      <line x1="380" y1="170" x2="860" y2="170" stroke="#64748B" stroke-width="0.8" opacity="0.5"/>
+      <circle cx="380" cy="170" r="3.5" fill="#64748B" class="person-dot" data-id="susannah"/>
+      <text x="380" y="186" text-anchor="middle" class="node-label" style="font-size:9px;">Susannah</text>
+      <circle cx="460" cy="170" r="3.5" fill="#64748B" class="person-dot" data-id="thomas-3"/>
+      <text x="460" y="186" text-anchor="middle" class="node-label" style="font-size:9px;">Thomas III</text>
+      <circle cx="540" cy="170" r="3.5" fill="#64748B" class="person-dot" data-id="james-jr-1690"/>
+      <text x="540" y="186" text-anchor="middle" class="node-label" style="font-size:9px;">James Jr.</text>
+      <circle cx="620" cy="170" r="6" fill="#22D3EE" class="person-dot" data-id="william-1695"/>
+      <text x="630" y="166" class="node-label direct">William⁴ · c.1695–1764 · VA → NC</text>
+
+      <!-- Branch fork: marks Hillery as the head of the sibling spine (see section 06) -->
+      <line x1="920" y1="220" x2="1100" y2="280" stroke="#A78BFA" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>
+      <text x="1100" y="295" text-anchor="middle" class="node-label" style="font-size:9px; fill:#A78BFA; letter-spacing:0.06em;">▸ HILLERY LINE</text>
+      <text x="1100" y="307" text-anchor="middle" class="node-label" style="font-size:8.5px; fill:#A78BFA; opacity:0.7;">NC → GA → FL → Utah</text>
+      <text x="1100" y="320" text-anchor="middle" class="node-label" style="font-size:8px; fill:#A78BFA; opacity:0.55;">see § 06 ↓</text>
+      <circle cx="780" cy="170" r="3.5" fill="#64748B" class="person-dot" data-id="elizabeth"/>
+      <text x="780" y="186" text-anchor="middle" class="node-label" style="font-size:9px;">Elizabeth</text>
+      <circle cx="860" cy="170" r="3.5" fill="#64748B" class="person-dot" data-id="dynah"/>
+      <text x="860" y="186" text-anchor="middle" class="node-label" style="font-size:9px;">Dynah</text>
+      <line x1="620" y1="170" x2="620" y2="212" stroke="#22D3EE" stroke-width="1.2" opacity="0.4" stroke-dasharray="3 3"/>
+
+      <!-- ── GEN 5 GAP ── -->
+      <!-- Show William⁴'s six sons on this lane — pin candidate James⁵ marker -->
+      <line x1="320" y1="212" x2="940" y2="212" stroke="#94A3B8" stroke-width="0.8" opacity="0.35"/>
+
+      <circle cx="320" cy="212" r="3.5" fill="#FB7185" class="person-dot" data-id="cannon-sr" opacity="0.5"/>
+      <text x="320" y="228" text-anchor="middle" class="node-label" style="font-size:9px; fill:#FB7185;">Cannon · ELIMINATED</text>
+
+      <circle cx="420" cy="212" r="3.5" fill="#FB7185" class="person-dot" data-id="william-jr" opacity="0.5"/>
+      <text x="420" y="228" text-anchor="middle" class="node-label" style="font-size:9px; fill:#FB7185;">William Jr. · ELIMINATED</text>
+
+      <!-- James (1727) — leading candidate, pulses red -->
+      <circle cx="620" cy="212" r="6" fill="#FB7185" class="person-dot" data-id="james-1727">
+        <animate attributeName="r" values="6;9;6" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="620" cy="212" r="14" fill="none" stroke="#FB7185" stroke-width="1" opacity="0.5">
+        <animate attributeName="r" values="6;18;6" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.6;0;0.6" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <text x="630" y="208" class="node-label" style="fill:#FB7185;">James? · c.1727 · ▸ LEADING CANDIDATE</text>
+
+      <circle cx="720" cy="212" r="3.5" fill="#94A3B8" class="person-dot" data-id="john-1728" opacity="0.6"/>
+      <text x="720" y="228" text-anchor="middle" class="node-label" style="font-size:9px;">John · possible</text>
+
+      <circle cx="820" cy="212" r="3.5" fill="#F59E0B" class="person-dot" data-id="henry-1732" opacity="0.6"/>
+      <text x="820" y="228" text-anchor="middle" class="node-label" style="font-size:9px; fill:#F59E0B;">Henry · secondary</text>
+
+      <circle cx="920" cy="212" r="3.5" fill="#FB7185" class="person-dot" data-id="hillery" opacity="0.5"/>
+      <text x="920" y="228" text-anchor="middle" class="node-label" style="font-size:9px; fill:#FB7185;">Hillery · UNLIKELY</text>
+
+      <line x1="620" y1="212" x2="620" y2="254" stroke="#FB7185" stroke-width="1.2" opacity="0.6" stroke-dasharray="3 3"/>
+
+      <!-- ── GEN 6 — Ransom Sr. and his 8 children ── -->
+      <circle cx="620" cy="254" r="6" fill="#22D3EE" class="person-dot" data-id="ransom-sr"/>
+      <text x="630" y="250" class="node-label direct">Ransom Cason Sr. · c.1763–1853 · FL Pioneer</text>
+      <line x1="620" y1="254" x2="620" y2="296" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <!-- Ransom Sr's other children -->
+      <line x1="280" y1="296" x2="960" y2="296" stroke="#64748B" stroke-width="0.8" opacity="0.45"/>
+      <circle cx="280" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="john-cason-6"/>
+      <text x="280" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">John</text>
+      <circle cx="370" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="speckled-bill"/>
+      <text x="370" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">"Speckled Bill"</text>
+      <circle cx="490" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="ransom-jr"/>
+      <text x="490" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">Ransom Jr.</text>
+      <circle cx="620" cy="296" r="6" fill="#22D3EE" class="person-dot" data-id="james-green"/>
+      <text x="630" y="292" class="node-label direct">James Green · m. Lucy Barrow</text>
+      <circle cx="780" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="moses"/>
+      <text x="780" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">Moses</text>
+      <circle cx="860" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="clementine"/>
+      <text x="860" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">Clementine</text>
+      <circle cx="960" cy="296" r="3.5" fill="#64748B" class="person-dot" data-id="becky"/>
+      <text x="960" y="312" text-anchor="middle" class="node-label" style="font-size:9px;">Becky</text>
+      <line x1="620" y1="296" x2="620" y2="338" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <!-- ── GEN 8 ── -->
+      <line x1="540" y1="338" x2="700" y2="338" stroke="#64748B" stroke-width="0.8" opacity="0.45"/>
+      <circle cx="540" cy="338" r="3.5" fill="#64748B" class="person-dot" data-id="mary-ann"/>
+      <text x="540" y="354" text-anchor="middle" class="node-label" style="font-size:9px;">Mary Ann</text>
+      <circle cx="620" cy="338" r="6" fill="#22D3EE" class="person-dot" data-id="ransom-2"/>
+      <text x="630" y="334" class="node-label direct">Lt. Ransom 2 · 7th FL Infantry CSA · Bentonville</text>
+      <circle cx="700" cy="338" r="3.5" fill="#64748B" class="person-dot" data-id="george-washington"/>
+      <text x="700" y="354" text-anchor="middle" class="node-label" style="font-size:9px;">G. Washington</text>
+      <line x1="620" y1="338" x2="620" y2="380" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <!-- ── GEN 9 ── -->
+      <circle cx="620" cy="380" r="6" fill="#22D3EE" class="person-dot" data-id="thadeous"/>
+      <text x="630" y="376" class="node-label direct">Thadeous · m. Georgia McKinney · Fort White</text>
+      <line x1="620" y1="380" x2="620" y2="422" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <!-- ── GEN 10 ── -->
+      <line x1="400" y1="422" x2="840" y2="422" stroke="#64748B" stroke-width="0.8" opacity="0.45"/>
+      <circle cx="400" cy="422" r="3.5" fill="#64748B" class="person-dot" data-id="lena-alice"/>
+      <text x="400" y="438" text-anchor="middle" class="node-label" style="font-size:9px;">Lena Alice</text>
+      <circle cx="490" cy="422" r="3.5" fill="#64748B" class="person-dot" data-id="carrie-mae"/>
+      <text x="490" y="438" text-anchor="middle" class="node-label" style="font-size:9px;">Carrie Mae</text>
+      <circle cx="560" cy="422" r="3.5" fill="#64748B" class="person-dot" data-id="eddie-ross"/>
+      <text x="560" y="438" text-anchor="middle" class="node-label" style="font-size:9px;">Eddie Ross</text>
+      <circle cx="620" cy="422" r="6" fill="#22D3EE" class="person-dot" data-id="carl-columbus"/>
+      <text x="630" y="418" class="node-label direct">Carl Columbus · 13 children · Fort White</text>
+      <circle cx="760" cy="422" r="3.5" fill="#64748B" class="person-dot" data-id="wilbur"/>
+      <text x="760" y="438" text-anchor="middle" class="node-label" style="font-size:9px;">Wilbur</text>
+      <circle cx="840" cy="422" r="3.5" fill="#64748B" class="person-dot" data-id="julia-matilda"/>
+      <text x="840" y="438" text-anchor="middle" class="node-label" style="font-size:9px;">Julia Matilda</text>
+      <line x1="620" y1="422" x2="620" y2="464" stroke="#22D3EE" stroke-width="1.2" opacity="0.5"/>
+
+      <!-- ── GEN 11 ── -->
+      <line x1="340" y1="464" x2="900" y2="464" stroke="#64748B" stroke-width="0.8" opacity="0.45"/>
+      <circle cx="340" cy="464" r="3.5" fill="#64748B" class="person-dot" data-id="dot"/>
+      <text x="340" y="480" text-anchor="middle" class="node-label" style="font-size:9px;">Dot</text>
+      <circle cx="430" cy="464" r="3.5" fill="#64748B" class="person-dot" data-id="buddy"/>
+      <text x="430" y="480" text-anchor="middle" class="node-label" style="font-size:9px;">Buddy</text>
+      <circle cx="500" cy="464" r="3.5" fill="#94A3B8" class="person-dot" data-id="noah" opacity="0.5"/>
+      <text x="500" y="480" text-anchor="middle" class="node-label" style="font-size:9px; fill:#94A3B8;">Noah (d. 1942)</text>
+      <circle cx="620" cy="464" r="6" fill="#22D3EE" class="person-dot" data-id="robert-sr"/>
+      <text x="630" y="460" class="node-label direct">Robert Sr. · b.1933 · CR 778 → Titusville 1957</text>
+      <circle cx="780" cy="464" r="3.5" fill="#64748B" class="person-dot" data-id="jake"/>
+      <text x="780" y="480" text-anchor="middle" class="node-label" style="font-size:9px;">Jake</text>
+      <circle cx="850" cy="464" r="3.5" fill="#64748B" class="person-dot" data-id="lawrence"/>
+      <text x="850" y="480" text-anchor="middle" class="node-label" style="font-size:9px;">Lawrence</text>
+      <circle cx="900" cy="464" r="3.5" fill="#64748B" class="person-dot" data-id="kate"/>
+      <text x="900" y="480" text-anchor="middle" class="node-label" style="font-size:9px;">Kate</text>
+
+      <!-- Disproven Gen 0 node, quarantined off-axis -->
+      <line x1="620" y1="44" x2="200" y2="20" stroke="#94A3B8" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.5"/>
+      <circle cx="200" cy="20" r="4" fill="#94A3B8" opacity="0.4" class="person-dot" data-id="john-cason"/>
+      <text x="208" y="14" class="node-label disproven" style="font-size:9.5px;">"John Cason of Digswell" — DISPROVEN</text>
+    </svg>
+  </div>
+</div>
+</section>
+
+<!-- ─── LEDGER + DOSSIER (side by side) ─────────────────────────────────────── -->
+<section class="section" id="inventory">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta">// 02 · LEDGER</div>
+      <h2>Eleven generations as a ledger</h2>
+    </div>
+    <p class="section-lede">Every direct-line ancestor with their evidence tier, most recent research action, and time since last verification. Click a row to load their dossier below.</p>
+  </div>
+
+  <div class="inv">
+    <div class="inv-head">
+      <h3>Direct line · 11 records</h3>
+      <div class="filters">
+        <span class="chip on">ALL</span>
+        <span class="chip">DIRECT</span>
+        <span class="chip alert">UNSOLVED · 2</span>
+        <span class="chip">PRIMARY-ONLY</span>
+        <span class="chip">FL ANCHOR</span>
+      </div>
+    </div>
+    <table class="inv-tab" id="ledger-table">
+      <thead><tr>
+        <th></th>
+        <th>name</th>
+        <th>generation</th>
+        <th>lifespan</th>
+        <th>evidence</th>
+        <th>last action</th>
+        <th>last verified</th>
+      </tr></thead>
+      <tbody>
+        <tr class="selected" data-id="thomas-sr">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Thomas Casson</span><span class="role"> · the crossing</span></td>
+          <td><span class="surface">GEN 01</span></td>
+          <td>c.1604 – 1651</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>1635 Harwood headright re-cited</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="thomas-jr">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Thomas Cason Jr.</span><span class="role"> · tobacco planter</span></td>
+          <td><span class="surface">GEN 02</span></td>
+          <td>b. aft.1642 – 1665</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>1661 guardianship petition logged</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="james-orphan">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">James (the Orphan)</span><span class="role"> · sole male Cason, 1665</span></td>
+          <td><span class="surface">GEN 03</span></td>
+          <td>1655 – 1722</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Will Book 3 p.448 cross-referenced</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="william-1695">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">William⁴ Cason</span><span class="role"> · the Carolina move</span></td>
+          <td><span class="surface">GEN 04</span></td>
+          <td>c.1695 – 1764</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>1758 deed of gift, Beaufort Co.</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="james-1727">
+          <td><span class="dot alert"></span></td>
+          <td><span class="name">James? · UNFILLED</span><span class="role"> · ▸ priority 1</span></td>
+          <td><span class="surface">GEN 05</span></td>
+          <td>c.1727 – ?</td>
+          <td><span class="tier-pip" data-t="missing">MISSING</span></td>
+          <td>Pitt Co. tax lists 1755-1770 searched — zero hits</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="ransom-sr">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Ransom Cason Sr.</span><span class="role"> · the Florida crossing</span></td>
+          <td><span class="surface">GEN 06</span></td>
+          <td>c.1763 – 1853</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>FL Pioneer Cert. #2015S0027 reconfirmed</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="james-green">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">James Green Cason</span><span class="role"> · the builder</span></td>
+          <td><span class="surface">GEN 07</span></td>
+          <td>c.1800 – 1878</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Alachua Co. land records traced</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="ransom-2">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Lt. Ransom Cason "2"</span><span class="role"> · 7th FL Infantry CSA</span></td>
+          <td><span class="surface">GEN 08</span></td>
+          <td>1835 – 1900</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Pension A00841 verified via Florida Memory</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="thadeous">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Thadeous Calhoun Cason</span><span class="role"> · the westward move</span></td>
+          <td><span class="surface">GEN 09</span></td>
+          <td>1857 – 1945</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Tustenuggee Methodist cemetery confirmed</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="carl-columbus">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Carl Columbus Cason</span><span class="role"> · thirteen children</span></td>
+          <td><span class="surface">GEN 10</span></td>
+          <td>1903 – 1966</td>
+          <td><span class="tier-pip" data-t="derivative">DERIVATIVE</span></td>
+          <td>1940 census + Jake obituary cross-ref</td>
+          <td class="ago">3 wks</td>
+        </tr>
+        <tr data-id="robert-sr">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Robert Randall Cason Sr.</span><span class="role"> · the Space Coast</span></td>
+          <td><span class="surface">GEN 11</span></td>
+          <td>b. 1933</td>
+          <td><span class="tier-pip" data-t="derivative">DERIVATIVE</span></td>
+          <td>Family oral history; CR 778 farmhouse extant</td>
+          <td class="ago">3 wks</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ─── DOSSIER ─────────────────────────────────────────────────────── -->
+<section class="section" id="dossier">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta">// 03 · DOSSIER</div>
+      <h2 id="dossier-name">Thomas Casson · c.1604 – 1651</h2>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+      <button class="btn print-hide" onclick="window.print()" style="height:36px; font-size:12px; padding:0 14px;">⎙ Print dossier</button>
+      <p class="section-lede" id="dossier-sub" style="margin:0;">Generation 01 · the crossing · England → Lower Norfolk Co., Virginia. Anchored by the 1635 Harwood headright; English origin remains unproven.</p>
+    </div>
+  </div>
+
+  <div class="dossier">
+    <!-- LEFT: identity KV -->
+    <div class="col">
+      <div class="kicker">// identity</div>
+      <h2 id="dossier-name-2" style="margin-top:6px;">Thomas Casson</h2>
+      <div class="meta" id="dossier-meta">Gen 01 · c.1604 – 1651 · ledger ID <strong style="color:var(--fg);">cason-001</strong></div>
+
+      <div class="kv">
+        <span class="k">birth</span><span class="v" id="kv-birth">c.1604, England (origin unproven)</span>
+        <span class="k">death</span><span class="v" id="kv-death">1651, Lynnhaven Parish, Lower Norfolk Co., VA</span>
+        <span class="k">spouse</span><span class="v" id="kv-spouse">Elizabeth (Keeling) Leighton — widow of William Leighton</span>
+        <span class="k">parents</span><span class="v warn" id="kv-parents">unknown · "John Cason of Digswell" DISPROVEN</span>
+        <span class="k">children</span><span class="v" id="kv-children">Thomas Jr. · James (d.1665) · Ruth (m. Woodhouse)</span>
+        <span class="k">first record</span><span class="v" id="kv-firstrec">VA Patent Book 1, p.124 · 7 Jul 1635</span>
+        <span class="k">last record</span><span class="v" id="kv-lastrec">Lower Norfolk estate inv. · 26 Jun 1652</span>
+        <span class="k">est. value</span><span class="v ok" id="kv-est">28,170 lbs tobacco</span>
+      </div>
+
+      <div class="rail-actions">
+        <button class="primary">Open full record →</button>
+        <button onclick="window.print()">⎙ Print this dossier</button>
+        <button>Mark verified</button>
+      </div>
+    </div>
+
+    <!-- MIDDLE: narrative + citations -->
+    <div class="col">
+      <div class="kicker">// narrative · audit-corrected</div>
+      <p class="narrative" style="margin-top:12px;" id="dossier-narrative">
+        Documented as a headright of <strong>Capt. Thomas Harwood</strong> on the patent of <strong>7 July 1635</strong> (Patent Book 1, p.124) — the strongest primary anchor for his arrival in Virginia. A <strong>1642 deposition</strong> records his age as 38, yielding a birth around 1604. By the early 1640s he is an established planter in Lynnhaven Parish, married to <strong>Elizabeth (Keeling) Leighton</strong>, widow of William Leighton, acquiring the 100-acre Keeling patent in her right of dower. He died 1651; his widow received letters of administration <strong>15 April 1652</strong>; the inventory of <strong>26 June 1652</strong> listed 28,170 lbs of tobacco — appraised by Burroughs, Hall, Davis, and <strong>Edward Cannon</strong> (the root of the long-running Cason/Cannon homoglyph conflation in derivative trees).
+      </p>
+
+      <h4 style="margin-top: 26px;">// citation chain</h4>
+      <div class="cite-list" id="cite-chain">
+        <div class="row">
+          <span class="ts">1635</span>
+          <span class="what">VA Patent Book 1, p.124 · Capt. Thomas Harwood headright<span class="src">register image, Library of Virginia · Nugent, Cavaliers and Pioneers Vol. 1</span></span>
+          <span class="verdict primary">PRIMARY</span>
+        </div>
+        <div class="row">
+          <span class="ts">1641</span>
+          <span class="what">Elizabeth City Co. patent assignment · 100 ac via wife's dower<span class="src">"in right of his wife Elizabeth, relict of William Laighton"</span></span>
+          <span class="verdict primary">PRIMARY</span>
+        </div>
+        <div class="row">
+          <span class="ts">1642</span>
+          <span class="what">Civil deposition · "CASSON Thos. 38"<span class="src">birth ~1604 inferred · Lower Norfolk Order Book</span></span>
+          <span class="verdict primary">PRIMARY</span>
+        </div>
+        <div class="row">
+          <span class="ts">1645</span>
+          <span class="what">Inventory of Wm. Layton orphans · Thomas as administrator<span class="src">Lower Norfolk Order Books · 10 Aug 1645</span></span>
+          <span class="verdict primary">PRIMARY</span>
+        </div>
+        <div class="row">
+          <span class="ts">1652</span>
+          <span class="what">Letters of administration to widow Elizabeth Causon<span class="src">15 Apr 1652 · estate inventory 26 Jun 1652, 28,170 lbs tobacco</span></span>
+          <span class="verdict primary">PRIMARY</span>
+        </div>
+        <div class="row">
+          <span class="ts">??</span>
+          <span class="what">"Digswell, Hertfordshire 1608 baptism, son of John Cason"<span class="src">FamilySearch index NRWF-3RD · no register image, no folio, no mother named · 1970s-90s patron submission</span></span>
+          <span class="verdict disproven">DISPROVEN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: 11-category coverage -->
+    <div class="col">
+      <div class="kicker">// dossier coverage · 11 categories</div>
+      <p style="font-size:12px; color:var(--fg-muted); font-family:var(--font-mono); margin: 10px 0 14px; letter-spacing:0.02em;">7 / 11 categories backed by primary records.</p>
+
+      <div class="coverage-list" id="coverage">
+        <div class="row" data-t="derivative"><span class="lbl"><span class="glyph">§</span> Vital records</span><span class="tier-pip" data-t="derivative">DERIV.</span></div>
+        <div class="row" data-t="primary"><span class="lbl"><span class="glyph">¶</span> Land records</span><span class="tier-pip" data-t="primary">PRIMARY</span></div>
+        <div class="row" data-t="primary"><span class="lbl"><span class="glyph">†</span> Wills &amp; probate</span><span class="tier-pip" data-t="primary">PRIMARY</span></div>
+        <div class="row" data-t="primary"><span class="lbl"><span class="glyph">~</span> Migration &amp; cargo</span><span class="tier-pip" data-t="primary">PRIMARY</span></div>
+        <div class="row" data-t="missing"><span class="lbl"><span class="glyph">✶</span> Military</span><span class="tier-pip" data-t="missing">MISSING</span></div>
+        <div class="row" data-t="missing"><span class="lbl"><span class="glyph">#</span> Census</span><span class="tier-pip" data-t="missing">PRE-CENSUS</span></div>
+        <div class="row" data-t="derivative"><span class="lbl"><span class="glyph">$</span> Tax &amp; civil</span><span class="tier-pip" data-t="derivative">DERIV.</span></div>
+        <div class="row" data-t="disputed"><span class="lbl"><span class="glyph">✚</span> Ecclesiastical</span><span class="tier-pip" data-t="disproven">DISPUTED</span></div>
+        <div class="row" data-t="primary"><span class="lbl"><span class="glyph">⚖</span> Court records</span><span class="tier-pip" data-t="primary">PRIMARY</span></div>
+        <div class="row" data-t="missing"><span class="lbl"><span class="glyph">∞</span> DNA &amp; FAN</span><span class="tier-pip" data-t="missing">PENDING</span></div>
+        <div class="row" data-t="missing"><span class="lbl"><span class="glyph">◫</span> Newspapers</span><span class="tier-pip" data-t="missing">PRE-PRESS</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── DISPROVEN ────────────────────────────────────────────────────── -->
+<section class="section" id="disproven">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta" style="color: var(--danger);">// 04 · QUARANTINE</div>
+      <h2>Disproven claims · do not propagate</h2>
+    </div>
+    <p class="section-lede">Stitched together by IGI-era patron submissions. No primary record support. If a source repeats them, flag the source as contaminated and discount its other claims accordingly.</p>
+  </div>
+
+  <div class="disproven">
+    <div class="head">
+      <h3>9 quarantined claims · last audited May 2026</h3>
+      <span class="kicker">propagation blocked</span>
+    </div>
+    <div class="body">
+      <div class="item">
+        <div>
+          <div class="claim">"Baptized 26 June 1608, Digswell, Hertfordshire"</div>
+          <div class="why">Digswell parish register abstracts begin 1609 — one year after the alleged baptism. Cason/Casson is a Lincolnshire / Cambridgeshire / Norfolk surname, not Hertfordshire. Recorded as "Casson" in Virginia — possibly a distinct northern-English name (Lancashire / Yorkshire / Westmorland).</div>
+        </div>
+        <span class="verdict">DISPROVEN</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"Son of John Cason"</div>
+          <div class="why">No Digswell John Cason c.1580–1610 located in Hertfordshire manorial, will, or Quarter-Sessions records. Backward reconstruction from American trees.</div>
+        </div>
+        <span class="verdict">DISPROVEN</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"John Cason, stockholder in the Virginia Land Company"</div>
+          <div class="why">No such company existed — the joint-stock entity was the Virginia Company of London. No John Cason appears in Kingsbury's Records of the Virginia Company (4 vols., 1906–35).</div>
+        </div>
+        <span class="verdict">FABRICATED</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"Crossed the Atlantic around 1629 at age twenty"</div>
+          <div class="why">Outside Hotten's 1635 register window; contradicted by the 1635 Harwood headright primary record. The 1641 land acquisition came through marriage to a widow, not a transportation headright.</div>
+        </div>
+        <span class="verdict">CONTRADICTED</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">Birth year 1608</div>
+          <div class="why">Use ~1604 — derived from 1642 deposition where Thomas's age is stated as 38.</div>
+        </div>
+        <span class="verdict">CORRECTED</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">Wife "Elizabeth Alcott"</div>
+          <div class="why">The 1641 patent identifies her as Elizabeth (Keeling) Leighton, widow of William Leighton. "Alcott" is unsourced.</div>
+        </div>
+        <span class="verdict">CORRECTED</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"Church Warden of Lynnhaven Parish"</div>
+          <div class="why">Appears in derivative trees only — not located in surviving Lynnhaven vestry books. Quarantine pending discovery of a primary parish record.</div>
+        </div>
+        <span class="verdict">UNSOURCED</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"Eleven generations" as a hard count</div>
+          <div class="why">Anchored to birth ~1604 and run to a descendant born 1980–2010, 10 intervals demand ~37–40 yrs/interval — implausible. The line is ~12 generations; the Gen 5 slot is the unfilled hole.</div>
+        </div>
+        <span class="verdict">SOFT FOLKLORE</span>
+      </div>
+      <div class="item">
+        <div>
+          <div class="claim">"Steeple Morden, Cambridgeshire" alternative origin</div>
+          <div class="why">The fallback origin claim also fails primary verification. Do not let it survive as a consolation prize.</div>
+        </div>
+        <span class="verdict">DISPROVEN</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── BRICK WALLS ────────────────────────────────────────────────────── -->
+<section class="section" id="priorities">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta">// 05 · OPEN WORK</div>
+      <h2>Brick walls &amp; research priorities</h2>
+    </div>
+    <p class="section-lede">Three unresolved seams. Each names the next records most likely to break it. Negative results count — record what you searched and didn't find.</p>
+  </div>
+
+  <div class="priorities">
+    <!-- Priority 1 -->
+    <div class="card" data-pri="1">
+      <div class="head">
+        <div class="pri">▸ Priority 01 · LOAD-BEARING</div>
+        <h4>The Gen 5 hole</h4>
+      </div>
+      <div class="state">
+        72-year span between <strong>William⁴ Cason</strong> (~1691) and <strong>Ransom Cason Sr.</strong> (~1763) across one nominal link. Implausible as one generation. Leading candidate: William⁴'s son <strong>James (c.1727)</strong> — landless, no surviving deeds. Cannon Sr. and William Jr. eliminated by wills and migration paths. Hillery placed in interior GA, not coastal — unlikely.
+      </div>
+      <div class="actions">
+        <div class="action">
+          <span class="rec">Pitt County, NC estate files, tax lists, and deed books 1750–1800.</span>
+          <span class="repo">repo: NCDAH · microfilm C.075.70001 · original images, not abstracts</span>
+        </div>
+        <div class="action">
+          <span class="rec">Y-DNA triangulation across William⁴'s six documented sons' lines.</span>
+          <span class="repo">repo: FamilyTreeDNA · Cason Surname Project</span>
+        </div>
+        <div class="action">
+          <span class="rec">Source citation for "James Jr. (c.1750) is Ransom's brother" claim.</span>
+          <span class="repo">repo: WikiTree Cason-543 · chase the citation to its primary</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priority 2 -->
+    <div class="card" data-pri="2">
+      <div class="head">
+        <div class="pri">▸ Priority 02 · ORIGIN</div>
+        <h4>Thomas Casson's English origin</h4>
+      </div>
+      <div class="state">
+        Digswell is disproven. The surname's heartland is <strong>Lincolnshire / Cambridgeshire / Norfolk</strong>. "Casson" specifically clusters in <strong>northern England</strong> — Lancashire / Yorkshire / Westmorland — and may be a distinct surname. The Virginia land acquisition came through marriage, not transportation, so port records may be silent.
+      </div>
+      <div class="actions">
+        <div class="action">
+          <span class="rec">Parish registers · Casson/Cason/Cawson baptisms 1595–1610 across Lincs/Cambs/Norfolk.</span>
+          <span class="repo">repo: Findmypast · FreeREG · county record offices</span>
+        </div>
+        <div class="action">
+          <span class="rec">Casson registers across the northern dioceses.</span>
+          <span class="repo">repo: Lancashire Online Parish Clerks · Borthwick Institute</span>
+        </div>
+        <div class="action">
+          <span class="rec">Capt. Thomas Harwood's other 1635 headrights — surname-cluster geographic origins.</span>
+          <span class="repo">repo: VA Patent Book 1 · Library of Virginia</span>
+        </div>
+        <div class="action">
+          <span class="rec">TNA PCC will D883300 · "John Cason, Grocer of London".</span>
+          <span class="repo">repo: The National Archives, Kew</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priority 3 -->
+    <div class="card" data-pri="3">
+      <div class="head">
+        <div class="pri">▸ Priority 03 · ETHICAL</div>
+        <h4>Names of enslaved people held by the family</h4>
+      </div>
+      <div class="state">
+        Thomas Sr.'s 1652 estate (28,170 lbs tobacco) was built on enslaved labor; the surviving inventory fragments do not name individuals. The same gap repeats in Silas Cason's 1850/1860 Florida slave schedules. Reconstructing identity is both an ethical obligation and frequently the only surviving evidence of household composition.
+      </div>
+      <div class="actions">
+        <div class="action">
+          <span class="rec">Madison Co. FL probate packets 1862–65 (Silas Cason estate inventory).</span>
+          <span class="repo">repo: Madison Co. Courthouse · inventories name enslaved individuals</span>
+        </div>
+        <div class="action">
+          <span class="rec">1870 Federal Census, Madison Co. — Black households adjacent to Cason / Carlton families.</span>
+          <span class="repo">repo: NARA M593</span>
+        </div>
+        <div class="action">
+          <span class="rec">Lower Norfolk Order Books 1640–70 — searches for property transactions naming enslaved persons.</span>
+          <span class="repo">repo: Library of Virginia microfilm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── SIBLING BRANCH · Hillery → Utah ──────────────────────────────────── -->
+<section class="section" id="sibling">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta" style="color: var(--violet);">// 06 · SIBLING BRANCH</div>
+      <h2>The Hillery → Utah line</h2>
+    </div>
+    <p class="section-lede">A parallel spine. William⁴'s son <strong>Hillery</strong> (Revolutionary War Patriot, DAR #A216752) migrated to interior Georgia in 1792 — not coastal Glynn where Ransom Sr. settled. His descendants ran a different arc: GA → IL → AR with John Dennis (1829), then FL with Silas, then westward to <strong>Iron County, Utah</strong> with George Tompkies — severing 250 years of Southern roots into LDS pioneer stock.</p>
+  </div>
+
+  <!-- Mini topology for the Hillery line -->
+  <div class="topo" style="margin-bottom: 24px;">
+    <div class="topo-head">
+      <div>
+        <div class="title">Sibling branch · 5 generations · NC → GA → FL → UT</div>
+        <div class="sub">parallel to Ransom Sr. · separate documentary stack · separate FAN cluster</div>
+      </div>
+      <div class="legend">
+        <span><span class="d" style="background:#A78BFA"></span> SIBLING SPINE</span>
+        <span><span class="d" style="background:#64748B"></span> CONTEXT</span>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 1280 360" xmlns="http://www.w3.org/2000/svg" style="height: 360px;">
+      <!-- 6 lanes -->
+      <line x1="20" y1="44"  x2="1260" y2="44"  class="lane-rule"/>
+      <text x="20" y="38" class="lane-label">GEN 04 · WILLIAM⁴ · ANCESTOR (shared with FL spine)</text>
+      <text x="1260" y="38" class="lane-count" text-anchor="end">m. Jane Cannon, 1721</text>
+
+      <line x1="20" y1="100" x2="1260" y2="100" class="lane-rule"/>
+      <text x="20" y="94" class="lane-label">GEN 05 · HILLERY (REV WAR) · PATRIOT ANCESTOR</text>
+      <text x="1260" y="94" class="lane-count" text-anchor="end">DAR #A216752 · NC → GA, 1792</text>
+
+      <line x1="20" y1="156" x2="1260" y2="156" class="lane-rule"/>
+      <text x="20" y="150" class="lane-label">GEN 06 · JOHN DENNIS · 1829 OVERLAND TO ARKANSAS</text>
+      <text x="1260" y="150" class="lane-count" text-anchor="end">1829 trail letter survives · PRIMARY</text>
+
+      <line x1="20" y1="212" x2="1260" y2="212" class="lane-rule"/>
+      <text x="20" y="206" class="lane-label">GEN 07 · SILAS · MADISON CO. FL · 2 WARS</text>
+      <text x="1260" y="206" class="lane-count" text-anchor="end">Fort Fanning · 1832 lottery · slaveholder</text>
+
+      <line x1="20" y1="268" x2="1260" y2="268" class="lane-rule"/>
+      <text x="20" y="262" class="lane-label">GEN 08 · DENNIS MARION · WAUCHULA · 2 WARS + CIVIC</text>
+      <text x="1260" y="262" class="lane-count" text-anchor="end">3rd FL Infantry · 1895 school supervisor</text>
+
+      <line x1="20" y1="324" x2="1260" y2="324" class="lane-rule"/>
+      <text x="20" y="318" class="lane-label">GEN 09 · GEORGE TOMPKIES · FL → UTAH · LDS</text>
+      <text x="1260" y="318" class="lane-count" text-anchor="end">m. Astella Rowley · Parowan, Iron Co. UT</text>
+
+      <!-- William⁴ shared root -->
+      <circle cx="640" cy="44" r="6" fill="#22D3EE" class="person-dot" data-id="william-1695"/>
+      <text x="650" y="40" class="node-label direct">William⁴ Cason · c.1695–1764</text>
+
+      <!-- Connectors down -->
+      <line x1="640" y1="44"  x2="640" y2="100" stroke="#A78BFA" stroke-width="1.4" opacity="0.7"/>
+      <line x1="640" y1="100" x2="640" y2="156" stroke="#A78BFA" stroke-width="1.4" opacity="0.7"/>
+      <line x1="640" y1="156" x2="640" y2="212" stroke="#A78BFA" stroke-width="1.4" opacity="0.7"/>
+      <line x1="640" y1="212" x2="640" y2="268" stroke="#A78BFA" stroke-width="1.4" opacity="0.7"/>
+      <line x1="640" y1="268" x2="640" y2="324" stroke="#A78BFA" stroke-width="1.4" opacity="0.7"/>
+
+      <!-- Hillery -->
+      <circle cx="640" cy="100" r="6" fill="#A78BFA" class="person-dot" data-id="hillery"/>
+      <text x="650" y="96" class="node-label" style="fill:#F1F5F9;">Hillery Sr. (R.S.) · 1737–1810 · NC → Screven Co. GA</text>
+
+      <!-- John Dennis -->
+      <circle cx="640" cy="156" r="6" fill="#A78BFA" class="person-dot" data-id="john-dennis"/>
+      <text x="650" y="152" class="node-label" style="fill:#F1F5F9;">John Dennis Cason · 1770–1845 · m. Martha Chauncey</text>
+
+      <!-- Silas -->
+      <circle cx="640" cy="212" r="6" fill="#A78BFA" class="person-dot" data-id="silas"/>
+      <text x="650" y="208" class="node-label" style="fill:#F1F5F9;">Silas Cason · 1799–1862 · m. Abigail Langford</text>
+
+      <!-- Dennis Marion -->
+      <circle cx="640" cy="268" r="6" fill="#A78BFA" class="person-dot" data-id="dennis-marion"/>
+      <text x="650" y="264" class="node-label" style="fill:#F1F5F9;">Dennis Marion · 1837–1910 · m. Mytelda Lee · Wauchula</text>
+
+      <!-- George Tompkies -->
+      <circle cx="640" cy="324" r="6" fill="#A78BFA" class="person-dot" data-id="george-tompkies"/>
+      <text x="650" y="320" class="node-label" style="fill:#F1F5F9;">George Tompkies · 1880–1949 · m. Astella Rowley · → Utah</text>
+
+      <!-- Paul Rowley below -->
+      <line x1="640" y1="324" x2="640" y2="354" stroke="#A78BFA" stroke-width="1.4" opacity="0.5" stroke-dasharray="2 3"/>
+      <text x="650" y="352" class="node-label" style="fill:#94A3B8; font-size:9.5px;">→ Paul Rowley Cason · 1922–2010 · WWII Italy · Cedar City UT (Gen 10)</text>
+    </svg>
+  </div>
+
+  <!-- Sibling-branch ledger -->
+  <div class="inv">
+    <div class="inv-head">
+      <h3>Sibling-line ledger · 6 records · separate documentary stack</h3>
+      <div class="filters">
+        <span class="chip on">UTAH BRANCH</span>
+        <span class="chip">PRIMARY-ONLY</span>
+        <span class="chip">DAR</span>
+      </div>
+    </div>
+    <table class="inv-tab" id="sibling-table">
+      <thead><tr>
+        <th></th>
+        <th>name</th>
+        <th>generation</th>
+        <th>lifespan</th>
+        <th>evidence</th>
+        <th>last action</th>
+        <th>last verified</th>
+      </tr></thead>
+      <tbody>
+        <tr data-id="hillery">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Hillery Cason Sr. (R.S.)</span><span class="role"> · Revolutionary patriot</span></td>
+          <td><span class="surface">GEN 05</span></td>
+          <td>1737 – 1810</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>DAR #A216752 reconfirmed · 1782 NC Line service</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="john-dennis">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">John Dennis Cason</span><span class="role"> · NC → IL → AR</span></td>
+          <td><span class="surface">GEN 06</span></td>
+          <td>1770 – 1845</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>1829 trail letter — primary firsthand pioneer account</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="silas">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Silas Cason</span><span class="role"> · Fort Fanning · slaveholder</span></td>
+          <td><span class="surface">GEN 07</span></td>
+          <td>1799 – 1862</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>1850 + 1860 slave schedules · ethical accounting opened</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="dennis-marion">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Dennis Marion Cason</span><span class="role"> · 3rd FL Infantry CSA · Wauchula founder</span></td>
+          <td><span class="surface">GEN 08</span></td>
+          <td>1837 – 1910</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Fort Brooke discharge papers cross-cited</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="george-tompkies">
+          <td><span class="dot warn"></span></td>
+          <td><span class="name">George Tompkies Cason</span><span class="role"> · the hinge to Utah</span></td>
+          <td><span class="surface">GEN 09</span></td>
+          <td>1880 – 1949</td>
+          <td><span class="tier-pip" data-t="derivative">DERIVATIVE</span></td>
+          <td>LDS conversion + 1910 Parowan census triangulated</td>
+          <td class="ago">5 d</td>
+        </tr>
+        <tr data-id="paul-rowley">
+          <td><span class="dot ok"></span></td>
+          <td><span class="name">Paul Rowley Cason</span><span class="role"> · WWII Italy · Cedar City</span></td>
+          <td><span class="surface">GEN 10</span></td>
+          <td>1922 – 2010</td>
+          <td><span class="tier-pip" data-t="primary">PRIMARY</span></td>
+          <td>Obituary + WWII Army enlistment record verified</td>
+          <td class="ago">5 d</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ─── FIELD LOG · in-progress digs ──────────────────────────────────── -->
+<section class="section" id="field-log">
+<div class="section-inner">
+  <div class="section-head">
+    <div>
+      <div class="meta">// 07 · FIELD LOG</div>
+      <h2>Research in progress</h2>
+    </div>
+    <p class="section-lede">Active digs against the open brick walls. Negative results logged. Each entry is a tier-graded finding that updates the ledger on completion.</p>
+  </div>
+
+  <div class="surface-dark" style="background: #020617; color: #E2E8F0; border: 1px solid #1E293B; border-radius: 12px; padding: 24px 28px;">
+    <div style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 18px;">
+      <div>
+        <div style="font-size: 15px; font-weight: 600; color: #F1F5F9;">▸ live dig stream · last 30 days</div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: #64748B; letter-spacing: 0.06em; margin-top: 4px;">6 findings · 2 primary · 1 negative · 1 disproven · 2 pending</div>
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 10px; color: #34D399; display: flex; align-items: center; gap: 8px;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #34D399; box-shadow: 0 0 6px #34D399; animation: pulse 1.6s ease-in-out infinite;"></span>
+        AUDIT LIVE
+      </div>
+    </div>
+
+    <div style="font-family: var(--font-mono); font-size: 12px; line-height: 1.7;">
+      <div data-field-log-target="james-1727" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-05-22</span>
+        <span style="color: #F1F5F9;">▸ Pitt Co. NC tax lists 1755–1770 · searched for James Cason
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">NCDAH microfilm C.075.70001 · ZERO HITS · Gen 5 candidate's landlessness confirmed</span>
+        </span>
+        <span style="color: #FB7185; font-weight: 600; letter-spacing: 0.06em; text-align: right;">NEGATIVE</span>
+      </div>
+
+      <div data-field-log-target="thomas-sr" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-05-19</span>
+        <span style="color: #F1F5F9;">▸ VA Patent Book 1, p.124 · re-photographed
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">Library of Virginia · Capt. Thomas Harwood headright 7 Jul 1635 · "Thomas Casson" in primary register image · Cason headright #19 of 30</span>
+        </span>
+        <span style="color: #34D399; font-weight: 600; letter-spacing: 0.06em; text-align: right;">PRIMARY</span>
+      </div>
+
+      <div data-field-log-target="thomas-sr" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-05-15</span>
+        <span style="color: #F1F5F9;">▸ Findmypast · Casson/Cawson baptisms 1595–1610 · Lincs/Cambs/Norfolk
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">3 Thomas Casson baptisms returned · Lincolnshire (2), Cambridgeshire (1) · age windows don't all fit "~1604" but two are within tolerance · register images pending</span>
+        </span>
+        <span style="color: #FBBF24; font-weight: 600; letter-spacing: 0.06em; text-align: right;">PENDING</span>
+      </div>
+
+      <div data-field-log-target="john-cason" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-05-11</span>
+        <span style="color: #F1F5F9;">▸ Hertfordshire Archives · Digswell parish 1600–1640 · direct image inspection
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">Register volume covering 1608 examined · NO Cason/Casson/Cawson entries in baptisms, marriages, or burials 1600–1640 · the 1608 Digswell baptism does not exist in primary form</span>
+        </span>
+        <span style="color: #FB7185; font-weight: 600; letter-spacing: 0.06em; text-align: right;">DISPROVEN</span>
+      </div>
+
+      <div data-field-log-target="james-1727" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-05-08</span>
+        <span style="color: #F1F5F9;">▸ FamilyTreeDNA Cason Surname Project · enrolled known descendant of Robert Sr.
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">Big Y-700 ordered · results window 8–10 weeks · will compare against Casson testers in Lancashire/Yorkshire and Cason testers across William⁴'s six sons' lines · resolves both Gen 5 hole AND English origin geography</span>
+        </span>
+        <span style="color: #FBBF24; font-weight: 600; letter-spacing: 0.06em; text-align: right;">PENDING</span>
+      </div>
+
+      <div data-field-log-target="thomas-sr" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
+        <span style="color: #64748B;">2026-04-30</span>
+        <span style="color: #F1F5F9;">▸ Lower Norfolk Order Books 1640–1652 · re-examined for Thomas Casson
+          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">5 court appearances confirmed: executor for Ralph Clarke 1640 · inventory of Wm. Layton orphans 10 Aug 1645 · inventory of James Clarke 16 Oct 1645 · purchase from John Moye estate 15 Dec 1646 · last alive 15 Apr 1651</span>
+        </span>
+        <span style="color: #34D399; font-weight: 600; letter-spacing: 0.06em; text-align: right;">PRIMARY</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; padding: 14px 16px; background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.4); border-radius: 6px; font-family: var(--font-mono); font-size: 11.5px; color: #67E8F9; line-height: 1.6; letter-spacing: 0.02em;">
+      <strong style="color: #22D3EE;">▸ next dig in queue:</strong> Pitt Co. NC <em>deed books</em> 1750–1800 (not tax lists) · target = any James Cason → Ransom Cason transaction or witness pairing · NCDAH microfilm C.075.4xxxx
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="row">
+    <div class="brand-block">
+      <div style="display:flex; align-items:center; gap:10px; font-size:16px; font-weight:600;">
+        <span style="width:18px; height:18px; border-radius:50%; background:var(--site-accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--site-accent) 18%, transparent);"></span>
+        The Cason Line
+      </div>
+      <div class="tag">tree · audit-verified ledger</div>
+      <p>Companion view to the heritage narrative. Built on the Vorion design system for forensic genealogy work — every claim tier-graded, every brick wall a tracked work item.</p>
+      <a class="contribute-btn" href="https://github.com/axiom-orion/cason-heritage/issues/new?template=correction.yml" target="_blank" rel="noopener">Submit a correction or document &rarr;</a>
+    </div>
+    <div>
+      <h4>Properties</h4>
+      <ul>
+        <li><a href="cason-heritage/index.html">heritage.cason — narrative</a></li>
+        <li><a aria-current="page">tree.cason — ledger</a></li>
+        <li><a href="ui_kits/family-tree-app/index.html">dashboard.cason — variants</a></li>
+        <li><a href="research/edge-expansion-prompt.md">research.cason — prompt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Methodology</h4>
+      <ul>
+        <li>Tier every claim (primary · derivative · circumstantial · lore · disproven)</li>
+        <li>Cite the shelf, not the rumor</li>
+        <li>Flag same-name conflations</li>
+        <li>Negative results count</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Anchor facts</h4>
+      <ul>
+        <li>Thomas Casson · 1635 Harwood headright</li>
+        <li>Birth ~1604 · 1642 deposition</li>
+        <li>Wife: Elizabeth (Keeling) Leighton</li>
+        <li>Florida spine: Ransom Sr. (~1763) onward</li>
+      </ul>
+    </div>
+  </div>
+  <div class="legal">
+    <span>~422 yrs · ~12 generations · cason-tree v1.0 · audit may 2026</span>
+    <span>vorion design system · cason adaptation</span>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   DOSSIER DATA — all 11 direct-line ancestors, audit-corrected.
+   Adding a record: append to PEOPLE keyed by id matching the SVG dot
+   data-id and the ledger row data-id. cov entries:
+     primary | derivative | circumstantial | missing | disproven | disputed | na
+   ═════════════════════════════════════════════════════════════════════════ */
+const PEOPLE = {
+
+  'thomas-sr': {
+    name: 'Thomas Casson',
+    span: 'c.1604 – 1651',
+    gen: 1, role: 'the crossing',
+    subtitle: 'Generation 01 · the crossing · England → Lower Norfolk Co., Virginia. Anchored by the 1635 Harwood headright; English origin remains unproven.',
+    ledgerId: 'cason-001',
+    kv: {
+      birth: 'c.1604, England (origin unproven)',
+      death: '1651, Lynnhaven Parish, Lower Norfolk Co., VA',
+      spouse: 'Elizabeth (Keeling) Leighton — widow of William Leighton',
+      parents: ['warn', 'unknown · "John Cason of Digswell" DISPROVEN'],
+      children: 'Thomas Jr. · James (d.1665) · Ruth (m. Woodhouse)',
+      'first record': 'VA Patent Book 1, p.124 · 7 Jul 1635',
+      'last record': 'Lower Norfolk estate inv. · 26 Jun 1652',
+      'est. value': ['ok', '28,170 lbs tobacco'],
+    },
+    narrative: 'Documented as a headright of <strong>Capt. Thomas Harwood</strong> on the patent of <strong>7 July 1635</strong> (Patent Book 1, p.124) — the strongest primary anchor for his arrival in Virginia. A <strong>1642 deposition</strong> records his age as 38, yielding a birth around 1604. By the early 1640s he is an established planter in Lynnhaven Parish, married to <strong>Elizabeth (Keeling) Leighton</strong>, widow of William Leighton, acquiring the 100-acre Keeling patent in her right of dower. He died 1651; widow received letters of administration <strong>15 April 1652</strong>; the inventory of <strong>26 June 1652</strong> listed 28,170 lbs of tobacco — appraised by Burroughs, Hall, Davis, and <strong>Edward Cannon</strong> (the root of the long-running Cason/Cannon homoglyph conflation in derivative trees).',
+    cites: [
+      ['1635', 'VA Patent Book 1, p.124 · Capt. Thomas Harwood headright', 'register image, Library of Virginia · Nugent, Cavaliers and Pioneers Vol. 1', 'primary'],
+      ['1641', "Elizabeth City Co. patent assignment · 100 ac via wife's dower", '"in right of his wife Elizabeth, relict of William Laighton"', 'primary'],
+      ['1642', 'Civil deposition · "CASSON Thos. 38"', 'birth ~1604 inferred · Lower Norfolk Order Book', 'primary'],
+      ['1645', 'Inventory of Wm. Layton orphans · Thomas as administrator', 'Lower Norfolk Order Books · 10 Aug 1645', 'primary'],
+      ['1652', 'Letters of administration to widow Elizabeth Causon', '15 Apr 1652 · estate inventory 26 Jun 1652, 28,170 lbs tobacco', 'primary'],
+      ['??',   '"Digswell, Hertfordshire 1608 baptism, son of John Cason"', 'FamilySearch index NRWF-3RD · no register image, no folio, no mother named · 1970s-90s patron submission', 'disproven'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'primary', probate: 'primary', cargo: 'primary',
+      military: 'missing', census: 'missing', tax: 'derivative', eccles: 'disputed',
+      court: 'primary', dna: 'missing', news: 'missing',
+    },
+    covLabels: { census: 'PRE-CENSUS', news: 'PRE-PRESS', dna: 'PENDING', eccles: 'DISPUTED' },
+  },
+
+  'thomas-jr': {
+    name: 'Thomas Cason Jr.',
+    span: 'b. aft. 1642 – 1665',
+    gen: 2, role: 'tobacco planter',
+    subtitle: 'Generation 02 · Lynnhaven Parish, Lower Norfolk Co. Tobacco planter; left one son who funneled the entire line.',
+    ledgerId: 'cason-002',
+    kv: {
+      birth: 'b. after 1642, Lynnhaven Parish, VA',
+      death: '1665, Lynnhaven Parish, VA',
+      spouse: 'Sarah Poole (m. ~1654; d. 21 Aug 1661)',
+      parents: 'Thomas Casson · Elizabeth (Keeling) Leighton',
+      children: 'James (the Orphan), b. ~1655',
+      'first record': 'Lower Norfolk Order Book · 1658 land sale to brother James',
+      'last record': '1665 estate proceedings · Lower Norfolk',
+      'est. value': 'undetermined (no surviving probate inventory)',
+    },
+    narrative: 'Tobacco planter on his father\'s Lynnhaven land. Married <strong>Sarah Poole</strong> around 1654 — she had been previously married to Francis Jones, and Thomas Jr. petitioned the court for guardianship of her son (<strong>1661 court order</strong>). Sarah died <strong>21 August 1661</strong>; Thomas Jr. followed in 1665, the same year his brother James (Thomas Sr.\'s eldest) died unmarried. The entire surviving male Cason line in Virginia funneled through his ten-year-old son <strong>James (the Orphan)</strong>. No will located.',
+    cites: [
+      ['c.1659', 'Lynnhaven Parish land sale · Thomas Jr. → his brother James', 'Lower Norfolk Deed Book', 'primary'],
+      ['1661',   'Guardianship petition · Thomas Jr. for Sarah\'s son by Francis Jones', 'Lower Norfolk Order Book', 'primary'],
+      ['1665',   'Estate proceedings · Thomas Jr. dies, son James orphaned at ~10', 'Lower Norfolk Order Book', 'primary'],
+      ['c.1655', 'Birth of son James — exact date derivative', 'Compiled genealogies (Williams, Cason)', 'derivative'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'primary', probate: 'missing', cargo: 'na',
+      military: 'missing', census: 'na', tax: 'derivative', eccles: 'missing',
+      court: 'primary', dna: 'missing', news: 'na',
+    },
+    covLabels: { probate: 'NO WILL', dna: 'PENDING' },
+  },
+
+  'james-orphan': {
+    name: 'James Cason (the Orphan)',
+    span: '1655 – 1722',
+    gen: 3, role: 'sole male Cason, 1665',
+    subtitle: 'Generation 03 · the funnel point. By 1665, age 10, James was the sole surviving male Cason in Virginia. The line you read today rests on him.',
+    ledgerId: 'cason-003',
+    kv: {
+      birth: '1655, Lynnhaven Parish, Lower Norfolk Co., VA',
+      death: '1722, Princess Anne County, VA (will probated 1 Aug 1722)',
+      spouse: 'Anne (surname unrecovered, m. ~1678 Princess Anne)',
+      parents: 'Thomas Cason Jr. · Sarah Poole',
+      children: 'Thomas III · William⁴ · James Jr. · Susannah Moore · Elizabeth Whitehurst · Dynah Wilber',
+      'first record': '1665 guardianship — orphaned at age ten',
+      'last record': '1722 will probate · Princess Anne Co. Will Book 3, p.448',
+      'est. value': '300+ acres distributed in will',
+    },
+    narrative: 'By <strong>1665</strong>, age ten, the entire surviving Cason male line in Virginia rested on James. Father dead. Mother dead since 1661. Uncle James (Thomas Sr.\'s eldest) also dead 1665, unmarried. No guardianship record survives — what survives is what he did. Married <strong>Anne</strong> around 1678 in Princess Anne County. His <strong>1720 will</strong> (probated 1 Aug 1722, Princess Anne Will Book 3, p.448) names sons Thomas, William, and James — settling 150-acre tracts on Thomas and William, "whereon he now lives" — plus daughters Elizabeth Whitehurst, Susannah Moore, and Dynah Wilber, each with a symbolic one-shilling bequest (a legal device to acknowledge heirs already endowed by dowry). The Whitehurst, Moore, and Wilber families travel with the Casons into the NC frontier — a multi-generational FAN cluster.',
+    cites: [
+      ['c.1678', 'Marriage to Anne · Princess Anne Co.', 'Lower Norfolk / Princess Anne records', 'derivative'],
+      ['1704',   'Virginia Quit Rent Rolls · James Cason listed in Princess Anne', 'VA Quit Rent Roll abstract', 'primary'],
+      ['1720',   'Will executed · 5 Feb 1720', 'Princess Anne Co. Will Book 3, p.448', 'primary'],
+      ['1722',   'Will probated · 1 Aug 1722 · names six children', 'Princess Anne Co. Will Book 3, p.448', 'primary'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'primary', probate: 'primary', cargo: 'na',
+      military: 'missing', census: 'derivative', tax: 'primary', eccles: 'missing',
+      court: 'derivative', dna: 'missing', news: 'na',
+    },
+    covLabels: { census: '1704 QUIT RENT', dna: 'PENDING — FUNNEL NODE' },
+  },
+
+  'william-1695': {
+    name: 'William⁴ Cason',
+    span: 'c.1695 – 1764',
+    gen: 4, role: 'the Carolina move',
+    subtitle: 'Generation 04 · the first major migration. Moved the family from tidewater Virginia south into the Carolina frontier, 1723. Married into the Cannon line (root of the Cason/Cannon conflation).',
+    ledgerId: 'cason-004',
+    kv: {
+      birth: 'c.1691–1695, Princess Anne County, VA',
+      death: '1 Jul 1764, Pitt County, NC',
+      spouse: 'Jane Cannon (m. 1721; d. 1758; dau. Edward Cannon Jr.)',
+      parents: 'James (the Orphan) · Anne',
+      children: ['warn', 'Cannon Sr. (eliminated) · William Jr. (eliminated) · James (c.1727, leading candidate) · John · Henry (secondary) · Hillery (unlikely)'],
+      'first record': '1721 marriage settlement · Beaufort Co., NC',
+      'last record': '1758 deed of gift · names Henry, Hillery, Elizabeth',
+      'est. value': '200+ acres distributed via 1758 deed',
+    },
+    narrative: 'Pivot point. Inherited 150 acres of the Princess Anne plantation under his father\'s 1720 will. Married <strong>Jane Cannon</strong> (daughter of Edward Cannon Jr.) in 1721 — the union that anchors the family\'s lasting integration with the Cannons. Around 1723 he moved the family overland into <strong>Beaufort County, NC</strong> (later partitioned to create Pitt County in 1761), responding to tidewater soil exhaustion and cheap frontier land. 1746 NC tax list: 9 in household. His <strong>1758 deed of gift</strong> in Beaufort Co. — naming sons Henry and Hillery and daughter Elizabeth (Betty) — is the indispensable primary source bridging the VA Casons to the NC Casons.',
+    cites: [
+      ['1721', 'Marriage to Jane Cannon · Beaufort Co., NC', 'Beaufort Co. records', 'derivative'],
+      ['1723', 'Family migration VA → NC · Beaufort Co.', 'Compiled genealogies', 'circumstantial'],
+      ['1740', 'NC land grant', 'NC land grant records', 'primary'],
+      ['1746', 'NC tax list · 9 in household', 'Pitt Co. NC tax lists', 'primary'],
+      ['1758', 'Deed of gift to Henry, Hillery, Elizabeth · 200 ac', 'Beaufort Co. NC deed books', 'primary'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'primary', probate: 'derivative', cargo: 'na',
+      military: 'missing', census: 'primary', tax: 'primary', eccles: 'circumstantial',
+      court: 'derivative', dna: 'missing', news: 'na',
+    },
+    covLabels: { probate: 'NO WILL · 1758 DEED', dna: 'PENDING — KEY NODE', eccles: 'VA→NC TRANSITION' },
+  },
+
+  'james-1727': {
+    name: 'James? Cason · UNFILLED',
+    span: 'c.1727 – ?',
+    gen: 5, role: '▸ LOAD-BEARING BRICK WALL',
+    subtitle: 'Generation 05 · the load-bearing hole. 72 yrs across one nominal link between William⁴ and Ransom Sr. is two generations, not one. Leading candidate: William⁴\'s son James (c.1727).',
+    ledgerId: 'cason-005',
+    kv: {
+      birth: ['warn', 'c.1727, Pitt Co., NC (inferred from sibling chronology)'],
+      death: ['warn', 'unknown · no probate or burial record located'],
+      spouse: ['warn', 'unknown'],
+      parents: 'William⁴ Cason · Jane Cannon (inferred)',
+      children: ['warn', 'inferred: Ransom Sr. (c.1763) · possibly "James Jr." c.1750'],
+      'first record': ['warn', 'NONE LOCATED — basis for "landless = reason to leave" inference'],
+      'last record': ['warn', '—'],
+      'est. value': ['warn', 'no land, no probate, no tax footprint'],
+    },
+    narrative: '<strong>STRUCTURAL WEAKNESS — load-bearing gap.</strong> 72 years between William⁴ Cason (~1691) and Ransom Cason Sr. (~1763) across one nominal link is implausible as one generation. The slot is unfilled. Leading candidate: William⁴\'s son <strong>James (c.1727)</strong> — a man with no land records, no deeds, no tax-list co-occurrence in Pitt Co. 1755–1770 (negative-result searched). On WikiTree, "James Cason Jr." (c.1750) is recorded as Ransom\'s brother — implying the father was also a James. A man with no land is a man whose sons would have most reason to leave for free Georgia headright land after the Revolution. <em>Cannon Sr.</em> (left for SC, will doesn\'t name Ransom) and <em>William Jr.</em> (Duplin Co. NC, died in NC) are eliminated by wills and migration. <em>Hillery</em> (interior GA, different children\'s names) is unlikely. <em>Henry</em> is secondary — his 1823 Pitt deeds (Book CC, p.229) show a separate local branch.',
+    cites: [
+      ['1755-70', 'Pitt Co. NC tax lists 1755–1770 · searched for James Cason', 'NCDAH microfilm C.075.70001 · ZERO HITS · negative result confirmed', 'circumstantial'],
+      ['c.1750', '"James Cason Jr." listed as Ransom\'s brother', 'WikiTree Cason-543 · cites no primary', 'derivative'],
+      ['1779', 'Cannon Sr. will · does NOT name Ransom · Fairfield Co. SC', 'Fairfield Co. SC will book', 'primary'],
+      ['1823', "Henry Cason deeds of gift · Pitt Co. Deed Book CC, p.229 · no mention of Ransom's family", 'separate local branch confirmed', 'primary'],
+      ['??', 'Y-DNA across William⁴\'s six sons\' lines · resolution path', 'FamilyTreeDNA Cason Surname Project', 'circumstantial'],
+    ],
+    cov: {
+      vital: 'missing', land: 'missing', probate: 'missing', cargo: 'na',
+      military: 'missing', census: 'missing', tax: 'missing', eccles: 'missing',
+      court: 'missing', dna: 'missing', news: 'na',
+    },
+    covLabels: { vital: 'NO RECORD', land: 'ZERO HITS', tax: 'NEGATIVE SEARCH', dna: 'RESOLUTION PATH' },
+  },
+
+  'ransom-sr': {
+    name: 'Ransom Cason Sr.',
+    span: 'c.1763 – 1853',
+    gen: 6, role: 'the Florida crossing',
+    subtitle: 'Generation 06 · Florida pioneer. At age sixty he walked his wife and eight children south through the Okefenokee into a territory of 8,000 people with no roads. Florida Pioneer Cert. #2015S0027.',
+    ledgerId: 'cason-006',
+    kv: {
+      birth: 'c.1763, Pitt Co., NC',
+      death: '1853, Alachua Co., FL (probated 12 Nov 1853, age ~90)',
+      spouse: 'Phoebe Munden (c.1770 – c.1850)',
+      parents: ['warn', 'James⁵ (leading) · Pitt Co. NC — see Gen 5'],
+      children: 'John · William "Speckled Bill" · James Green · Ransom Jr. · Moses · Clementine · Martha · Phoebe · Becky',
+      'first record': '1794 Glynn Co. GA tax digest',
+      'last record': 'Alachua Co. FL Will Book A, pp. 35–36 · probated 12 Nov 1853',
+      'est. value': 'Florida Pioneer Cert. #2015S0027',
+    },
+    narrative: 'After the Revolution, Ransom moved south into Glynn County, GA — where the headright system gave 200 acres per household plus 50 per family member. Married <strong>Phoebe Munden</strong>; his brother William married Phoebe\'s sister Ann (two Cason brothers, two Munden sisters). In 1799 he received <strong>two land warrants</strong>: 200 ac on Turtle River (Glynn Co. Book 6, Folio 66), 200 ac on Beaver Dam Swamp (Folio 71). By 1822 he was liquidating — power of attorney to son William, Cherokee Lottery land sold. In 1823, at age sixty, he walked the family south past the Okefenokee into Alachua County, Florida — population at the time ~8,000 across the whole territory, no roads into the interior. Survived the Second Seminole War (son Moses survived a 1842 attack; nephew William served as Captain, FL Militia). Died at ~90. In 2015 the Florida State Genealogical Society certified him as <strong>Florida Pioneer #2015S0027</strong> — 162 years after his death.',
+    cites: [
+      ['1794', 'Glynn Co. GA tax digest', 'Glynn Co. GA tax records', 'primary'],
+      ['1799', '200 ac · Turtle River · Glynn Co. Book 6, Folio 66', 'GA Surveyor General archives', 'primary'],
+      ['1799', '200 ac · Beaver Dam Swamp · Glynn Co. Book 6, Folio 71', 'GA Surveyor General archives', 'primary'],
+      ['1822', 'Power of attorney to son William · liquidating Munro Co. GA lots', 'Munro Co. GA deed books', 'primary'],
+      ['1830', '1830 Census · Alachua Co. FL · near King Douglas, Michael Clements, son John', 'NARA M19', 'primary'],
+      ['1840', '1840 Census · "Fort Harttee" on the Santa Fe River', 'NARA M704', 'primary'],
+      ['1853', 'Will probated · Alachua Co. FL Will Book A, pp. 35–36', 'Alachua Co. probate', 'primary'],
+      ['2015', 'Florida Pioneer Certificate #2015S0027', 'Florida State Genealogical Society', 'primary'],
+    ],
+    cov: {
+      vital: 'primary', land: 'primary', probate: 'primary', cargo: 'na',
+      military: 'circumstantial', census: 'primary', tax: 'primary', eccles: 'circumstantial',
+      court: 'primary', dna: 'missing', news: 'derivative',
+    },
+    covLabels: { military: 'SEMINOLE-ERA', eccles: 'PRIMITIVE BAPTIST', dna: 'FL ANCHOR PENDING' },
+  },
+
+  'james-green': {
+    name: 'James Green Cason',
+    span: 'c.1800 – 1878',
+    gen: 7, role: 'the builder',
+    subtitle: 'Generation 07 · turned a homestead into a community. Married Lucinda "Lucy" Barrow. By the time he died in 1878, Alachua County had thousands where Ransom Sr. had found three hundred.',
+    ledgerId: 'cason-007',
+    kv: {
+      birth: 'c.1800, Alachua County, Florida',
+      death: '1878, Alachua County, Florida',
+      spouse: 'Lucinda "Lucy" Barrow',
+      parents: 'Ransom Cason Sr. · Phoebe Munden',
+      children: 'Mary Ann · John Barrow · George Washington · Ransom "2" · 5 more',
+      'first record': '1830 census household — son in Ransom Sr.\'s neighborhood',
+      'last record': 'Buried Alachua Co., 1878',
+      'est. value': 'Cason Cemetery (CR 239) corridor lands',
+    },
+    narrative: 'Ransom Sr. planted the family in Florida. James Green made it permanent. Raised at least nine children on the land his father claimed north of Newnansville. His generation turned a homestead into a community — Alachua County\'s settler population grew from ~300 in 1823 to thousands by 1878. The <strong>Cason Cemetery (CR 239)</strong> and <strong>North Pleasant Grove Cemetery</strong> sit barely half a mile apart on the corridor between Newnansville and the Santa Fe River — generations buried in the same soil, anchored to the same Cason land that James Green stewarded. His brother Ransom Jr. is a separate person; the famous Civil War lieutenant "Ransom 2" is James Green\'s son, not James Green\'s brother (a frequent conflation).',
+    cites: [
+      ['1830', '1830 Census · Alachua Co. household near Ransom Sr.', 'NARA M19', 'primary'],
+      ['c.1820s', 'Marriage to Lucinda Barrow', 'Alachua Co. records · derivative', 'derivative'],
+      ['1850', '1850 Census · Alachua Co. · expanded household', 'NARA M432', 'primary'],
+      ['1870', '1870 Census · final enumeration', 'NARA M593', 'primary'],
+      ['1878', 'Death · burial in Cason corridor (CR 239 / N. Pleasant Grove)', 'FindAGrave + cemetery records', 'derivative'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'derivative', probate: 'missing', cargo: 'na',
+      military: 'na', census: 'primary', tax: 'derivative', eccles: 'circumstantial',
+      court: 'missing', dna: 'missing', news: 'derivative',
+    },
+    covLabels: { probate: 'NO WILL LOCATED', dna: 'PENDING' },
+  },
+
+  'ransom-2': {
+    name: 'Lt. Ransom Cason "2"',
+    span: '1835 – 1900',
+    gen: 8, role: '7th FL Infantry CSA',
+    subtitle: 'Generation 08 · marched through the Civil War. Lieutenant, 7th Florida Infantry, Army of Tennessee — Chickamauga, Missionary Ridge, Atlanta, Franklin, Nashville, Bentonville. One of the last Confederate units to surrender, 26 Apr 1865.',
+    ledgerId: 'cason-008',
+    kv: {
+      birth: '1835, Alachua County, FL',
+      death: '29 Jul 1900 · North Pleasant Grove Cemetery, Santa Fe, FL',
+      spouse: 'Casey Ann (d. 1871) · then Susan Holloway (m. 14 Feb 1872)',
+      parents: 'James Green Cason · Lucinda "Lucy" Barrow',
+      children: 'Thadeous Calhoun Cason · others',
+      'first record': '1850 Census · Alachua Co. (age 15)',
+      'last record': 'Confederate Veterans Pension Application A00841',
+      'est. value': 'Pension A00841 · burial half mile from Ransom Sr.\'s grave',
+    },
+    narrative: 'Ransom Sr.\'s grandson — James Green\'s son — known as "Ransom 2" to distinguish him from his uncle Ransom Jr. (often conflated in derivative trees). In <strong>April 1862</strong>, age 27, married, father of a five-year-old Thadeous, he mustered into the <strong>7th Florida Infantry at Gainesville</strong> under Col. Madison Starke Perry (former Governor of Florida). The regiment was assigned to the Army of Tennessee — the western theater where the war was fought hardest and remembered least. Rose to <strong>Lieutenant</strong>. Marched through <strong>Chickamauga, Missionary Ridge, Atlanta, Franklin, Nashville</strong>. At Bentonville, March 1865, the regiment fought its last engagement with fewer than 100 men. <strong>Surrendered at Bennett Place, 26 April 1865</strong> — one of the last Confederate units to lay down arms. Came home to a county economically gutted. Casey Ann died 1871; remarried Susan Holloway in 1872. Filed pension <strong>A00841</strong> (Florida Memory). Buried at North Pleasant Grove, half a mile from his grandfather Ransom Sr.\'s grave.',
+    cites: [
+      ['1850', '1850 Census · Alachua Co. household of James Green', 'NARA M432', 'primary'],
+      ['Apr 1862', 'Mustered, 7th FL Infantry, Co. — Gainesville', 'NPS Soldier Records · Florida Memory', 'primary'],
+      ['Sep 1863', 'Chickamauga campaign', '7th FL Infantry regimental history · NPS', 'primary'],
+      ['Nov 1863', 'Missionary Ridge — regiment "suffered severely"', '7th FL Infantry regimental history', 'primary'],
+      ['Mar 1865', 'Bentonville · last engagement with <100 effective men', 'NPS battle unit detail', 'primary'],
+      ['26 Apr 1865', 'Surrendered Bennett Place w/ Gen. Joseph Johnston', 'Bennett Place surrender records', 'primary'],
+      ['14 Feb 1872', 'Married Susan Holloway', 'Alachua Co. marriage records', 'primary'],
+      ['c.1880s', 'Confederate Veterans Pension Application A00841 · Alachua Co.', 'Florida Memory pension archive', 'primary'],
+      ['29 Jul 1900', 'Died · buried North Pleasant Grove Cemetery', 'FindAGrave · cemetery records', 'primary'],
+    ],
+    cov: {
+      vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
+      military: 'primary', census: 'primary', tax: 'derivative', eccles: 'derivative',
+      court: 'derivative', dna: 'missing', news: 'primary',
+    },
+    covLabels: { news: 'PENSION A00841' },
+  },
+
+  'thadeous': {
+    name: 'Thadeous Calhoun Cason',
+    span: '1857 – 1945',
+    gen: 9, role: 'the westward move',
+    subtitle: 'Generation 09 · child of the war. Four when his father left for Gainesville; eight at war\'s end. Married Christmas Eve 1882; moved 15-20 miles west to Fort White, chasing the 1888 railroad-and-phosphate boom.',
+    ledgerId: 'cason-009',
+    kv: {
+      birth: '26 Aug 1857, Alachua County, FL',
+      death: '1945, Columbia County, FL (age 88)',
+      spouse: 'Georgia Quintine McKinney (m. 24 Dec 1882; 1860–1937)',
+      parents: 'Lt. Ransom Cason "2" · Casey Ann',
+      children: '12–14 children · Lena Alice · Carrie Mae · James Johnson · Eddie Ross · Carl Columbus · Wilbur C. · Tom Arthur · Julia Matilda · Timothy · others',
+      'first record': '1860 Census · age 3, household of James Green',
+      'last record': 'Buried Tustenuggee Methodist Cemetery, Fort White',
+      'est. value': '1715 McClinton Rd · burial corridor',
+    },
+    narrative: 'A child of the war. Born <strong>26 August 1857</strong>; four when his father Lt. Ransom 2 mustered out for Gainesville; eight when the war ended. Grew up in Reconstruction-era Alachua County. On <strong>Christmas Eve 1882</strong> married <strong>Georgia Quintine McKinney</strong> — daughter of George Washington McKinney and Kezziah "Kittie" Roland — in Columbia County. Moved 15–20 miles west from the Newnansville family corridor into <strong>Fort White, Columbia County</strong>, chasing the boom. Fort White had been a Seminole War outpost (1836); in <strong>1888 the railroad arrived</strong>, phosphate deposits opened, citrus and turpentine industries boomed. Population approached 2,000. Twelve to fourteen children. Then the freezes of 1895–97 killed the citrus, phosphate ran out by 1910, boll weevil destroyed cotton before WWI. The boom collapsed and never recovered. But the Casons stayed. Georgia Quintine died Sep 3 1937; Thadeous lived to 88. Both buried at <strong>Tustenuggee Methodist Cemetery</strong> — a church established 1845, on land some locals believe was once a Seminole burial ground. "Tustenuggee" is Muskogee for "warrior."',
+    cites: [
+      ['1860', '1860 Census · age 3', 'NARA M653', 'primary'],
+      ['1870', '1870 Census · age 13 · post-war Alachua Co.', 'NARA M593', 'primary'],
+      ['24 Dec 1882', 'Married Georgia Q. McKinney · Columbia Co.', 'Columbia Co. marriage records', 'primary'],
+      ['1900', '1900 Census · Fort White, Columbia Co.', 'NARA T623', 'primary'],
+      ['1910', '1910 Census · Columbia Co.', 'NARA T624', 'primary'],
+      ['1940', '1940 Census · Columbia Co., age 82', 'NARA T627', 'primary'],
+      ['1945', 'Death · burial Tustenuggee Methodist Cemetery', 'FindAGrave · 1715 McClinton Rd, Fort White, FL 32038', 'primary'],
+    ],
+    cov: {
+      vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
+      military: 'na', census: 'primary', tax: 'derivative', eccles: 'derivative',
+      court: 'missing', dna: 'missing', news: 'derivative',
+    },
+    covLabels: { dna: 'PENDING' },
+  },
+
+  'carl-columbus': {
+    name: 'Carl Columbus Cason',
+    span: '1903 – 1966',
+    gen: 10, role: 'thirteen children',
+    subtitle: 'Generation 10 · the Depression spine. Married Wilma Douglas; raised thirteen children in rural North Florida on Depression-era relief of less than $7/month per family. Florida was the last state to pass a mandatory fence law.',
+    ledgerId: 'cason-010',
+    kv: {
+      birth: '11 Aug 1903, Columbia County, FL',
+      death: '1966, Columbia County, FL (age 63)',
+      spouse: 'Wilma Douglas',
+      parents: 'Thadeous Calhoun Cason · Georgia Quintine McKinney',
+      children: 'Dorothy "Dot" · Buddy · Robert Sr. · Noah (d. 1942) · Wyles · Jake · Lawrence · Earl · Paul · Johnny · Marie · Zeke · Kate',
+      'first record': '1910 Census · age 6 · household of Thadeous',
+      'last record': '1966 burial · Columbia County',
+      'est. value': 'CR 778 farmhouse (still standing)',
+    },
+    narrative: 'Born 11 Aug 1903 into the ruins of Fort White\'s boom — the citrus was dead, phosphate gone, boll weevil had torn through the cotton. Married <strong>Wilma Douglas</strong>; raised thirteen children. Depression-era relief in rural Florida was often less than <strong>seven dollars per month per family</strong>. A man raising thirteen children in Fort White would have done everything — turpentine work, logging, subsistence farming, cattle on the open range (Florida was the <em>last state</em> to pass a mandatory fence law, in 1949), day labor, sawmill work. Every child old enough to work did. Every acre of garden, every hog, every fish from the Santa Fe River mattered. Died 1966, age 63. His thirteen children spread across north-central Florida — Dot to Lake City, Jake to Williston, Lawrence to Jacksonville and Guantanamo Bay, Robert to the Space Coast and back. The name kept moving.',
+    cites: [
+      ['1910', '1910 Census · age 6 · Columbia Co.', 'NARA T624', 'primary'],
+      ['1920', '1920 Census · age 16', 'NARA T625', 'primary'],
+      ['1930', '1930 Census · age 26 · married, growing household', 'NARA T626', 'primary'],
+      ['1940', '1940 Census · age 36 · Columbia Co. · 13-child household visible', 'NARA T627', 'primary'],
+      ['2014', 'Jake Cason obituary · names siblings', 'newspaper obituary', 'derivative'],
+      ['1966', 'Death · Columbia County', 'FindAGrave + family records', 'derivative'],
+    ],
+    cov: {
+      vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
+      military: 'missing', census: 'primary', tax: 'derivative', eccles: 'derivative',
+      court: 'missing', dna: 'missing', news: 'derivative',
+    },
+    covLabels: { news: 'JAKE OBITUARY 2014', dna: 'PENDING' },
+  },
+
+  'robert-sr': {
+    name: 'Robert Randall Cason Sr.',
+    span: 'b. 1933',
+    gen: 11, role: 'the Space Coast',
+    subtitle: 'Generation 11 · the line\'s present terminus. Born in the CR 778 farmhouse (still standing). In 1957 moved his family to Titusville on the Indian River — Brevard County grew 371% in a decade as Kennedy committed to the Moon.',
+    ledgerId: 'cason-011',
+    kv: {
+      birth: '1933, CR 778 farmhouse, Fort White, Columbia Co., FL',
+      death: 'returned to family land · burial CR 778',
+      spouse: 'Mary Nell',
+      parents: 'Carl Columbus Cason · Wilma Douglas',
+      children: '— (privacy: living generation 12)',
+      'first record': '1940 Census · age 6 · CR 778',
+      'last record': 'family oral history · CR 778 farmhouse extant',
+      'est. value': 'CR 778 farmstead · ashes rest on the property',
+    },
+    narrative: 'Born <strong>1933</strong> in the farmhouse on <strong>CR 778</strong> — the same house still standing, a stone\'s throw from where his ashes now rest. Married <strong>Mary Nell</strong>. In <strong>1957</strong> he did something that would have been unimaginable to Ransom Sr.: he moved to a place where humans were learning to leave the planet. Titusville was a quiet fishing and citrus town on the Indian River until <strong>1949</strong>, when Truman established the missile testing range at Cape Canaveral. By 1958 NASA existed; by 1961 Kennedy had committed to the Moon. <strong>Brevard County grew 371%</strong> in a decade — 23,653 people in 1950 to 111,435 in 1960. Schools went from 13 to 46. Titusville called itself <em>"Space City USA."</em> Robert and Mary Nell raised their family on the same Florida coast that Ransom Sr. had entered as uncharted wilderness 134 years earlier. After the Apollo program contracted, Robert returned to the family land in Fort White — buried with Mary Nell, a stone\'s throw from the farmhouse where he came into the world. From Thomas\'s cargo ship to Robert\'s rockets. The vehicle changes. The instinct doesn\'t.',
+    cites: [
+      ['1940', '1940 Census · age 6 · CR 778 household of Carl Columbus', 'NARA T627', 'primary'],
+      ['1950', '1950 Census · age 16', 'NARA T628', 'primary'],
+      ['1957', 'Migration to Titusville · Brevard Co.', 'family oral history', 'lore'],
+      ['present', 'CR 778 farmhouse · extant', 'site visit · family records', 'circumstantial'],
+    ],
+    cov: {
+      vital: 'derivative', land: 'circumstantial', probate: 'missing', cargo: 'na',
+      military: 'missing', census: 'primary', tax: 'missing', eccles: 'missing',
+      court: 'missing', dna: 'missing', news: 'lore',
+    },
+    covLabels: { news: 'ORAL HISTORY', dna: 'PENDING — PRESENT-DAY ANCHOR' },
+  },
+};
+
+/* ────────────────────────────────────────────────────────────────────────
+   COLLATERALS — shallow dossiers for siblings, branches, and the
+   parallel Hillery → Utah line. Each entry must be renderable but can
+   be sparse on KV / cites / coverage where the record is thin.
+   ──────────────────────────────────────────────────────────────────────── */
+const _C = (name, gen, role, span, narrative, parentsTxt, childrenTxt, cites=[], extra={}) => ({
+  name, span, gen, role,
+  subtitle: `Generation ${String(gen).padStart(2,'0')} · ${role}.`,
+  ledgerId: `coll-${name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12)}`,
+  kv: {
+    birth: extra.birth || '—',
+    death: extra.death || '—',
+    spouse: extra.spouse || '—',
+    parents: parentsTxt || '—',
+    children: childrenTxt || '—',
+    'first record': extra.first || '—',
+    'last record': extra.last || '—',
+    'est. value': extra.est || '—',
+    ...(extra.kv || {}),
+  },
+  narrative,
+  cites,
+  cov: Object.assign(
+    { vital:'derivative', land:'missing', probate:'missing', cargo:'na', military:'missing',
+      census:'missing', tax:'missing', eccles:'missing', court:'missing', dna:'missing', news:'missing' },
+    extra.cov || {}
+  ),
+  covLabels: extra.covLabels || {},
+});
+
+Object.assign(PEOPLE, {
+
+  // ── Gen 0 (DISPROVEN) ────────────────────────────────────────────────
+  'john-cason': {
+    name: 'John Cason · DISPROVEN',
+    span: 'never located',
+    gen: 0, role: 'alleged father (Digswell)',
+    subtitle: 'Generation 00 · QUARANTINED. The "John Cason of Digswell" father attribution is a backward reconstruction from American trees with no Hertfordshire primary record. Discard.',
+    ledgerId: 'coll-disproven-001',
+    kv: {
+      birth: ['warn', 'never located'],
+      death: ['warn', 'never located'],
+      spouse: '—',
+      parents: '—',
+      children: ['warn', 'alleged: Thomas Casson — disproven'],
+      'first record': ['warn', 'NONE — derivative IGI-era patron submission only'],
+      'last record': ['warn', '—'],
+      'est. value': ['warn', 'fabricated "Virginia Land Company stockholder" claim'],
+    },
+    narrative: '<strong>This record is in quarantine.</strong> The "son of John Cason of Digswell, Hertfordshire" attribution travels welded to a demonstrably invented detail — that John was "a large stockholder in the Virginia Land Company." There was no such company (the joint-stock entity was the Virginia Company of London) and no John Cason appears in Kingsbury\'s <em>Records of the Virginia Company</em>. No John Cason of Digswell c.1580–1610 has been located in Hertfordshire manorial, will, or Quarter-Sessions records. The Digswell parish-register abstracts begin 1609 — one year after the alleged 1608 baptism. Cason/Casson is a Lincolnshire / Cambridgeshire / Norfolk surname, not Hertfordshire. Treat this record as contaminated derivative data.',
+    cites: [
+      ['??', 'FamilySearch index NRWF-3RD · "England Births and Christenings"', 'no register image, no folio, no mother named · 1970s-90s patron submission', 'disproven'],
+      ['??', 'Alleged "Virginia Land Company stockholder"', 'No such company existed. Kingsbury\'s Records of the Virginia Company (4 vols., 1906–1935) does not list a John Cason.', 'disproven'],
+    ],
+    cov: { vital:'disproven', land:'disproven', probate:'disproven', cargo:'na', military:'na', census:'na', tax:'disproven', eccles:'disproven', court:'disproven', dna:'missing', news:'na' },
+    covLabels: { vital:'NEVER LOCATED', land:'FABRICATED', probate:'FABRICATED', tax:'NONE', eccles:'NONE', court:'NONE', dna:'CAN\'T HELP' },
+  },
+
+  // ── Gen 2 siblings ────────────────────────────────────────────────────
+  'james-1634': _C('James Cason', 2, 'eldest son · d. unmarried, 1665',
+    'c.1634 – 1665',
+    'Eldest son of Thomas Casson. Died 1665 — same year as his brother Thomas Jr. Never married, left no children. The fact that two of Thomas Sr.\'s three known children died in 1665 funneled the entire surviving Cason line through one ten-year-old boy: James the Orphan.',
+    'Thomas Casson · Elizabeth (Keeling) Leighton',
+    'none',
+    [['1665', 'Death · Lower Norfolk', 'Lower Norfolk Order Book', 'primary']],
+    { spouse: 'never married', death: '1665, Lower Norfolk Co., VA', birth: 'c.1634, Lynnhaven Parish' }
+  ),
+  'ruth': _C('Ruth Cason', 2, 'm. into Woodhouse',
+    'c.1638 – ?',
+    'Married into the prominent Woodhouse family of Princess Anne County ~1655 — securing one of the Cason line\'s most important early FAN connections. Carried no Cason name forward, but the Woodhouse marriage tied the family to local gentry and provides downstream FAN context.',
+    'Thomas Casson · Elizabeth (Keeling) Leighton',
+    'Woodhouse descendants (not Cason name)',
+    [['c.1655', 'Marriage to Henry or John Woodhouse · Princess Anne', 'Lower Norfolk records', 'derivative']],
+    { spouse: 'Woodhouse (Henry or John)' }
+  ),
+
+  // ── Gen 4 siblings of William⁴ (James the Orphan's other kids) ───────
+  'susannah':       _C('Susannah Cason', 4, 'm. Moore', 'b. before 1720',
+    'One of James the Orphan\'s daughters. Symbolic one-shilling bequest in his 1720 will indicates she had already received her dowry on marriage to a Moore. The Moore family travels with the Casons into the NC frontier.',
+    'James the Orphan · Anne', 'Moore descendants — incl. Cason Moore (named in James\'s will)',
+    [['1720', 'Named in James the Orphan\'s will · 1-shilling legacy', 'Princess Anne Will Book 3, p.448', 'primary']],
+    { spouse: 'Moore (given name unrecovered)' }
+  ),
+  'thomas-3':       _C('Thomas Cason III', 4, 'inherited 150 ac · Princess Anne', 'b. before 1720',
+    'James the Orphan\'s son Thomas — inherited 150 acres "whereon he now lives" under the 1720 will. Distinct from Thomas Sr. (Gen 1) and Thomas Jr. (Gen 2); the Thomas/Thomas/Thomas chain is a frequent same-name conflation in derivative trees.',
+    'James the Orphan · Anne', 'unrecorded',
+    [['1720', '150 ac bequest · Princess Anne Will Book 3, p.448', 'Princess Anne Will Book 3, p.448', 'primary']]
+  ),
+  'james-jr-1690':  _C('James Cason Jr.', 4, 'symbolic 1-shilling legacy', 'b. before 1720',
+    'Named in James the Orphan\'s 1720 will with a symbolic 1-shilling bequest, indicating he had already received his portion. Not to be confused with the c.1750 "James Jr." rumored as Ransom Sr.\'s brother in Gen 5 derivative trees.',
+    'James the Orphan · Anne', 'unrecorded',
+    [['1720', '1-shilling bequest · Princess Anne Will Book 3, p.448', 'Princess Anne Will Book 3, p.448', 'primary']]
+  ),
+  'elizabeth':      _C('Elizabeth Cason', 4, 'm. Whitehurst', 'b. before 1720',
+    'James the Orphan\'s daughter. Married into the Whitehurst family — another FAN cluster that migrated alongside the Casons from Princess Anne into NC. 1-shilling legacy in the 1720 will.',
+    'James the Orphan · Anne', 'Whitehurst descendants',
+    [['1720', '1-shilling bequest · Princess Anne Will Book 3, p.448', 'Princess Anne Will Book 3, p.448', 'primary']],
+    { spouse: 'Whitehurst' }
+  ),
+  'dynah':          _C('Dynah Cason', 4, 'm. Wilber', 'b. before 1720',
+    'James the Orphan\'s youngest daughter Dynah (also recorded "Dyner"). Married into the Wilber family. 1-shilling legacy in the 1720 will. Wilber surname recurs in the NC frontier FAN cluster.',
+    'James the Orphan · Anne', 'Wilber descendants',
+    [['1720', '1-shilling bequest · Princess Anne Will Book 3, p.448', 'Princess Anne Will Book 3, p.448', 'primary']],
+    { spouse: 'Wilber' }
+  ),
+
+  // ── Gen 5 collaterals — William⁴'s sons besides the unfilled slot ────
+  'cannon-sr': _C('Cannon Cason Sr.', 5, 'ELIMINATED — Fairfield Co. SC',
+    'c.1724 – c.1779',
+    '<strong>Eliminated as Ransom Sr.\'s father.</strong> Bought land from William⁴ in 1748, sold by 1752, left for Duplin Co. NC with his brother William Jr. Ended in Fairfield Co. SC. Drew his will September 14, 1779 — and the will does NOT name Ransom or any of Ransom\'s known siblings.',
+    'William⁴ Cason · Jane Cannon',
+    'named in 1779 will — Ransom not among them',
+    [
+      ['1748', 'Bought land from father William⁴', 'Beaufort Co. NC deeds', 'primary'],
+      ['1752', 'Sold land · departed for Duplin Co.', 'Beaufort Co. NC deeds', 'primary'],
+      ['Sep 14 1779', 'Will drawn · Fairfield Co. SC · DOES NOT name Ransom', 'Fairfield Co. SC will book', 'primary'],
+    ],
+    {
+      cov: { vital:'primary', land:'primary', probate:'primary', tax:'derivative' },
+      covLabels: { probate: 'DOES NOT NAME RANSOM' },
+    }
+  ),
+  'william-jr': _C('William Cason Jr.', 5, 'ELIMINATED — Duplin Co. NC',
+    'b. 1723 – c.1778',
+    '<strong>Eliminated.</strong> Left Pitt Co. with brother Cannon Sr. by 1752 for Duplin County, NC. Died c.1769–1778 in NC. Never migrated to Georgia. Cannot be Ransom Sr.\'s father.',
+    'William⁴ Cason · Jane Cannon', 'NC descendants',
+    [
+      ['1752', 'Departed Beaufort with Cannon Sr. for Duplin Co.', 'Beaufort Co. NC deeds', 'primary'],
+      ['c.1778', 'Died in NC', 'Duplin Co. NC records', 'derivative'],
+    ],
+    { cov: { vital:'derivative', land:'derivative' } }
+  ),
+  'john-1728': _C('John Cason', 5, 'POSSIBLE — stayed Pitt Co.',
+    'c.1728 – ?',
+    'Stayed in Pitt County NC. 1790 census shows him with 12 enslaved persons — substantial wealth. Henry\'s 1823 deed of gift references the dividing line between his land and "John Cason\'s." Possible as Ransom\'s father, but no positive evidence connects him to the FL line.',
+    'William⁴ Cason · Jane Cannon', 'Pitt Co. descendants',
+    [
+      ['1790', '1790 Census · Pitt Co. · 12 enslaved persons', 'NARA M637', 'primary'],
+      ['1823', 'Henry\'s deed references "John Cason\'s line"', 'Pitt Co. Deed Book CC, p.229', 'primary'],
+    ],
+    { cov: { vital:'derivative', census:'primary', tax:'primary', land:'primary' } }
+  ),
+  'henry-1732': _C('Henry Cason', 5, 'SECONDARY — separate Pitt Co. branch',
+    'c.1732 – after 1823',
+    '<strong>Secondary candidate.</strong> Right location, right naming patterns, but his 1823 deeds of gift show a separate local Pitt Co. branch with zero mention of Ransom\'s family. On 10 April 1823 Henry executed four deeds: 250 acres on Grindal Creek to granddaughters Lydia and Elizabeth Cason (who carry the surname, proving Henry had a son who stayed local), and gifts to Sarah Tire and the Moore granddaughters. Henry\'s estate was oriented entirely toward the family that stayed.',
+    'William⁴ Cason · Jane Cannon',
+    'unnamed son (local) → granddaughters Lydia, Elizabeth Cason, Sarah Tire, Moore granddaughters',
+    [
+      ['1758', 'Land via father\'s deed of gift', 'Beaufort Co. NC', 'primary'],
+      ['10 Apr 1823', '4 deeds of gift · 250 ac Grindal Creek + enslaved persons', 'Pitt Co. Deed Book CC, p.229–232', 'primary'],
+      ['1823', 'Zero mention of Ransom\'s family in deeds', '— separate local branch confirmed', 'primary'],
+    ],
+    { cov: { vital:'derivative', land:'primary', probate:'derivative', tax:'derivative', court:'primary' },
+      covLabels: { court: 'BOOK CC, p.229' } }
+  ),
+  'hillery': _C('Hillery Cason Sr. (R.S.)', 5, 'UNLIKELY — interior GA, separate branch',
+    '1737 – 1810',
+    '<strong>Unlikely as Ransom\'s father.</strong> Revolutionary War Patriot Ancestor (DAR #A216752) — served on the NC Line, Jones Company from 1 April 1782 and on the Pitt Safety Committee. Married Sarah Barrow Ormond (a thin Barrow connection to Ransom\'s son James Green who married Lucinda Barrow). Migrated to Effingham → Screven/Jefferson Co., GA in 1792 — interior GA on the Ogeechee River, NOT coastal Glynn County where Ransom settled. His children have completely different names (Gabriel, Wyriott, Frederick, Willis, Willoughby) and his line is well-documented as a parallel branch — see sibling-branch section below.',
+    'William⁴ Cason · Jane Cannon',
+    'Gabriel · Wyriott · Frederick · Willis · Willoughby · Jane (m. Cone) · others',
+    [
+      ['1782', 'Revolutionary service · NC Line · Jones Company', 'DAR #A216752', 'primary'],
+      ['1786', '1786 NC State Census · 5 boys, 2 females over 16', 'NC State Archives', 'primary'],
+      ['1792', 'Migration NC → Effingham Co. GA', 'GA land records', 'primary'],
+      ['1794', 'Settled Screven Co. GA on Ogeechee River', 'Screven Co. GA tax digest', 'primary'],
+      ['1808', 'Petitioned GA General Assembly · protect daughter Jane (Cone) from estranged husband', 'GA General Assembly act', 'primary'],
+      ['1810', 'Died c.1809/1810 · Screven or Jefferson Co. GA', 'GA probate', 'derivative'],
+    ],
+    {
+      spouse: 'Sarah Barrow Ormond (1739–1825)',
+      death: 'c.1809/1810 · Screven or Jefferson Co. GA',
+      birth: '1737, Beaufort/Pitt Co. NC',
+      cov: { vital:'primary', land:'primary', probate:'derivative', military:'primary', census:'primary', tax:'primary', court:'primary', dna:'missing', news:'derivative' },
+      covLabels: { military: 'DAR #A216752', court: 'GA ASSEMBLY 1808' }
+    }
+  ),
+
+  // ── Gen 7 — Ransom Sr.'s other children ──────────────────────────────
+  'john-cason-6':   _C('John Cason', 7, 'Ransom Sr.\'s eldest son',
+    'b. before 1810 – ?',
+    'Eldest son of Ransom Sr. and Phoebe Munden. Appears on the 1830 Alachua Co. census living near his father — among the seven of Ransom\'s eight children who made the 1823 migration to Florida.',
+    'Ransom Cason Sr. · Phoebe Munden', 'unrecorded',
+    [['1830', '1830 Census · Alachua Co. household near father', 'NARA M19', 'primary']],
+    { cov: { census: 'primary' } }
+  ),
+  'speckled-bill':  _C('William "Speckled Bill" Cason', 7, 'Ransom Sr.\'s son',
+    'b. before 1810 – ?',
+    'Son of Ransom Sr. with the family nickname "Speckled Bill." The 1822 power-of-attorney from Ransom Sr. went to "his son William" — almost certainly Speckled Bill — to sell the Munro County GA lots before the family left for Florida.',
+    'Ransom Cason Sr. · Phoebe Munden', 'unrecorded',
+    [['1822', 'Power of attorney from Ransom Sr.', 'Munro Co. GA deeds', 'primary']]
+  ),
+  'ransom-jr':      _C('Ransom Cason Jr.', 7, 'BROTHER of James Green',
+    'b. before 1810 – ?',
+    'Son of Ransom Sr. — distinct from his nephew Lt. Ransom Cason "2" (Gen 8), who was James Green\'s son. Derivative trees often confuse the two. Migrated to Florida with the family in 1823.',
+    'Ransom Cason Sr. · Phoebe Munden', 'unrecorded'
+  ),
+  'moses':          _C('Moses Cason', 7, 'survived 1842 Seminole attack',
+    'b. before 1820 – ?',
+    'Ransom Sr.\'s son. Farmer in Alachua County. <strong>Survived a Seminole attack in 1842</strong> — the Second Seminole War made Alachua County ground zero, and Moses is the only direct mention in family records of a survived engagement.',
+    'Ransom Cason Sr. · Phoebe Munden', 'unrecorded',
+    [['1842', 'Survived Seminole attack', 'Family record · Second Seminole War era', 'derivative']]
+  ),
+  'clementine':     _C('Clementine Cason', 7, 'm. King Douglas',
+    'b. before 1820 – ?',
+    'Ransom Sr.\'s daughter. Married King Douglas. Lived "11 miles north of Newnansville, on Ft. Call Road" in 1842 — a specific geographic anchor for the Cason corridor between Newnansville and the Santa Fe River.',
+    'Ransom Cason Sr. · Phoebe Munden', 'Douglas descendants',
+    [['1842', 'Lived "11 mi N of Newnansville, Ft. Call Rd"', 'Family record', 'derivative']],
+    { spouse: 'King Douglas' }
+  ),
+  'becky':          _C('Becky Cason', 7, 'buried Cason Cemetery',
+    'b. before 1820 – ?',
+    'Ransom Sr.\'s daughter. Buried at the <strong>Cason Cemetery, CR 239</strong> — the pioneer family burial site maintained by St. Johns United Methodist Church on or adjacent to the original Cason family land. FindAGrave memorial #62398516.',
+    'Ransom Cason Sr. · Phoebe Munden', '—',
+    [['??', 'Burial · Cason Cemetery, CR 239', 'FindAGrave #62398516', 'primary']],
+    { cov: { vital: 'primary' } }
+  ),
+
+  // ── Gen 8 — James Green's other children ─────────────────────────────
+  'mary-ann':         _C('Mary Ann Cason', 8, 'James Green\'s daughter', 'b. before 1840 – ?',
+    'One of at least nine children of James Green and Lucinda Barrow.',
+    'James Green Cason · Lucinda Barrow', '—'),
+  'george-washington': _C('George Washington Cason', 8, 'James Green\'s son', 'b. before 1840 – ?',
+    'Son of James Green; brother of Lt. Ransom 2. Named in the Anglo-American patriotic naming style common to the post-Jackson South.',
+    'James Green Cason · Lucinda Barrow', '—'),
+
+  // ── Gen 10 — Thadeous's other children ───────────────────────────────
+  'lena-alice':     _C('Lena Alice Cason', 10, 'm. Guynn', '1888 – 1927',
+    'Eldest of Thadeous and Georgia\'s children. Married a Guynn.',
+    'Thadeous Calhoun Cason · Georgia Quintine McKinney', '—',
+    [], { spouse: 'Guynn' }),
+  'carrie-mae':     _C('Carrie Mae Cason', 10, 'Thadeous\'s daughter', 'b. before 1910 – ?',
+    'Daughter of Thadeous and Georgia. Limited surviving record.',
+    'Thadeous Calhoun Cason · Georgia Quintine McKinney', '—'),
+  'eddie-ross':     _C('Eddie Ross Cason', 10, 'Thadeous\'s son', 'b. before 1910 – ?',
+    'Son of Thadeous and Georgia. Limited surviving record.',
+    'Thadeous Calhoun Cason · Georgia Quintine McKinney', '—'),
+  'wilbur':         _C('Wilbur C. Cason', 10, 'Thadeous\'s son', 'b. before 1910 – ?',
+    'Son of Thadeous and Georgia. Limited surviving record.',
+    'Thadeous Calhoun Cason · Georgia Quintine McKinney', '—'),
+  'julia-matilda':  _C('Julia Matilda Cason', 10, 'Thadeous\'s daughter', 'b. before 1910 – ?',
+    'Daughter of Thadeous and Georgia.',
+    'Thadeous Calhoun Cason · Georgia Quintine McKinney', '—'),
+
+  // ── Gen 11 — Carl Columbus's other children ─────────────────────────
+  'dot':       _C('Dorothy "Dot" Cason', 11, 'm. Raymos · Lake City', '~1928 – 2019',
+    'Eldest of Carl Columbus and Wilma\'s 13 children. Married Raymos. Settled in Lake City, FL — one of the modern Cason locations across north-central Florida.',
+    'Carl Columbus Cason · Wilma Douglas', '—', [], { spouse: 'Raymos' }),
+  'buddy':     _C('Buddy Cason', 11, 'Carl Columbus\'s son', '~1930 – deceased',
+    'Son of Carl Columbus and Wilma. Limited surviving record.',
+    'Carl Columbus Cason · Wilma Douglas', '—'),
+  'noah':      _C('Noah Cason', 11, 'died young', '1938 – 1942',
+    'Son of Carl Columbus, died at four years old in 1942. The harsh edge of Depression-era rural North Florida — relief payments under $7/month, no antibiotics for childhood illnesses.',
+    'Carl Columbus Cason · Wilma Douglas', 'none',
+    [['1942', 'Died age 4', 'family records', 'derivative']]),
+  'jake':      _C('James W. "Jake" Cason', 11, 'Sprint · councilman · deacon', '~1943 – 2014',
+    '"Jake" — son of Carl Columbus and Wilma. Sprint Telephone employee for 39 years. City councilman 14 years in Williston, FL. Deacon at Morriston Baptist Church. Married Marion. Settled in Williston, Levy County, FL.',
+    'Carl Columbus Cason · Wilma Douglas', '—',
+    [['2014', 'Obituary · Williston, FL', 'newspaper obituary', 'primary']],
+    { spouse: 'Marion' }),
+  'lawrence':  _C('Lawrence Milton Cason', 11, 'Lake City · Jacksonville · Guantanamo', '1946 – 2017',
+    'Son of Carl Columbus and Wilma. Lived in Lake City, Jacksonville, and served at Guantanamo Bay. Buried at Shiloh Baptist Church Cemetery, Fort White. FindAGrave #176982102.',
+    'Carl Columbus Cason · Wilma Douglas', '—',
+    [['2017', 'Burial · Shiloh Baptist Church Cemetery, Fort White', 'FindAGrave #176982102', 'primary']]),
+  'kate':      _C('Kate Cason', 11, 'm. Alexander', 'living',
+    'Daughter of Carl Columbus and Wilma. Married Alexander. Among the surviving children of the thirteen.',
+    'Carl Columbus Cason · Wilma Douglas', '—', [], { spouse: 'Alexander' }),
+
+});
+
+/* ────────────────────────────────────────────────────────────────────────
+   SIBLING BRANCH · The Hillery → Utah line
+   A parallel descent from William⁴ via Hillery (Gen 5) — fully documented
+   in its own right but a sibling spine to Ransom Sr., not a competing
+   ancestor. Each entry primary-sourced where possible.
+   ──────────────────────────────────────────────────────────────────────── */
+Object.assign(PEOPLE, {
+
+  'john-dennis': _C('John Dennis Cason', 6, 'NC → IL → Arkansas',
+    '1770 – 1845',
+    'Son of Hillery Cason Sr. Born in Pitt County, NC; migrated with his father to wiregrass GA. In 1797 married <strong>Martha Elizabeth Chauncey</strong> in Georgia. Recorded on 1820 census in Tattnall Co., GA. In 1829 — at age 59, the same fierce age Ransom Sr. was when he walked into Florida — he orchestrated an overland migration to Madison Co., IL, and finally Independence Co., AR. A surviving primary-source letter from John Dennis to his son Silas describes the overland route and where the pioneer party camped each night — a remarkable firsthand account of nineteenth-century pioneer logistics.',
+    'Hillery Cason Sr. · Sarah Barrow Ormond', 'Silas Cason (b.1799) · others',
+    [
+      ['1797', 'Marriage to Martha Elizabeth Chauncey · Georgia', 'GA marriage records', 'derivative'],
+      ['1820', '1820 Census · Tattnall Co. GA', 'NARA M33', 'primary'],
+      ['1829', '<strong>Surviving letter to son Silas</strong> — overland route detail', 'family archive · primary firsthand account', 'primary'],
+      ['1845', 'Died Walnut Grove, Independence Co. AR · age 75', 'AR probate (verification pending)', 'derivative'],
+    ],
+    {
+      spouse: 'Martha Elizabeth Chauncey (m. 1797)',
+      death: '1845 · Walnut Grove, Independence Co., Arkansas',
+      birth: '1770, Pitt Co., NC',
+      cov: { vital:'derivative', land:'derivative', probate:'derivative', cargo:'primary', census:'primary', tax:'derivative', court:'missing', news:'primary' },
+      covLabels: { news: '1829 LETTER · PRIMARY', cargo: 'TRAIL ROUTE' }
+    }
+  ),
+
+  'silas': _C('Silas Cason', 7, 'pushed south while father went west',
+    '26 Oct 1799 – 13 Jul 1862',
+    'While his father pushed westward to Arkansas, Silas pushed southward into the wiregrass frontier of Lowndes County, Georgia, and finally Madison County, Florida. Veteran of the Indian Wars stationed at <strong>Fort Fanning</strong> (present-day Levy County). Military logs disclose Silas was on official leave at the exact time of son Dennis Marion\'s birth in June 1837. Won the <strong>1832 Georgia Land Lottery</strong> in Cherokee County. Devout Primitive Baptist with his wife Abigail Langford. Enslaver — household appears on the <strong>1850 and 1860 Federal Slave Schedules</strong> for Madison Co. FL. Adopted son William Marshall Cason (born Trotman). Estate settled in Madison Co.',
+    'John Dennis Cason · Martha Elizabeth Chauncey',
+    'Dennis Marion Cason (1837) · William Marshall Cason (adopted, born Trotman) · others',
+    [
+      ['1830', '1830 Census · Lowndes Co. GA', 'NARA M19', 'primary'],
+      ['1832', 'Won GA Land Lottery · Cherokee Co., 23rd District', 'GA Land Lottery records', 'primary'],
+      ['1837', 'Military leave during son Dennis Marion\'s birth', 'Fort Fanning records · Florida Militia', 'primary'],
+      ['1850', '1850 Federal Slave Schedule · Madison Co. FL', 'NARA M432 slave schedule', 'primary'],
+      ['1860', '1860 Federal Slave Schedule · Madison Co. FL', 'NARA M653 slave schedule', 'primary'],
+      ['13 Jul 1862', 'Died · Moseley Hall, Madison Co. FL', 'Madison Co. probate', 'primary'],
+    ],
+    {
+      spouse: 'Abigail Langford (1804 – 29 Oct 1870)',
+      birth: '26 Oct 1799 · Lowndes Co., GA',
+      death: '13 Jul 1862 · Moseley Hall, Madison Co., FL',
+      cov: { vital:'primary', land:'primary', probate:'primary', military:'primary', census:'primary', tax:'derivative', eccles:'circumstantial', news:'derivative' },
+      covLabels: { military: 'FORT FANNING', eccles: 'PRIMITIVE BAPTIST', land: '1832 GA LOTTERY' }
+    }
+  ),
+
+  'dennis-marion': _C('Dennis Marion Cason', 8, 'Seminole War + Civil War + civic builder',
+    '6 Jun 1837 – 10 Nov 1910',
+    'Lifespan encompasses the full arc of nineteenth-century Florida history. Corporal in Capt. Leroy G. Lesley\'s Independent Company of Florida Mounted Volunteers during the Third Seminole War (23 Feb – 17 May 1858). Discharge papers describe him as <strong>6 feet 1 inch, light complexion, gray eyes, sandy hair, occupation farmer</strong>. Enlisted May 1862 at Midway, FL in <strong>Company E, 3rd Florida Infantry CSA</strong> — fought at Murfreesboro, Missionary Ridge, Resaca. Surrendered at Greensboro NC, May 1865; only eight men left alive in his company. Married <strong>Mytelda Rosewell Lee</strong> 20 Dec 1860. 1874 family migrated to Fort Green and then Wauchula (Hardee Co.). Justice of the Peace; supervisor of the first Wauchula school district 1895. Charter member of Fort Hartsuff Baptist Church.',
+    'Silas Cason · Abigail Langford',
+    'George Tompkies Cason (b.1880) · others',
+    [
+      ['23 Feb 1858', 'Mustered · Capt. Lesley\'s Independent Co. FL Mounted Volunteers', 'Florida Militia records · Fort Brooke discharge', 'primary'],
+      ['20 Dec 1860', 'Married Mytelda Rosewell Lee · Madison Co.', 'Madison Co. marriage records', 'primary'],
+      ['May 1862', 'Enlisted Co. E, 3rd FL Infantry CSA · Midway, FL', 'NPS Soldier Records', 'primary'],
+      ['Dec 1862', 'Murfreesboro engagement', '3rd FL Infantry regimental history', 'primary'],
+      ['Nov 1863', 'Missionary Ridge', '3rd FL Infantry regimental history', 'primary'],
+      ['May 1864', 'Resaca, Atlanta campaign', '3rd FL Infantry regimental history', 'primary'],
+      ['May 1865', 'Surrendered Greensboro NC · 8 men left in company', 'CSA surrender records', 'primary'],
+      ['1874', 'Migration · Madison → Fort Green → English/Wauchula', 'family records', 'derivative'],
+      ['1895', 'School supervisor · new Wauchula district', 'Hardee Co. civic records', 'primary'],
+      ['1907', 'Confederate pension application · Ehren, Pasco Co.', 'Florida Memory pension', 'primary'],
+      ['10 Nov 1910', 'Died · buried Wauchula Cemetery', 'FindAGrave · Hardee Co.', 'primary'],
+    ],
+    {
+      spouse: 'Mytelda Rosewell Lee (1845 – ?)',
+      birth: '6 Jun 1837 · Madison Co., FL',
+      death: '10 Nov 1910 · Wauchula, Hardee Co., FL',
+      cov: { vital:'primary', land:'primary', probate:'derivative', military:'primary', census:'primary', tax:'derivative', eccles:'primary', court:'primary', news:'primary' },
+      covLabels: { military: '2 WARS', court: 'JUSTICE OF PEACE' }
+    }
+  ),
+
+  'george-tompkies': _C('George Tompkies Cason', 9, 'severed the South · FL → Utah',
+    '10 Dec 1880 – 1949',
+    'The hinge generation. Around the turn of the twentieth century, George migrated from Manatee/DeSoto Co. FL across the continent to <strong>Iron County, Utah</strong> — a move inexorably linked to conversion to the Church of Jesus Christ of Latter-day Saints. Married <strong>Astella Sarah Rowley</strong> (Utah pioneer stock). 1910 Census places the family in Parowan, Iron County. The Cason family\'s FAN network underwent complete replacement during this generation: the Southern surnames Lee, Carlton, Langford gave way to Utah families Rowley, Iliff, Ward, Taft. Permanently severed 250 years of Southern roots.',
+    'Dennis Marion Cason · Mytelda Lee',
+    'Paul Rowley Cason (b.1922) · Ruby (b.1910) · others',
+    [
+      ['10 Dec 1880', 'Born · Manatee/DeSoto Co. FL', 'family records', 'derivative'],
+      ['c.1900', 'Migration FL → UT · LDS conversion', 'family records · LDS Church History Library', 'circumstantial'],
+      ['28 Nov 1884', 'Wife Astella Sarah Rowley born · Utah pioneer family', 'UT vital records', 'primary'],
+      ['1910', '1910 Census · Parowan, Iron Co. UT · daughter Ruby b. Feb 1910', 'NARA T624', 'primary'],
+      ['1949', 'Died · Utah', 'UT vital records', 'derivative'],
+    ],
+    {
+      spouse: 'Astella Sarah Rowley (b. 28 Nov 1884)',
+      birth: '10 Dec 1880 · Manatee Co., FL',
+      death: '1949 · Iron Co., Utah',
+      cov: { vital:'primary', land:'missing', probate:'missing', cargo:'circumstantial', census:'primary', eccles:'derivative', news:'missing' },
+      covLabels: { cargo: 'TRANSCONTINENTAL', eccles: 'LDS CONVERSION' }
+    }
+  ),
+
+  'paul-rowley': _C('Paul Rowley Cason', 10, 'WWII Italy · Cedar City · "Casons Custom Corner"',
+    '26 Dec 1922 – 16 Dec 2010',
+    'Born Cedar City, Iron Co. UT. <strong>U.S. Army, WWII</strong> — deployed to Italy. After the war, established "Casons Custom Corner," an auto body repair and painting shop in Cedar City. Devout LDS. Received a blessing as a child from <strong>Joseph Fielding Smith</strong>. Married <strong>Arna Ward</strong> 22 Aug 1942, solemnized in the St. George Temple. After Arna\'s death, married Karen Anderson. Obituary records his love for the Italian people he met during the war, his scouting and fishing, and a state-record rainbow trout caught at Yankee Meadow on a hand-tied fly. Died in Cedar City, age 87.',
+    'George Tompkies Cason · Astella Rowley',
+    'Cathlyn (Cason) Wood · Karen (Cason) Erickson · Denise (Cason) Workman',
+    [
+      ['26 Dec 1922', 'Born · Cedar City, UT', 'UT vital records', 'primary'],
+      ['1938-1946', 'US Army Enlistment Record', 'US WWII Army Enlistment Records', 'primary'],
+      ['22 Aug 1942', 'Married Arna Ward · St. George Temple', 'LDS temple records', 'primary'],
+      ['post-war', '"Casons Custom Corner" · auto body, Cedar City', 'business records · obituary', 'derivative'],
+      ['16 Dec 2010', 'Died Cedar City · obituary published', 'Southern Utah Mortuary', 'primary'],
+    ],
+    {
+      spouse: 'Arna Ward (1st) · Karen Anderson (2nd)',
+      birth: '26 Dec 1922 · Cedar City, Iron Co., UT',
+      death: '16 Dec 2010 · Cedar City, UT',
+      cov: { vital:'primary', land:'derivative', probate:'derivative', military:'primary', census:'primary', eccles:'primary', news:'primary' },
+      covLabels: { military: 'WWII · ITALY', eccles: 'LDS · ST. GEORGE TEMPLE', news: 'OBITUARY 2010' }
+    }
+  ),
+
+});
+
+/* Category metadata for the coverage block */const COV_CATS = [
+  ['vital',   '§', 'Vital records'],
+  ['land',    '¶', 'Land records'],
+  ['probate', '†', 'Wills & probate'],
+  ['cargo',   '~', 'Migration & cargo'],
+  ['military','✶', 'Military'],
+  ['census',  '#', 'Census'],
+  ['tax',     '$', 'Tax & civil'],
+  ['eccles',  '✚', 'Ecclesiastical'],
+  ['court',   '⚖', 'Court records'],
+  ['dna',     '∞', 'DNA & FAN'],
+  ['news',    '◫', 'Newspapers'],
+];
+
+const COV_LABEL_DEFAULT = {
+  primary: 'PRIMARY', derivative: 'DERIV.', circumstantial: 'CIRC.',
+  missing: 'MISSING', disproven: 'DISPROVEN', disputed: 'DISPUTED',
+  lore: 'LORE', na: 'N/A',
+};
+
+/* ════════════════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════════════ */
+const $section = document.getElementById('dossier');
+const $name    = document.getElementById('dossier-name');
+const $sub     = document.getElementById('dossier-sub');
+const $name2   = document.getElementById('dossier-name-2');
+const $meta    = document.getElementById('dossier-meta');
+const $narr    = document.getElementById('dossier-narrative');
+const $cites   = document.getElementById('cite-chain');
+const $cov     = document.getElementById('coverage');
+const COV_COUNT_EL = document.querySelector('#dossier .col:last-child p');
+
+function renderKv(p) {
+  const order = ['birth','death','spouse','parents','children','first record','last record','est. value'];
+  return order.map(k => {
+    const v = p.kv[k];
+    if (v == null) return '';
+    const [cls, txt] = Array.isArray(v) ? v : ['', v];
+    return `<span class="k">${k}</span><span class="v ${cls}">${txt}</span>`;
+  }).join('');
+}
+
+function renderCites(p) {
+  return p.cites.map(([ts, what, src, verdict]) => `
+    <div class="row">
+      <span class="ts">${ts}</span>
+      <span class="what">${what}<span class="src">${src}</span></span>
+      <span class="verdict ${verdict}">${verdict.toUpperCase()}</span>
+    </div>
+  `).join('');
+}
+
+function renderCov(p) {
+  let primaryCount = 0;
+  const rows = COV_CATS.map(([key, glyph, label]) => {
+    const tier = p.cov[key] || 'missing';
+    if (tier === 'primary') primaryCount++;
+    const lbl = (p.covLabels && p.covLabels[key]) || COV_LABEL_DEFAULT[tier] || tier.toUpperCase();
+    const pipTier = (tier === 'na' || tier === 'lore' || tier === 'disputed') ? 'missing' : tier;
+    return `
+      <div class="row" data-t="${tier}">
+        <span class="lbl"><span class="glyph">${glyph}</span> ${label}</span>
+        <span class="tier-pip" data-t="${pipTier}">${lbl}</span>
+      </div>`;
+  }).join('');
+  return { rows, primaryCount };
+}
+
+function loadDossier(id) {
+  const p = PEOPLE[id];
+  if (!p) return;
+
+  $name.textContent  = `${p.name} · ${p.span}`;
+  $sub.textContent   = p.subtitle;
+  $name2.textContent = p.name;
+  $meta.innerHTML    = `Gen ${String(p.gen).padStart(2,'0')} · ${p.span} · ledger ID <strong style="color:var(--fg);">${p.ledgerId}</strong>`;
+  $narr.innerHTML    = p.narrative;
+  $cites.innerHTML   = renderCites(p);
+
+  // KV
+  const kvHost = $meta.parentElement.querySelector('.kv');
+  kvHost.innerHTML = renderKv(p);
+
+  // Coverage
+  const { rows, primaryCount } = renderCov(p);
+  $cov.innerHTML = rows;
+  if (COV_COUNT_EL) {
+    COV_COUNT_EL.textContent = `${primaryCount} / 11 categories backed by primary records.`;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   WIRING
+   ═══════════════════════════════════════════════════════════════════════ */
+const ledger = document.getElementById('ledger-table');
+const halo   = document.getElementById('halo-thomas-sr');
+
+function selectPerson(id, scrollDossier) {
+  // Ledger row
+  ledger.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
+  const row = ledger.querySelector(`tbody tr[data-id="${id}"]`);
+  if (row) row.classList.add('selected');
+
+  // SVG halo
+  const node = document.querySelector(`circle.person-dot[data-id="${id}"]`);
+  if (node && halo) {
+    const cx = parseFloat(node.getAttribute('cx'));
+    const cy = parseFloat(node.getAttribute('cy'));
+    const r  = parseFloat(node.getAttribute('r'));
+    halo.setAttribute('cx', cx);
+    halo.setAttribute('cy', cy);
+    halo.setAttribute('r', r + 8);
+  }
+
+  // Dossier
+  loadDossier(id);
+
+  if (scrollDossier) {
+    $section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+}
+
+ledger.querySelectorAll('tbody tr').forEach(tr => {
+  tr.addEventListener('click', () => selectPerson(tr.dataset.id, false));
+});
+
+const sibling = document.getElementById('sibling-table');
+if (sibling) {
+  sibling.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => selectPerson(tr.dataset.id, true));
+  });
+}
+
+document.querySelectorAll('circle.person-dot').forEach(node => {
+  node.addEventListener('click', () => {
+    const id = node.dataset.id;
+    if (PEOPLE[id]) {
+      selectPerson(id, true);
+      const row = ledger.querySelector(`tbody tr[data-id="${id}"]`);
+      if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  });
+});
+
+/* Field-log entries → load targeted dossier + scroll, transient highlight */
+function highlightDossier() {
+  const card = document.querySelector('.dossier');
+  if (!card) return;
+  card.animate(
+    [
+      { boxShadow: '0 0 0 0 rgba(8,145,178,0.45)' },
+      { boxShadow: '0 0 0 8px rgba(8,145,178,0)' },
+    ],
+    { duration: 1500, easing: 'ease-out' }
+  );
+}
+document.querySelectorAll('[data-field-log-target]').forEach(row => {
+  row.addEventListener('mouseenter', () => row.style.background = 'rgba(8,145,178,0.06)');
+  row.addEventListener('mouseleave', () => row.style.background = '');
+  row.addEventListener('click', () => {
+    const id = row.dataset.fieldLogTarget;
+    if (PEOPLE[id]) {
+      selectPerson(id, true);
+      setTimeout(highlightDossier, 600);
+    }
+  });
+});
+
+/* Filter chips — visual-only for now */
+document.querySelectorAll('.inv-head .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.inv-head .chip').forEach(c => c.classList.remove('on'));
+    chip.classList.add('on');
+  });
+});
+
+/* Initial render to ensure consistency */
+loadDossier('thomas-sr');
+</script>
+
+</body>
+</html>

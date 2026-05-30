@@ -1,0 +1,57 @@
+name: Correction or contribution
+description: Submit a correction, addition, supporting document, or citation for the Cason family record.
+title: "[Contribution] "
+labels: ["correction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep the Cason line accurate. This record is maintained as an
+        audit-verified ledger — every claim is graded and sourced — so corrections and new
+        evidence are genuinely welcome.
+
+        **Attaching a document, photo, or scan?** Drag-and-drop the file directly into any
+        text box below. GitHub accepts images, PDFs, and most common file types.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What are you submitting?
+      options:
+        - Correction to existing information
+        - New information or addition
+        - Supporting document or artifact
+        - Citation or source
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: concerns
+    attributes:
+      label: Who or what does this concern?
+      description: A person, generation, place, or page — so we can find the right spot in the record.
+      placeholder: e.g. Lawrence Milton Cason · Gen 7 · the Hertfordshire origin claim
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What is the correction or addition? The more specific, the easier it is to verify.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources and citations
+      description: Where does this come from — records, links, family papers? Drag scans or photos in here to attach them.
+      placeholder: e.g. 1850 U.S. Census, Nassau County FL · FindAGrave memorial #… · family Bible (scan attached)
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (optional)
+      description: A name or email if you are open to follow-up questions. Leave blank to stay anonymous.
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Before you submit
+      options:
+        - label: I understand this submission and any files I attach will be publicly visible.
+          required: true

@@ -1,0 +1,71 @@
+/* ============================================================
+   Cason Heritage — Local / Self-Hosted Font Overrides
+   Minimal set for Display + Body Serif + Deck Bold Sans
+   ============================================================ */
+
+/*
+  LOCAL FONTS — Cason Heritage
+
+  Current status: Wired into the main pages (slides, hub, index.html).
+
+  1. Replace the 0-byte placeholder files with your real fonts (exact names).
+  2. Refresh the pages — they will now use your local files instead of Google Fonts.
+
+  For Claude Design: Upload the real .ttf files from this folder when it asks for brand fonts.
+*/
+
+/* === DISPLAY & HEADINGS (Playfair Display) === */
+@font-face {
+  font-family: 'Cason Display';
+  src: url('./playfair-display-900.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cason Display';
+  src: url('./playfair-display-700.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === BODY SERIF (Source Serif 4) === */
+@font-face {
+  font-family: 'Cason Serif';
+  src: url('./source-serif-4-400.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cason Serif';
+  src: url('./source-serif-4-600.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === BOLD SANS FOR DECK HEADINGS (Inter) === */
+@font-face {
+  font-family: 'Cason Sans Bold';
+  src: url('./inter-700.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cason Sans Bold';
+  src: url('./inter-600.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === ACTIVATE THE LOCAL FILES === */
+:root {
+  --font-display: 'Cason Display', 'Playfair Display', Georgia, serif;
+  --font-serif:   'Cason Serif', 'Source Serif 4', Georgia, serif;
+  /* Use this for deck headings if you want the bold sans instead of Playfair */
+  /* --font-deck-heading: 'Cason Sans Bold', 'Inter', system-ui, sans-serif; */
+}
