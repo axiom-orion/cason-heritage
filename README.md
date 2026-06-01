@@ -15,11 +15,13 @@ One self-contained HTML file (`index.html`) with the full story — hero, prolog
 | `index.html` | The site. 2,280-line self-contained HTML/CSS/JS. |
 | `og-image.png` | 1200×630 social-share card. Referenced from the page's `og:image` / `twitter:image` meta tags. |
 | `og-image.html` | The design source for the share card. Edit, then regenerate the PNG with the script below. |
-| `.og-builder/` | Playwright-based screenshot tool for regenerating `og-image.png`. Excluded from deploys. |
+| `.og-builder/` | Playwright screenshot tool for `og-image.png`. Local tooling — not tracked in the repo. |
 | `.vercelignore` | Tells Vercel which folders not to upload. |
 | `.gitignore` | Standard ignores for Vercel link, node_modules, OS junk. |
 
 ## Regenerating the share card
+
+`og-image.html` is the design source for `og-image.png`. The Playwright tool that renders it (`.og-builder/`) is local-only — keep it in your working copy, then:
 
 ```sh
 cd .og-builder
@@ -27,13 +29,15 @@ npm install            # first time only
 node screenshot.js     # writes ../og-image.png
 ```
 
-## Deploying
+## Deploy & contribute
 
-Vercel is connected. Push to the main branch and a production deploy fires automatically. To deploy from the command line:
+The repo is connected to Vercel (project `cason-heritage`, `vorion` team). Every push to `main` ships a production deploy automatically; pull requests get their own preview URL. There's no build step — it's served as static files. To deploy by hand instead:
 
 ```sh
 vercel --prod
 ```
+
+Visitors can send in fixes: the footer of the narrative and the ledger carries a **"Submit a correction or document"** button wired to a GitHub Issue Form ([`.github/ISSUE_TEMPLATE/correction.yml`](.github/ISSUE_TEMPLATE/correction.yml)) — corrections, additions, supporting documents/scans (drag-and-drop attachments), and citations all land as labeled issues. (Needs a free GitHub account; swap in a Tally/Formspree form for a no-login path.)
 
 ## Design system
 
@@ -41,5 +45,6 @@ The visual system (parchment, gold leaf, rust, deep navy; three-font chorus of P
 
 ## Domain
 
-- Primary: https://flcason.com
+- Canonical: https://flcason.com — the apex, served directly
+- `www.flcason.com` redirects to the apex
 - Vercel alias: https://cason-heritage.vercel.app
