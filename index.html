@@ -401,10 +401,16 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: linear-gradient(180deg, var(--deep-blue) 0%, #1a2744dd 40%, var(--parchment) 100%),
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%231a2744" fill-opacity="0.1" d="M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,149.3C672,139,768,149,864,170.7C960,192,1056,224,1152,218.7C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"/></svg>');
+    background:
+      linear-gradient(
+        rgb(26, 39, 68) 0%,
+        rgb(26, 39, 68) 95%,
+        rgb(244, 237, 228) 100%
+      ),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'><path fill='%231a2744' fill-opacity='0.1' d='M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,149.3C672,139,768,149,864,170.7C960,192,1056,224,1152,218.7C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'/></svg>");
     background-size: cover;
     padding: 2rem;
+    padding-bottom: 160px;
     position: relative;
   }
 
@@ -499,7 +505,7 @@
   .hero-moment .moment-line {
     font-family: 'Source Sans 3', sans-serif;
     font-size: 0.7rem;
-    color: rgba(244,237,228,0.55);
+    color: rgba(244,237,228,0.85);
     letter-spacing: 0.03em;
     line-height: 1.3;
     display: block;
@@ -508,7 +514,7 @@
   .hero-moment .moment-name {
     font-family: 'Source Sans 3', sans-serif;
     font-size: 0.75rem;
-    color: rgba(244,237,228,0.35);
+    color: rgba(244,237,228,0.68);
     font-style: italic;
     display: block;
     margin-top: 2px;
@@ -528,7 +534,7 @@
     transform: translateX(-50%);
     z-index: 3;
     animation: bounce 2s infinite;
-    color: var(--gold-bright);
+    color: #ffffff;
     font-size: 0.85rem;
     letter-spacing: 0.1em;
     text-align: center;
@@ -540,7 +546,8 @@
     margin: 8px auto 0;
     width: 24px;
     height: 24px;
-    stroke: var(--gold-bright);
+    fill: #ffffff;
+    stroke: #ffffff;
   }
 
   @keyframes bounce {
