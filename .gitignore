@@ -23,17 +23,13 @@ desktop.ini
 
 .vercel
 
-# --- not part of the served site (design tooling, decks, build cruft) ---
+# --- not part of the served site (design tooling, build cruft) ---
 .design-handoff/
 .og-builder/
-research/
 scrap/
-ui_kits/
 uploads/
-slides/
+preview/
 SKILL.md
 *.zip
 *.pptx
 .vercel/
-
-preview/
