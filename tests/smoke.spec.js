@@ -93,6 +93,20 @@ test('The Open Lines worklist renders with research actions', async ({ page }) =
   expect(errors, 'errors on Open lines:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('Narrator → preview family member unlocks the avatar', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Narrator' }).click();
+  await page.getByPlaceholder('your name').fill('Ryan');
+  await page.getByRole('button', { name: /Enter as family/ }).click();
+  await expect(page.getByRole('button', { name: /✦/ })).toBeVisible();
+  await page.getByRole('button', { name: /Enter 3-D/ }).click();
+  await expect(page.getByRole('button', { name: /Exit 3-D/ })).toBeVisible();
+  await page.waitForTimeout(3500); // scene builds + avatar mounts
+  expect(errors, 'errors in member/avatar flow:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The family-tree dashboard loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/dashboard');

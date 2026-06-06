@@ -168,6 +168,20 @@
       var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
       sp.scale.set(3.6, 0.9, 1); sp.renderOrder = 10; return sp;
     }
+
+    // a member's embodied avatar — a present-day "keeper" the family member walks
+    var avatar = null, avatarTarget = null;
+    function setAvatar(name) {
+      if (name && !avatar) {
+        avatar = new THREE.Group();
+        var ab = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.9, 8), new THREE.MeshLambertMaterial({ color: 0x2f6f8f })); ab.position.y = 0.48; avatar.add(ab);
+        var ah = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), new THREE.MeshLambertMaterial({ color: 0xe6c39a })); ah.position.y = 1.05; avatar.add(ah);
+        var ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 8, 24), new THREE.MeshBasicMaterial({ color: 0xd4a825 })); ring.rotation.x = Math.PI / 2; ring.position.y = 0.05; avatar.add(ring);
+        avatar.add(makeLabel((name || 'You') + ' ✦'));
+        avatar.position.set(STATIONS.square[0], 0, STATIONS.square[1] + 2);
+        scene.add(avatar);
+      } else if (!name && avatar) { scene.remove(avatar); disposeObj(avatar); avatar = null; avatarTarget = null; }
+    }
     function makeLabel(text) {
       var cv = document.createElement('canvas'); cv.width = 128; cv.height = 36;
       var g = cv.getContext('2d'); g.font = '600 22px sans-serif'; g.fillStyle = '#2c1810'; g.textAlign = 'center'; g.fillText(text, 64, 26);
@@ -246,6 +260,7 @@
         ray.setFromCamera(ndc, camera);
         var hits = ray.intersectObjects(Object.keys(figures).map(function (k) { return figures[k].group; }), true);
         if (hits.length && hits[0].object.userData.personId) onSelect(hits[0].object.userData.personId);
+        else if (avatar) { var gh = ray.intersectObject(ground, false); if (gh.length) { avatarTarget = gh[0].point.clone(); avatarTarget.y = 0; } }
       }
       down = false;
     }
@@ -270,6 +285,7 @@
         if (d > 0.05) { p.x += dx * 0.03; p.z += dz * 0.03; f.group.position.y = Math.abs(Math.sin(clock * 6 + (hash(id) % 6))) * 0.06; f.group.rotation.y = Math.atan2(dx, dz); }
         else { f.group.position.y = 0; if (f.kind === 'comic') f.group.rotation.y += 0.01; }
       });
+      if (avatar && avatarTarget) { var apx = avatar.position; var adx = avatarTarget.x - apx.x, adz = avatarTarget.z - apx.z, add = Math.hypot(adx, adz); if (add > 0.06) { apx.x += adx * 0.05; apx.z += adz * 0.05; avatar.position.y = Math.abs(Math.sin(clock * 7)) * 0.07; avatar.rotation.y = Math.atan2(adx, adz); } else { avatar.position.y = 0; } }
       if (bubble && bubbleFor && figures[bubbleFor]) { var bpos = figures[bubbleFor].group.position; bubble.position.set(bpos.x, bpos.y + 2.15, bpos.z); bubble.visible = true; }
       else if (bubble) { bubble.visible = false; }
       renderer.render(scene, camera);
@@ -286,7 +302,7 @@
       if (renderer.domElement.parentNode === host) host.removeChild(renderer.domElement);
     }
 
-    return { update: update, dispose: dispose };
+    return { update: update, dispose: dispose, setAvatar: setAvatar };
   }
 
   root.CASON_SCENE = { isSupported: isSupported, mount: mount };
