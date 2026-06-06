@@ -130,6 +130,11 @@
       text: 'The line begins in the New World with a single crossing from England to Virginia — the first move into the unknown.' },
     { scope: 'family', generation: 6, year: 1823, era: 'pioneer', place: 'newnansville',
       text: 'The family carries one instinct across four centuries: when the known ground is used up, move first into the unknown.' },
+    // The Georgia chapter — the 20+ years between Carolina and Florida
+    { scope: 'generational', generation: 6, year: 1810, era: 'pioneer', place: 'glynn',
+      text: 'Before Florida the family spends a generation on the Georgia coast — Glynn County cotton and timber, Cherokee Lottery land — and the slow weighing of whether to move on.' },
+    { scope: 'family', generation: 6, year: 1822, era: 'pioneer', place: 'glynn',
+      text: 'In 1822 Ransom liquidates the Georgia holdings — power of attorney to his son William — and in 1823 seven of his nine children follow him south into Florida; some of the line stays behind in Georgia.' },
   ];
 
   /* ============================================================

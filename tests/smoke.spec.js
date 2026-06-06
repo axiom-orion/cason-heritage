@@ -69,6 +69,20 @@ test('The 3-D homestead toggles on without throwing', async ({ page }) => {
   expect(errors, 'errors after entering 3-D:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The Living World is usable on a narrow (mobile) viewport', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/living');
+  await expect(page.getByText(/At this homestead/)).toBeVisible({ timeout: 25000 });
+  // the map/feed sidebar is collapsed on mobile — open it
+  await page.getByRole('button', { name: /Map & feed/ }).first().click();
+  await expect(page.getByText('Watch them live')).toBeVisible();
+  // tabs still work
+  await page.getByRole('button', { name: 'People' }).click();
+  await expect(page.getByText(/\d+ people/).first()).toBeVisible();
+  expect(errors, 'mobile errors:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The family-tree dashboard loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/dashboard');

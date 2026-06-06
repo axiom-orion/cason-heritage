@@ -28,7 +28,8 @@ const PLACE = {}; DATA.places.forEach(function (p) { PLACE[p.id] = p; });
 const STAGES = [
   { id: 'va', placeId: 'lynnhaven', era: 'colonial', year: 1645, label: 'Lynnhaven Parish, Virginia', blurb: 'Tobacco coast · 1640s' },
   { id: 'nc', placeId: 'beaufort', era: 'frontier', year: 1740, label: 'Beaufort / Pitt Co., North Carolina', blurb: 'Carolina frontier · 1740s' },
-  { id: 'fl', placeId: 'newnansville', era: 'pioneer', year: 1845, label: 'Newnansville, Alachua Co., Florida', blurb: 'Pioneer homestead · 1840s' },
+  { id: 'ga', placeId: 'glynn', era: 'pioneer', year: 1810, label: 'Glynn County, Georgia', blurb: 'The Georgia years · seven of nine would move on' },
+  { id: 'fl', placeId: 'newnansville', era: 'pioneer', year: 1845, label: 'Newnansville, Alachua Co., Florida', blurb: 'Florida pioneer homestead · 1840s' },
   { id: 'war', placeId: 'cason-cem', era: 'civil', year: 1864, label: 'Alachua County at War', blurb: 'The county at war · 1860s' },
   { id: 'fw', placeId: 'fort-white', era: 'modern', year: 1910, label: 'Fort White, Columbia Co., Florida', blurb: 'Turpentine & timber · 1900s' },
   { id: 'sc', placeId: 'titusville', era: 'modern', year: 1957, label: 'Titusville · the Space Coast', blurb: 'Rockets on the horizon · 1957' },
@@ -409,7 +410,7 @@ function MemoryHearth({ personId }) {
   });
   return (
     <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <svg width={390} height={390} style={{ flexShrink: 0 }}>
+      <svg viewBox="0 0 390 390" width={390} height={390} style={{ flexShrink: 0, maxWidth: '100%', height: 'auto' }}>
         {rings.map(function (r) { return <circle key={r.key} cx={cx} cy={cy} r={r.r} fill="none" stroke={r.color} strokeOpacity={0.25} strokeWidth={1} />; })}
         <circle cx={cx} cy={cy} r={196} fill="none" stroke="#7a6e62" strokeOpacity={0.3} strokeDasharray="2 5" />
         {frontier}
@@ -503,6 +504,54 @@ function LiveFeed({ feed }) {
   );
 }
 
+/* ---------------- Population over time (known relatives living per year) ---------------- */
+function PopulationGraph() {
+  const d = useMemo(function () {
+    const H = window.CASON_MEMORY_API.helpers;
+    const now = new Date().getFullYear(), start = 1600, end = now;
+    const spans = [];
+    Object.keys(DATA.people).forEach(function (k) {
+      const p = DATA.people[k]; const b = H.birthYearOf(p); if (b == null) return;
+      let dd = H.deathYearOf(p); if (dd == null) dd = Math.min(now, b + 100); // still-living or unknown death
+      spans.push([b, dd]);
+    });
+    const series = []; let peak = 0, peakYear = start;
+    for (let y = start; y <= end; y++) {
+      let c = 0;
+      for (let i = 0; i < spans.length; i++) { if (spans[i][0] <= y && y <= spans[i][1]) c++; }
+      series.push(c); if (c > peak) { peak = c; peakYear = y; }
+    }
+    return { series: series, start: start, end: end, peak: peak, peakYear: peakYear, current: series[series.length - 1] };
+  }, []);
+
+  const W = 720, Hh = 150, padB = 18, padT = 10, padL = 4, padR = 6;
+  const n = d.series.length;
+  const X = function (i) { return padL + (i / (n - 1)) * (W - padL - padR); };
+  const Y = function (c) { return padT + (1 - c / Math.max(d.peak, 1)) * (Hh - padT - padB); };
+  let area = 'M ' + X(0).toFixed(1) + ' ' + Y(0).toFixed(1);
+  d.series.forEach(function (c, i) { area += ' L ' + X(i).toFixed(1) + ' ' + Y(c).toFixed(1); });
+  area += ' L ' + X(n - 1).toFixed(1) + ' ' + Y(0).toFixed(1) + ' Z';
+  let line = '';
+  d.series.forEach(function (c, i) { line += (i ? ' L ' : 'M ') + X(i).toFixed(1) + ' ' + Y(c).toFixed(1); });
+  const ticks = [1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
+  const events = [{ y: 1635, t: 'crossing' }, { y: 1723, t: 'NC' }, { y: 1823, t: 'Florida' }, { y: 1957, t: 'Space Coast' }];
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>Known relatives living, by year</div>
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginBottom: 6 }}>
+        The recorded family across four centuries · peak {d.peak} living around {d.peakYear} · {d.current} on record through {d.end}. Documented records only — approximate where dates are thin.
+      </div>
+      <svg viewBox={'0 0 ' + W + ' ' + Hh} width="100%" style={{ maxWidth: W, height: 'auto', background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.15)', borderRadius: 8 }}>
+        {ticks.map(function (t) { const i = t - d.start; if (i < 0 || i >= n) return null; return <g key={'t' + t}><line x1={X(i)} y1={padT} x2={X(i)} y2={Hh - padB} stroke="rgba(139,69,19,0.07)" /><text x={X(i)} y={Hh - 5} textAnchor="middle" style={{ fontFamily: 'var(--font-sans)', fontSize: 8, fill: 'var(--faded)' }}>{t}</text></g>; })}
+        <path d={area} fill="rgba(45,90,74,0.18)" />
+        <path d={line} fill="none" stroke="var(--sea-green)" strokeWidth="1.5" />
+        {events.map(function (e) { const i = e.y - d.start; if (i < 0 || i >= n) return null; return <g key={'e' + e.y}><line x1={X(i)} y1={padT} x2={X(i)} y2={Hh - padB} stroke="var(--rust)" strokeOpacity="0.45" strokeDasharray="2 2" /><text x={X(i)} y={padT + 7} textAnchor="middle" style={{ fontFamily: 'var(--font-sans)', fontSize: 8, fill: 'var(--rust)' }}>{e.t}</text></g>; })}
+      </svg>
+    </div>
+  );
+}
+
 /* ---------------- People Explorer ---------------- */
 function PeopleExplorer({ onSelect }) {
   const [q, setQ] = useState('');
@@ -566,6 +615,16 @@ function PeopleExplorer({ onSelect }) {
 /* ============================================================
    Root
    ============================================================ */
+function useViewport() {
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(function () {
+    const f = function () { setW(window.innerWidth); };
+    window.addEventListener('resize', f);
+    return function () { window.removeEventListener('resize', f); };
+  }, []);
+  return { w: w, narrow: w < 860 };
+}
+
 function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
@@ -573,6 +632,10 @@ function LivingWorld() {
   const [live, setLive] = useState(false);
   const [threeD, setThreeD] = useState(false);
   const [sceneErr, setSceneErr] = useState(null);
+  const vp = useViewport();
+  const narrow = vp.narrow;
+  const [navOpen, setNavOpen] = useState(typeof window === 'undefined' ? true : window.innerWidth >= 860);
+  const [memOpen, setMemOpen] = useState(true);
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
@@ -655,23 +718,28 @@ function LivingWorld() {
   }
 
   return (
-    <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       <AppHeader
-        subtitle="The Living Line"
+        subtitle={narrow ? undefined : 'The Living Line'}
         right={
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {[['homestead', 'Homestead'], ['people', 'People'], ['hearth', 'Memory Hearth']].map(function (v) {
+          <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
-            <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>
+            {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
           </div>
         }
       />
 
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* navigator column */}
-        <div style={{ width: 340, flexShrink: 0, borderRight: '1px solid rgba(139,69,19,0.12)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <div style={{ height: 250, flexShrink: 0, borderBottom: '1px solid rgba(139,69,19,0.12)' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: narrow ? 'column' : 'row', minHeight: 0 }}>
+        {/* navigator column (collapsible) */}
+        {navOpen ? (
+        <div style={{ width: narrow ? 'auto' : 340, flexShrink: 0, borderRight: narrow ? 'none' : '1px solid rgba(139,69,19,0.12)', borderBottom: narrow ? '1px solid rgba(139,69,19,0.12)' : 'none', display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: narrow ? 360 : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderBottom: '1px solid rgba(139,69,19,0.1)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--faded)' }}>Map &amp; feed</span>
+            <button onClick={function () { setNavOpen(false); }} style={ctlBtn(false)}>‹ hide</button>
+          </div>
+          <div style={{ height: narrow ? 180 : 250, flexShrink: 0, borderBottom: '1px solid rgba(139,69,19,0.12)' }}>
             <HomesteadMap stageId={stageId} onSelect={setStageId} />
           </div>
           {/* env + controls */}
@@ -693,16 +761,22 @@ function LivingWorld() {
             </div>
           )}
           {/* live feed */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px 30px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px 20px', maxHeight: narrow ? 150 : 'none' }}>
             <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 8 }}>Watch them live</div>
             <LiveFeed feed={feed} />
           </div>
         </div>
+        ) : (
+          <button onClick={function () { setNavOpen(true); }} style={{ ...ctlBtn(false), margin: narrow ? '6px 10px' : 8, alignSelf: 'flex-start' }}>☰ Map &amp; feed</button>
+        )}
 
         {/* main pane */}
         <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
           {view === 'people' && (
-            <div style={{ padding: '20px 24px 60px' }}><PeopleExplorer onSelect={selectPerson} /></div>
+            <div style={{ padding: '20px 24px 60px' }}>
+              <PopulationGraph />
+              <PeopleExplorer onSelect={selectPerson} />
+            </div>
           )}
 
           {view === 'hearth' && sel && (
@@ -724,12 +798,15 @@ function LivingWorld() {
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>Drag to look · scroll to zoom · click a figure to select them. The sky follows the real clock; weather rolls in as the day turns.</div>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: (narrow || !memOpen) ? 'column' : 'row', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
                 {/* cohort + detail */}
-              <div style={{ flex: '1 1 0', minWidth: 280, maxWidth: 470 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+              <div style={{ flex: '1 1 0', minWidth: 0, maxWidth: narrow ? 'none' : 470 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>At this homestead · {cohort.length} living</div>
-                  <button onClick={function () { setThreeD(function (v) { return !v; }); }} style={ctlBtn(threeD)}>{threeD ? 'Exit 3-D' : 'Enter 3-D ▸'}</button>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button onClick={function () { setMemOpen(function (v) { return !v; }); }} style={ctlBtn(memOpen)}>{memOpen ? 'Hide memory' : 'Show memory'}</button>
+                    <button onClick={function () { setThreeD(function (v) { return !v; }); }} style={ctlBtn(threeD)}>{threeD ? 'Exit 3-D' : 'Enter 3-D ▸'}</button>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
@@ -739,8 +816,8 @@ function LivingWorld() {
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}
-              {sheet && person && (
-                <div style={{ flex: '1 1 0', minWidth: 300 }}>
+              {sheet && person && memOpen && (
+                <div style={{ flex: '1 1 0', minWidth: narrow ? 0 : 300 }}>
                   {snap && selPresent && <div style={{ marginBottom: 16 }}><TracePanel snap={snap} personId={sel} /></div>}
                   <MemoryTiers personId={sel} simNow={selSimNow} />
                 </div>
