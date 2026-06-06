@@ -265,9 +265,40 @@
       if (n.ownerId) (byOwner[n.ownerId] = byOwner[n.ownerId] || []).push(n);
     });
 
+    // --- user-contributed memories (corrections, oral history, AI-consensus
+    //     findings) — appended live and persisted in localStorage, always
+    //     flagged so they never masquerade as primary-source fact. Attached to
+    //     the owner's Personal Enclave at their own birth year, so they stay
+    //     within that persona's horizon and never leak to others. ---
+    function ingestUserMemory(rec) {
+      if (!rec || !rec.personId || !rec.text) return null;
+      const person = people[rec.personId]; if (!person) return null;
+      const id = 'mem:user:' + contentId([rec.personId, rec.text, rec.when || '']);
+      if (byId[id]) return byId[id];
+      const node = {
+        id: id, ownerId: rec.personId, scope: 'individual', generation: person.generation,
+        year: birthYearOf(person), era: eraForGen(data, person.generation), place: placeOf(data, person),
+        kind: 'fact', evidence: rec.evidence || 'possible', text: rec.text,
+        derivedFrom: ['user.contributed'], sources: rec.source ? [rec.source] : [],
+        tags: ['contributed'].concat((rec.source && /consensus/i.test(rec.source)) ? ['ai-consensus'] : []),
+      };
+      nodes.push(node); byId[id] = node;
+      (byOwner[rec.personId] = byOwner[rec.personId] || []).push(node);
+      return node;
+    }
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        Object.keys(people).forEach(function (pid) {
+          const raw = localStorage.getItem('cason-memory-' + pid);
+          if (raw) { try { (JSON.parse(raw) || []).forEach(ingestUserMemory); } catch (e) {} }
+        });
+      }
+    } catch (e) {}
+
     return {
       nodes: nodes, edges: edges, byId: byId, byOwner: byOwner, identityOf: identityOf,
-      meta: { built: 'derived from CASON_DATA', nodeCount: nodes.length, edgeCount: edges.length },
+      addUserMemory: ingestUserMemory,
+      meta: { built: 'derived from CASON_DATA + contributions', get nodeCount() { return nodes.length; }, edgeCount: edges.length },
     };
   }
 

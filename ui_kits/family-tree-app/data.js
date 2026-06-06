@@ -57,11 +57,11 @@ const CASON_DATA = {
       narrative: 'By 1665, age ten, James was the sole surviving male Cason in Virginia. Father (Thomas Jr.) dead 1665. Mother (Sarah Poole) dead 1661. Uncle (James, Thomas Sr.\'s firstborn) also dead 1665, without issue. The name rested on a child. He survived. Married Anne ~1678 in Princess Anne County. Will (Will Book 3 p.448) executed Feb 5, 1720, probated Aug 1, 1722 — explicitly names sons Thomas, William, James and daughters Elizabeth Whitehurst, Susannah Moore, Dynah Wilber, with 1-shilling legacies to those already settled and 150-acre tracts to Thomas and William. This will is the gold-standard primary source bridging Gens 3→4.',
     },
     'anne': { id: 'anne', generation: 3, name: 'Anne (surname unknown)', role: 'm. James the Orphan', lifespan: '? – ?', spouse: ['james-orphan'], direct: false, evidence: 'unsolved', notes: 'Surname not recovered. Married c.1678, Princess Anne County, VA.' },
-    'susannah': { id: 'susannah', generation: 4, name: 'Susannah Cason', parents: ['james-orphan','anne'], direct: false },
+    'susannah': { id: 'susannah', generation: 4, name: 'Susannah Cason', role: 'm. — Moore', parents: ['james-orphan','anne'], spouse: ['moore'], direct: false },
     'thomas-3': { id: 'thomas-3', generation: 4, name: 'Thomas Cason III', parents: ['james-orphan','anne'], direct: false },
     'james-jr-1690': { id: 'james-jr-1690', generation: 4, name: 'James Cason Jr.', parents: ['james-orphan','anne'], direct: false },
-    'elizabeth': { id: 'elizabeth', generation: 4, name: 'Elizabeth Cason', parents: ['james-orphan','anne'], direct: false },
-    'dynah': { id: 'dynah', generation: 4, name: 'Dynah Cason', parents: ['james-orphan','anne'], direct: false },
+    'elizabeth': { id: 'elizabeth', generation: 4, name: 'Elizabeth Cason', role: 'm. — Whitehurst', parents: ['james-orphan','anne'], spouse: ['whitehurst'], direct: false },
+    'dynah': { id: 'dynah', generation: 4, name: 'Dynah Cason', role: 'm. — Wilber', parents: ['james-orphan','anne'], spouse: ['wilber'], direct: false },
 
     'william-1695': {
       id: 'william-1695', generation: 4, name: 'William Cason',
@@ -90,7 +90,7 @@ const CASON_DATA = {
     },
     'john-1728': { id: 'john-1728', generation: 5, name: 'John Cason', lifespan: 'c.1728 – ?', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'possible', narrative: 'Stayed Pitt Co. 1790 census: 12 slaves. No positive link to Ransom.', tags: ['branch','possible'] },
     'henry-1732': { id: 'henry-1732', generation: 5, name: 'Henry Cason', lifespan: 'c.1732 – after 1823', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'secondary', narrative: '1823 deeds (Book CC p.229) show a separate Pitt County branch with zero mention of Ransom\'s family.', tags: ['branch','secondary'] },
-    'hillery': { id: 'hillery', generation: 5, name: 'Hillery Cason', lifespan: '1737 – 1810', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'unlikely', narrative: 'Moved to interior Georgia 1792 — not coastal Glynn where Ransom settled. Wife: Sarah Barrow Ormond. Different children\'s names.', tags: ['branch','unlikely'] },
+    'hillery': { id: 'hillery', generation: 5, name: 'Hillery Cason', lifespan: '1737 – 1810', parents: ['william-1695','jane-cannon'], spouse: ['sarah-barrow-ormond'], direct: false, evidence: 'unlikely', narrative: 'Moved to interior Georgia 1792 — not coastal Glynn where Ransom settled. Wife: Sarah Barrow Ormond. Different children\'s names.', tags: ['branch','unlikely'] },
 
     'ransom-sr': {
       id: 'ransom-sr', generation: 6, name: 'Ransom Cason Sr.',
@@ -218,6 +218,10 @@ const CASON_DATA = {
     'dorsey': { id: 'dorsey', generation: 11, name: '— Dorsey', role: 'm. Marie Cason', lifespan: '? – ?', spouse: ['marie'], direct: false, evidence: 'secondary', narrative: 'Married Marie Cason. Given name not recovered.' },
     'roberts': { id: 'roberts', generation: 11, name: '— Roberts', role: 'm. Zeke Cason', lifespan: '? – ?', spouse: ['zeke'], direct: false, evidence: 'secondary', narrative: 'Married Zeke Cason. Given name not recovered.' },
     'alexander': { id: 'alexander', generation: 11, name: '— Alexander', role: 'm. Kate Cason', lifespan: '? – ?', spouse: ['kate'], direct: false, evidence: 'secondary', narrative: 'Married Kate Cason. Given name not recovered.' },
+    'whitehurst': { id: 'whitehurst', generation: 4, name: '— Whitehurst', role: 'm. Elizabeth Cason', lifespan: '? – ?', spouse: ['elizabeth'], direct: false, evidence: 'secondary', narrative: 'Married Elizabeth Cason — named “Elizabeth Whitehurst” in her father James’s 1720 will. Given name not recovered.' },
+    'moore': { id: 'moore', generation: 4, name: '— Moore', role: 'm. Susannah Cason', lifespan: '? – ?', spouse: ['susannah'], direct: false, evidence: 'secondary', narrative: 'Married Susannah Cason — named “Susannah Moore” in James’s 1720 will. Given name not recovered.' },
+    'wilber': { id: 'wilber', generation: 4, name: '— Wilber', role: 'm. Dynah Cason', lifespan: '? – ?', spouse: ['dynah'], direct: false, evidence: 'secondary', narrative: 'Married Dynah Cason — named “Dynah Wilber” in James’s 1720 will. Given name not recovered.' },
+    'sarah-barrow-ormond': { id: 'sarah-barrow-ormond', generation: 5, name: 'Sarah Barrow Ormond', role: 'm. Hillery Cason', lifespan: '? – ?', spouse: ['hillery'], direct: false, evidence: 'secondary', narrative: 'Wife of Hillery Cason; the couple moved to interior Georgia in 1792.' },
   },
 
   // Direct-line spine in order — used by views that need it.

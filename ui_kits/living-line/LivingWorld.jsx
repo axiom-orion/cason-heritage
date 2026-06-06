@@ -248,7 +248,7 @@ function ConsensusView({ data }) {
   );
 }
 
-function PersonaChat({ personId }) {
+function PersonaChat({ personId, onSaved }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState('templated');
@@ -291,13 +291,16 @@ function PersonaChat({ personId }) {
     if (!rdata || !rdata.consensus) return;
     const c = rdata.consensus;
     const ev = c.confidence === 'high' ? 'secondary' : c.confidence === 'medium' ? 'possible' : 'unlikely';
+    const rec = { personId: personId, question: rdata.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', when: Date.now() };
     try {
       const k = 'cason-memory-' + personId;
       const arr = JSON.parse(localStorage.getItem(k) || '[]');
-      arr.push({ personId: personId, question: rdata.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', when: Date.now() });
+      arr.push(rec);
       localStorage.setItem(k, JSON.stringify(arr));
-      setSaved(true);
     } catch (e) {}
+    if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) window.CASON_MEMORY.addUserMemory(rec); // live into the graph
+    setSaved(true);
+    if (onSaved) onSaved();
   }
 
   const QUICK = [['Tell me about your life', 'Tell me about your life.'], ['Reflect', 'Reflect on your life.'], ['What are you missing?', 'What do you wish you knew?']];
@@ -707,7 +710,7 @@ function LivingWorld() {
                   <React.Fragment>
                     <PersonaSheet sheet={sheet} person={person} />
                     {snap && <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}><CurrentMoment snap={snap} personId={sel} /></div>}
-                    <PersonaChat personId={sel} />
+                    <PersonaChat personId={sel} onSaved={rerender} />
                   </React.Fragment>
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>

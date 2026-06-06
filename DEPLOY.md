@@ -19,6 +19,7 @@ This is a pure static site. No build step.
 | `/heritage` | `ui_kits/heritage-site/index.html` — the narrative |
 | `/tree` | `cason-tree.html` — the audit ledger |
 | `/dashboard` | `ui_kits/family-tree-app/index.html` — five variants |
+| `/living` | `ui_kits/living-line/index.html` — The Living Line (agentic personas) |
 | `/deck` | `slides/index.html` — audit deck |
 | `/prompt` | `research/edge-expansion-prompt.md` |
 

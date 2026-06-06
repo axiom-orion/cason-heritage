@@ -19,7 +19,13 @@ const path = require('path');
 const dir = __dirname;
 const ctx = {
   console: console,
-  localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
+  localStorage: {
+    getItem(k) {
+      if (k === 'cason-memory-ransom-sr') return JSON.stringify([{ personId: 'ransom-sr', text: 'AI-consensus test finding about Ransom.', evidence: 'secondary', source: 'AI consensus (Grok · Gemini · Claude)', when: 1 }]);
+      return null;
+    },
+    setItem() {}, removeItem() {},
+  },
 };
 ctx.window = ctx; // make `window` self-referential like a browser global
 vm.createContext(ctx);
@@ -171,6 +177,15 @@ check('9am real clock ⇒ morning, not night', wSun.env.timeOfDay.phase === 'mor
 const wNight = ENG.createWorld({ year: 1845, seed: 1, simDate: sunday, realClock: new Date(2026, 5, 6, 23, 0, 0) });
 check('11pm real clock ⇒ night', wNight.refreshEnv().timeOfDay.isNight === true);
 check('humor surfaces and Church appears across the week', comicSeen && churchSeen);
+
+console.log('\n— Contributions: user / AI-consensus memories wire into the graph —');
+const ransomContribs = (MEM.byOwner['ransom-sr'] || []).filter(function (n) { return n.tags && n.tags.indexOf('ai-consensus') !== -1; });
+check('a saved consensus finding is ingested at build (' + ransomContribs.length + ')', ransomContribs.length >= 1);
+check('it is visible in Ransom\'s own enclave', MEM.access('ransom-sr').individual.some(function (n) { return n.tags && n.tags.indexOf('ai-consensus') !== -1; }));
+check('contributions stay flagged (never confirmed)', ransomContribs.every(function (n) { return n.evidence !== 'confirmed'; }));
+const liveAdd = MEM.addUserMemory({ personId: 'thomas-sr', text: 'Live-added oral history note.', evidence: 'possible', source: 'oral history', when: 2 });
+check('addUserMemory() appends live and becomes accessible', !!liveAdd && MEM.access('thomas-sr').individual.some(function (n) { return n.id === liveAdd.id; }));
+check('one persona cannot see another\'s private contribution', !MEM.access('thomas-sr').individual.some(function (n) { return n.ownerId === 'ransom-sr'; }));
 
 console.log('\n' + (failures === 0 ? '✅ ALL PASS' : '❌ ' + failures + ' FAILURE(S)') + '\n');
 process.exit(failures === 0 ? 0 : 1);
