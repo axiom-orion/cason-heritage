@@ -409,7 +409,7 @@ function MemoryHearth({ personId }) {
   });
   return (
     <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <svg width={390} height={390} style={{ flexShrink: 0 }}>
+      <svg viewBox="0 0 390 390" width={390} height={390} style={{ flexShrink: 0, maxWidth: '100%', height: 'auto' }}>
         {rings.map(function (r) { return <circle key={r.key} cx={cx} cy={cy} r={r.r} fill="none" stroke={r.color} strokeOpacity={0.25} strokeWidth={1} />; })}
         <circle cx={cx} cy={cy} r={196} fill="none" stroke="#7a6e62" strokeOpacity={0.3} strokeDasharray="2 5" />
         {frontier}
@@ -566,6 +566,16 @@ function PeopleExplorer({ onSelect }) {
 /* ============================================================
    Root
    ============================================================ */
+function useViewport() {
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(function () {
+    const f = function () { setW(window.innerWidth); };
+    window.addEventListener('resize', f);
+    return function () { window.removeEventListener('resize', f); };
+  }, []);
+  return { w: w, narrow: w < 860 };
+}
+
 function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
@@ -573,6 +583,10 @@ function LivingWorld() {
   const [live, setLive] = useState(false);
   const [threeD, setThreeD] = useState(false);
   const [sceneErr, setSceneErr] = useState(null);
+  const vp = useViewport();
+  const narrow = vp.narrow;
+  const [navOpen, setNavOpen] = useState(typeof window === 'undefined' ? true : window.innerWidth >= 860);
+  const [memOpen, setMemOpen] = useState(true);
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
@@ -655,23 +669,28 @@ function LivingWorld() {
   }
 
   return (
-    <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       <AppHeader
-        subtitle="The Living Line"
+        subtitle={narrow ? undefined : 'The Living Line'}
         right={
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {[['homestead', 'Homestead'], ['people', 'People'], ['hearth', 'Memory Hearth']].map(function (v) {
+          <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
-            <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>
+            {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
           </div>
         }
       />
 
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* navigator column */}
-        <div style={{ width: 340, flexShrink: 0, borderRight: '1px solid rgba(139,69,19,0.12)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <div style={{ height: 250, flexShrink: 0, borderBottom: '1px solid rgba(139,69,19,0.12)' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: narrow ? 'column' : 'row', minHeight: 0 }}>
+        {/* navigator column (collapsible) */}
+        {navOpen ? (
+        <div style={{ width: narrow ? 'auto' : 340, flexShrink: 0, borderRight: narrow ? 'none' : '1px solid rgba(139,69,19,0.12)', borderBottom: narrow ? '1px solid rgba(139,69,19,0.12)' : 'none', display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: narrow ? 360 : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderBottom: '1px solid rgba(139,69,19,0.1)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--faded)' }}>Map &amp; feed</span>
+            <button onClick={function () { setNavOpen(false); }} style={ctlBtn(false)}>‹ hide</button>
+          </div>
+          <div style={{ height: narrow ? 180 : 250, flexShrink: 0, borderBottom: '1px solid rgba(139,69,19,0.12)' }}>
             <HomesteadMap stageId={stageId} onSelect={setStageId} />
           </div>
           {/* env + controls */}
@@ -693,11 +712,14 @@ function LivingWorld() {
             </div>
           )}
           {/* live feed */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px 30px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px 20px', maxHeight: narrow ? 150 : 'none' }}>
             <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 8 }}>Watch them live</div>
             <LiveFeed feed={feed} />
           </div>
         </div>
+        ) : (
+          <button onClick={function () { setNavOpen(true); }} style={{ ...ctlBtn(false), margin: narrow ? '6px 10px' : 8, alignSelf: 'flex-start' }}>☰ Map &amp; feed</button>
+        )}
 
         {/* main pane */}
         <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
@@ -724,12 +746,15 @@ function LivingWorld() {
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>Drag to look · scroll to zoom · click a figure to select them. The sky follows the real clock; weather rolls in as the day turns.</div>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: (narrow || !memOpen) ? 'column' : 'row', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
                 {/* cohort + detail */}
-              <div style={{ flex: '1 1 0', minWidth: 280, maxWidth: 470 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+              <div style={{ flex: '1 1 0', minWidth: 0, maxWidth: narrow ? 'none' : 470 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>At this homestead · {cohort.length} living</div>
-                  <button onClick={function () { setThreeD(function (v) { return !v; }); }} style={ctlBtn(threeD)}>{threeD ? 'Exit 3-D' : 'Enter 3-D ▸'}</button>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button onClick={function () { setMemOpen(function (v) { return !v; }); }} style={ctlBtn(memOpen)}>{memOpen ? 'Hide memory' : 'Show memory'}</button>
+                    <button onClick={function () { setThreeD(function (v) { return !v; }); }} style={ctlBtn(threeD)}>{threeD ? 'Exit 3-D' : 'Enter 3-D ▸'}</button>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
@@ -739,8 +764,8 @@ function LivingWorld() {
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}
-              {sheet && person && (
-                <div style={{ flex: '1 1 0', minWidth: 300 }}>
+              {sheet && person && memOpen && (
+                <div style={{ flex: '1 1 0', minWidth: narrow ? 0 : 300 }}>
                   {snap && selPresent && <div style={{ marginBottom: 16 }}><TracePanel snap={snap} personId={sel} /></div>}
                   <MemoryTiers personId={sel} simNow={selSimNow} />
                 </div>
