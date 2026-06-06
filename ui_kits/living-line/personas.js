@@ -125,6 +125,94 @@
                  'A borrowed mule is only borrowed if somebody saw you.'],
   };
 
+  /* ---- hand-authored depth for the anchor personas. Grounded entirely in the
+     documented narratives — no new facts. Epithet/essence/voice/wisdom are
+     reconstructed characterization (flagged as such in the UI); names, dates,
+     and events stay sourced from data.js. ---- */
+  const HERO = {
+    'thomas-sr': {
+      epithet: 'The Crossing', essence: 'the immigrant who planted the line in Virginia soil, one steady reckoning at a time',
+      personality: ['pragmatic', 'quietly pious', 'legacy-minded', 'aware of death’s nearness'],
+      abilities: ['tobacco agronomy & curing', 'headright land-patenting', 'vestry & county-court navigation', 'estate appraisal & executry'],
+      idioms: ['by God’s providence', 'the land returns what is planted', 'a steady hand and a clear reckoning'],
+      wisdom: ['Plant in faith, but keep the reckoning — the seasoning fever takes the idle and the unlucky alike.', 'Land held in your wife’s right is land still; know the law before you need it.', 'Half who cross do not see a second harvest. Build as though you are the one who must endure.'],
+      drive: 'Plant the name so deep the fever cannot take it.',
+    },
+    'james-orphan': {
+      epithet: 'The Orphan', essence: 'ten years old and the only Cason left — he made the name survive on labour and paper',
+      personality: ['stoic', 'watchful', 'quietly determined', 'the anchor after tragedy'],
+      abilities: ['headright land-claiming', 'will & inheritance drafting', 'solitary endurance', 'holding a household together'],
+      idioms: ['the land does not care for orphans', 'labour and paper', 'one is enough, if he endures'],
+      wisdom: ['When the house empties, the one left learns to lean on labour and paper, not luck.', 'Write the will plain and early — the land does not forgive a vague hand.', 'I was ten and the last. The name does not care how young you are; it only asks that you endure.'],
+      drive: 'Be the one link that does not break.',
+    },
+    'william-1695': {
+      epithet: 'The Carolina Move', essence: 'married a Cannon, then took the family three hundred miles south into the Carolina frontier',
+      personality: ['restless', 'practical', 'frontier-minded', 'provident'],
+      abilities: ['frontier migration', 'clearing forest into field', 'land-grant navigation', 'moving a whole household'],
+      idioms: ['south is where the room is', 'cheap land is dear in labour'],
+      wisdom: ['Cheap land is dear in labour; pay it in years and the children inherit a farm.', 'Go south before the ground behind you fills.'],
+      drive: 'Find unclaimed ground for the next generation.',
+    },
+    'ransom-sr': {
+      epithet: 'The Florida Crossing', essence: 'at sixty he walked his wife and children through the Okefenokee into a roadless territory — and outlasted it',
+      personality: ['bold past the age for it', 'fiercely protective', 'weathered', 'a teller of the road'],
+      abilities: ['frontier migration leadership', 'open-range cattle & herding', 'Seminole-era situational awareness', 'liquidating & re-staking a whole estate'],
+      idioms: ['we endure because we move together', 'the swamp does not wait for youth', 'first into the unknown'],
+      wisdom: ['Move the whole family together, or do not move at all.', 'Respect the swamp and the season; both will teach you, if you live.', 'A man walks into the unknown at sixty because the known ground is used up.'],
+      drive: 'Reach new ground while there is still time to break it.',
+    },
+    'james-green': {
+      epithet: 'The Builder', essence: 'his father found three hundred souls in Alachua; James Green helped turn a homestead into a county',
+      personality: ['steady', 'community-minded', 'rooted', 'patient'],
+      abilities: ['homestead & community building', 'cattle & land husbandry', 'marrying the family into the Barrows', 'raising a large house'],
+      idioms: ['land and kin, tended together', 'a clearing is only a beginning'],
+      wisdom: ['A homestead is only a beginning; the work is the neighbours you make of the wilderness.', 'Land and kin, tended together, become a county.'],
+      drive: 'Turn a clearing into a community.',
+    },
+    'ransom-2': {
+      epithet: 'The Grandson Who Marched', essence: 'Lieutenant, 7th Florida — Chickamauga to Bentonville with fewer than a hundred men, then home to a gutted county',
+      personality: ['dutiful', 'laconic', 'a stoic veteran', 'rebuilding'],
+      abilities: ['infantry tactics & command', 'forced-march endurance', 'rebuilding after ruin', 'pension & paper navigation'],
+      idioms: ['we marched', 'fewer than a hundred of us', 'a man does what is asked'],
+      wisdom: ['We marched, and those who could came home. The rest is putting the fence back before the field.', 'A man does what is asked, and does not speak much of it after.'],
+      drive: 'Carry the duty, then carry the family back from ruin.',
+    },
+    'thadeous': {
+      epithet: 'The Westward Move', essence: 'born in the war, he chased the railroad-and-phosphate boom to Fort White and raised a houseful',
+      personality: ['adaptable', 'a boom-and-bust survivor', 'community-rooted', 'a large-family patriarch'],
+      abilities: ['reading a boom and moving toward it', 'farming & timber', 'large-household patriarchy', 'rooting a church & a cemetery'],
+      idioms: ['follow the rail and the work', 'plan the pot before the prayer'],
+      wisdom: ['Follow the rail and the work, but put your dead and your church where you mean to stay.', 'Fourteen at the table teaches a man to plan the pot before the prayer.'],
+      drive: 'Find the next ground that will feed a big family.',
+    },
+    'carl-columbus': {
+      epithet: 'Thirteen Children', essence: 'raised thirteen through the Depression on every trade at once — turpentine, timber, cattle, sawmill, and nerve',
+      personality: ['tireless', 'stoic under hardship', 'family-first', 'jack of every trade'],
+      abilities: ['turpentine, logging & sawmill labour', 'open-range cattle', 'farming under scarcity', 'feeding a table of fifteen'],
+      idioms: ['less than seven dollars a month', 'you do all of it', 'feed the children first'],
+      wisdom: ['When the cash crop fails, you do every trade at once and complain of none.', 'Feed the children first; a hungry house remembers.', 'Relief was seven dollars a month. The land and your two hands were the rest.'],
+      drive: 'Keep fifteen mouths fed, whatever it takes.',
+    },
+    'robert-sr': {
+      epithet: 'The Space Coast', essence: 'from the Fort White farmhouse to Titusville to watch rockets leave the Earth — then home to the land',
+      personality: ['grounded', 'observant', 'quietly proud', 'rooted'],
+      abilities: ['farming & the New South trades', 'reading change without losing the land', 'witnessing the rocket age', 'returning to the root'],
+      idioms: ['the vehicle changes, the instinct does not', 'from cargo ships to rockets'],
+      wisdom: ['From a cargo ship to a rocket — the vehicle changes, the instinct does not.', 'Go where the work and the wonder are, but the land is where you come to rest.'],
+      drive: 'See the new frontier, then bring the line home to the old ground.',
+    },
+    'moses': {
+      epithet: 'The Watchful', essence: 'survived a Seminole attack in 1842 and never lost the habit of watching the treeline',
+      personality: ['watchful', 'protective', 'a frontier storyteller', 'steady'],
+      abilities: ['frontier vigilance', 'cattle & woodcraft', 'keeping the family alert', 'telling the story so the young remember'],
+      idioms: ['watch the treeline first', 'one eye on the woods'],
+      wisdom: ['Watch the treeline first and the pot second; a full belly is no use to the dead.', 'I tell the 1842 story so the children keep one eye on the woods.'],
+      drive: 'Keep the family alert and alive.',
+      levity: 0.4,
+    },
+  };
+
   // era -> default archetype when nothing more specific is detected
   const ERA_DEFAULT = {
     colonial: 'planter', frontier: 'pioneer', pioneer: 'pioneer',
@@ -221,6 +309,18 @@
             : null,
         },
       };
+
+      // hand-authored depth for the anchor personas (characterization only)
+      const hero = HERO[pid];
+      if (hero) {
+        const s = byId[pid];
+        s.hero = true; s.epithet = hero.epithet; s.essence = hero.essence; s.drive = hero.drive;
+        if (hero.personality) s.personality = hero.personality.slice();
+        if (hero.abilities) s.abilities = hero.abilities.slice();
+        if (hero.wisdom) s.wisdom = hero.wisdom.slice();
+        if (hero.idioms) s.voice.idioms = hero.idioms.slice();
+        if (hero.levity != null) s.levity = Math.round(hero.levity * 100) / 100;
+      }
     });
 
     return { byId: byId, list: Object.keys(byId).map(function (k) { return byId[k]; }) };

@@ -178,6 +178,14 @@ const wNight = ENG.createWorld({ year: 1845, seed: 1, simDate: sunday, realClock
 check('11pm real clock ⇒ night', wNight.refreshEnv().timeOfDay.isNight === true);
 check('humor surfaces and Church appears across the week', comicSeen && churchSeen);
 
+console.log('\n— Hero personas: authored depth, facts intact —');
+check('Thomas is a hero with an epithet', PERS.byId['thomas-sr'].hero === true && /Crossing/i.test(PERS.byId['thomas-sr'].epithet || ''));
+check('hero overlay leaves the audited facts untouched', PERS.byId['thomas-sr'].provenance.knownFacts.length === (data.people['thomas-sr'].sources || []).length);
+check('a sparse collateral gets no hero overlay & stays reconstructed', !PERS.byId['speckled-bill'].hero && PERS.byId['speckled-bill'].provenance.reconstructed === true);
+const heroes = PERS.list.filter(function (p) { return p.hero; });
+check('the anchor personas are deepened (' + heroes.length + ' heroes; each has drive + >=2 sayings + >=3 abilities)',
+  heroes.length >= 9 && heroes.every(function (h) { return h.drive && h.wisdom.length >= 2 && h.abilities.length >= 3; }));
+
 console.log('\n— Contributions: user / AI-consensus memories wire into the graph —');
 const ransomContribs = (MEM.byOwner['ransom-sr'] || []).filter(function (n) { return n.tags && n.tags.indexOf('ai-consensus') !== -1; });
 check('a saved consensus finding is ingested at build (' + ransomContribs.length + ')', ransomContribs.length >= 1);

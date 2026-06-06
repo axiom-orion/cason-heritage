@@ -64,6 +64,8 @@ function nodeEvidence(ev) {
   return m[ev] || ['—', 'var(--faded)'];
 }
 function evOpacity(ev) { return { confirmed: 0.95, leading: 0.95, secondary: 0.8, possible: 0.5, unsolved: 0.6, eliminated: 0.9, disproven: 0.9 }[ev] || 0.6; }
+function isContributed(n) { return !!(n.tags && n.tags.indexOf('contributed') !== -1); }
+function contribLabel(n) { return (n.tags && n.tags.indexOf('ai-consensus') !== -1) ? 'AI-consensus' : 'contributed'; }
 function tabBtn(active) {
   return { fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '7px 12px', borderRadius: 5, cursor: 'pointer', border: '1px solid ' + (active ? 'transparent' : 'rgba(196,154,60,0.4)'), background: active ? 'var(--gold-bright)' : 'transparent', color: active ? 'var(--deep-blue)' : 'rgba(244,237,228,0.85)' };
 }
@@ -72,15 +74,21 @@ function ctlBtn(active) {
 }
 
 /* ---------------- persona role sheet ---------------- */
-function PersonaSheet({ sheet, person }) {
+function PersonaSheet({ sheet, person, onAskAbility }) {
   const levityPct = Math.round(sheet.levity * 100);
+  const abilityBtn = { fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--sea-green)', background: 'rgba(45,90,74,0.08)', border: '1px solid rgba(45,90,74,0.35)', padding: '3px 9px', borderRadius: 999, cursor: onAskAbility ? 'pointer' : 'default', whiteSpace: 'nowrap' };
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: 'var(--ink)', fontWeight: 700 }}>{person.name}</h2>
         <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--faded)' }}>{person.lifespan || 'dates unknown'}</span>
       </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
+      {sheet.epithet && (
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13.5, color: 'var(--rust)', marginTop: 4, lineHeight: 1.4 }}>
+          {sheet.hero ? '★ ' : ''}“{sheet.epithet}” — {sheet.essence}.
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
         <EvidenceBadge evidence={person.evidence || 'possible'} />
         {sheet.provenance.reconstructed && <StoryInProgress />}
         <Chip>Gen {sheet.generation}</Chip>
@@ -90,14 +98,24 @@ function PersonaSheet({ sheet, person }) {
       {sheet.provenance.note && (
         <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)', marginTop: 10, borderLeft: '3px solid var(--gold)', paddingLeft: 10 }}>{sheet.provenance.note}</p>
       )}
+      {sheet.drive && (
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13.5, color: 'var(--ink)', marginTop: 10 }}><strong style={{ color: 'var(--deep-blue)' }}>Driven by:</strong> {sheet.drive}</p>
+      )}
       <Label>Personality</Label>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{sheet.personality.map((t, i) => <Chip key={i}>{t}</Chip>)}</div>
-      <Label>Abilities</Label>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{sheet.abilities.map((t, i) => <Chip key={i} tone="var(--sea-green)">{t}</Chip>)}</div>
+      <Label>{onAskAbility ? 'Signature abilities — tap to ask' : 'Abilities'}</Label>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {sheet.abilities.map(function (t, i) {
+          return onAskAbility
+            ? <button key={i} onClick={function () { onAskAbility(t); }} style={abilityBtn} title={'Ask ' + person.name.split(' ')[0] + ' about this'}>{t}</button>
+            : <Chip key={i} tone="var(--sea-green)">{t}</Chip>;
+        })}
+      </div>
       <Label>Their wisdom</Label>
       {sheet.wisdom.map((w, i) => <p key={i} style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--rust)', lineHeight: 1.5, marginBottom: 6 }}>“{w}”</p>)}
       <Label>Voice</Label>
       <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--ink)' }}>{sheet.voice.register}</p>
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4, fontStyle: 'italic' }}>Voice &amp; bearing reconstructed from the record; names, dates &amp; events stay sourced.</div>
       <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)' }}>levity {levityPct >= 60 ? '😄' : ''}</span>
         <div style={{ flex: 1, maxWidth: 160, height: 7, borderRadius: 4, background: 'rgba(154,123,45,0.15)' }}>
@@ -132,6 +150,7 @@ function TierBlock({ tier, nodes }) {
             <div key={n.id} style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, lineHeight: 1.5, color: ruled ? 'var(--blood)' : 'var(--ink)', background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.12)', borderLeft: '3px solid ' + t.color, borderRadius: 5, padding: '6px 9px' }}>
               {n.text}
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: ev[1], marginLeft: 8, whiteSpace: 'nowrap' }}>· {ev[0]}{n.year ? ' · ' + n.year : ''}</span>
+              {isContributed(n) && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--gold)', border: '1px solid var(--gold)', borderRadius: 3, padding: '0 4px', marginLeft: 6, whiteSpace: 'nowrap' }}>{contribLabel(n)}</span>}
             </div>
           );
         })}
@@ -248,7 +267,7 @@ function ConsensusView({ data }) {
   );
 }
 
-function PersonaChat({ personId, onSaved }) {
+function PersonaDossier({ personId, sheet, person, snap, onSaved }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState('templated');
@@ -306,9 +325,12 @@ function PersonaChat({ personId, onSaved }) {
   const QUICK = [['Tell me about your life', 'Tell me about your life.'], ['Reflect', 'Reflect on your life.'], ['What are you missing?', 'What do you wish you knew?']];
 
   return (
-    <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>Speak with {nm(personId)}</div>
+    <div>
+      {sheet && person && <PersonaSheet sheet={sheet} person={person} onAskAbility={function (a) { send('I should like to learn — tell me of your skill in ' + a + '.'); }} />}
+      {snap && person && <div style={{ marginTop: 14, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 12 }}><CurrentMoment snap={snap} personId={personId} /></div>}
+      <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>Speak with {nm(personId)}</div>
         <div style={{ display: 'flex', gap: 4 }}>
           <button onClick={function () { setMode('templated'); }} style={ctlBtn(mode === 'templated')}>Templated</button>
           <button onClick={function () { setMode('live'); }} style={ctlBtn(mode === 'live')}>Live Claude</button>
@@ -358,6 +380,7 @@ function PersonaChat({ personId, onSaved }) {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
@@ -374,6 +397,7 @@ function MemoryHearth({ personId }) {
       const rr = r - (i % 3) * 9;
       const x = cx + Math.cos(ang) * rr, y = cy + Math.sin(ang) * rr;
       const ruled = nd.evidence === 'disproven' || nd.evidence === 'eliminated';
+      if (isContributed(nd)) return <circle key={nd.id} cx={x} cy={y} r={4.5} fill="#d4a825" stroke="#9a7b2d" strokeWidth={1.2}><title>{contribLabel(nd)}: {nd.text}</title></circle>;
       return <circle key={nd.id} cx={x} cy={y} r={ruled ? 4 : 3} fill={ruled ? '#6b1d1d' : color} stroke={ruled ? '#6b1d1d' : 'none'} opacity={evOpacity(nd.evidence)}><title>{nd.text}{ruled ? '  (must not be claimed)' : ''}</title></circle>;
     });
   }
@@ -409,6 +433,10 @@ function MemoryHearth({ personId }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#7a6e62', opacity: 0.4 }} />
           <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)' }}>the unwritten frontier · {sub.stats.blockedFuture + sub.stats.blockedGen}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#d4a825', border: '1px solid #9a7b2d' }} />
+          <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--gold)' }}>contributed · AI-consensus &amp; oral history</span>
         </div>
         <p style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--faded)', lineHeight: 1.55, marginTop: 8 }}>
           Hover a node to read it. The dim outer band is everything {nm(personId)} cannot know — a later generation, or a year past {sub.horizonYear}.
@@ -707,11 +735,7 @@ function LivingWorld() {
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
                 </div>
                 {sheet && person ? (
-                  <React.Fragment>
-                    <PersonaSheet sheet={sheet} person={person} />
-                    {snap && <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}><CurrentMoment snap={snap} personId={sel} /></div>}
-                    <PersonaChat personId={sel} onSaved={rerender} />
-                  </React.Fragment>
+                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} />
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}
