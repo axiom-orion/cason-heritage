@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Living Line — Cason Heritage</title>
+<meta name="description" content="The Living Line — autonomous AI personas of the Cason family, each bounded by what their generation could know. Phase 1: the shared memory graph & persona sheets.">
+<meta property="og:title" content="The Living Line — The Cason Family, Alive">
+<meta property="og:description" content="Every Cason ancestor as a memory-bounded persona: individual, generational, and full-line knowledge, with no glimpse of the future.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/living">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="icon" href="../../assets/favicon.svg" />
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-serif); background: #f0eee9; color: var(--ink); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+  button, input, select { font-family: inherit; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: rgba(154,123,45,0.35); border-radius: 6px; }
+  .leaflet-container { background: #e9e4da; font-family: var(--font-sans); }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- data + engine (plain scripts; they build window.CASON_MEMORY / CASON_PERSONAS) -->
+<script src="/ui_kits/family-tree-app/data.js"></script>
+<script src="/ui_kits/living-line/memory-graph.js"></script>
+<script src="/ui_kits/living-line/personas.js"></script>
+<script src="/ui_kits/living-line/world-engine.js"></script>
+<script src="/ui_kits/living-line/WorldScene.js"></script>
+<script src="/ui_kits/living-line/ai-client.js"></script>
+
+<!-- shared components + the Living World app (JSX) -->
+<script type="text/babel" src="/ui_kits/family-tree-app/shared.jsx"></script>
+<script type="text/babel" src="/ui_kits/living-line/LivingWorld.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+  ReactDOM.createRoot(document.getElementById('root')).render(<LivingWorld />);
+</script>
+</body>
+</html>

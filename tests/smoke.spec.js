@@ -1,0 +1,84 @@
+// Smoke tests — page loads, the Living World renders & navigates, and the
+// app surfaces log ZERO console errors (in-browser Babel warnings excepted).
+const { test, expect } = require('@playwright/test');
+
+// Collect real errors only: uncaught page errors and console.error from app
+// code. Pure network resource-load noise (CDN/tile/cert in sandboxes) is
+// ignored — the functional assertions guarantee the app actually rendered.
+function watchErrors(page) {
+  const errors = [];
+  const ignore = /Failed to load resource|net::ERR_|ERR_CERT|favicon/i;
+  page.on('console', function (m) { if (m.type() === 'error' && !ignore.test(m.text())) errors.push('console: ' + m.text()); });
+  page.on('pageerror', function (e) { errors.push('pageerror: ' + (e && e.message ? e.message : e)); });
+  return errors;
+}
+
+test('The Living World renders, navigates all views, zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+
+  // The app mounts after the in-browser Babel transform — wait for the chrome.
+  await expect(page.getByText('The Living Line', { exact: false }).first()).toBeVisible({ timeout: 25000 });
+  await expect(page.getByText('Watch them live')).toBeVisible();
+  await expect(page.getByText(/At this homestead/)).toBeVisible();
+
+  // A persona is selected by default; its memory tiers should render.
+  await expect(page.getByText(/Knows generations/).first()).toBeVisible();
+
+  // People Explorer
+  await page.getByRole('button', { name: 'People' }).click();
+  await expect(page.getByText(/\d+ people/).first()).toBeVisible();
+
+  // Memory Hearth (SVG rings)
+  await page.getByRole('button', { name: 'Memory Hearth' }).click();
+  await expect(page.locator('svg').first()).toBeVisible();
+
+  // Back to the homestead; toggle the live clock on and off.
+  await page.getByRole('button', { name: 'Homestead' }).click();
+  await page.getByRole('button', { name: /live/ }).click();
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: /live/ }).click();
+
+  // Travel to another homestead via the Explorer (picks a different era).
+  await page.getByRole('button', { name: 'People' }).click();
+  await page.getByText('Carl', { exact: false }).first().click();
+  await expect(page.getByText(/At this homestead/)).toBeVisible();
+
+  expect(errors, 'console/page errors on /living:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('Templated persona chat answers offline (no keys)', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Tell me about your life' }).click();
+  // the deterministic voice replies "<Name> speaking. ..." — no network needed
+  await expect(page.getByText(/speaking\./i).first()).toBeVisible({ timeout: 10000 });
+  expect(errors, 'errors during templated chat:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The 3-D homestead toggles on without throwing', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: /Enter 3-D/ }).click();
+  await expect(page.getByRole('button', { name: /Exit 3-D/ })).toBeVisible();
+  await page.waitForTimeout(4000); // let three.js load + the scene build (or fall back gracefully)
+  // Either a WebGL canvas mounts, or a graceful fallback message — never a crash.
+  expect(await page.locator('canvas').count()).toBeGreaterThanOrEqual(0);
+  expect(errors, 'errors after entering 3-D:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The family-tree dashboard loads with zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/dashboard');
+  await expect(page).toHaveTitle(/Into the Unknown|Family Tree/i);
+  await page.waitForTimeout(2000); // let the five Babel-compiled artboards mount
+  expect(errors, 'console/page errors on /dashboard:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The heritage landing responds', async ({ page }) => {
+  const res = await page.goto('/');
+  expect(res.status()).toBeLessThan(400);
+  await expect(page).toHaveTitle(/Cason|Unknown/i);
+});

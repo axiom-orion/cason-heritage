@@ -57,11 +57,11 @@ const CASON_DATA = {
       narrative: 'By 1665, age ten, James was the sole surviving male Cason in Virginia. Father (Thomas Jr.) dead 1665. Mother (Sarah Poole) dead 1661. Uncle (James, Thomas Sr.\'s firstborn) also dead 1665, without issue. The name rested on a child. He survived. Married Anne ~1678 in Princess Anne County. Will (Will Book 3 p.448) executed Feb 5, 1720, probated Aug 1, 1722 — explicitly names sons Thomas, William, James and daughters Elizabeth Whitehurst, Susannah Moore, Dynah Wilber, with 1-shilling legacies to those already settled and 150-acre tracts to Thomas and William. This will is the gold-standard primary source bridging Gens 3→4.',
     },
     'anne': { id: 'anne', generation: 3, name: 'Anne (surname unknown)', role: 'm. James the Orphan', lifespan: '? – ?', spouse: ['james-orphan'], direct: false, evidence: 'unsolved', notes: 'Surname not recovered. Married c.1678, Princess Anne County, VA.' },
-    'susannah': { id: 'susannah', generation: 4, name: 'Susannah Cason', parents: ['james-orphan','anne'], direct: false },
+    'susannah': { id: 'susannah', generation: 4, name: 'Susannah Cason', role: 'm. — Moore', parents: ['james-orphan','anne'], spouse: ['moore'], direct: false },
     'thomas-3': { id: 'thomas-3', generation: 4, name: 'Thomas Cason III', parents: ['james-orphan','anne'], direct: false },
     'james-jr-1690': { id: 'james-jr-1690', generation: 4, name: 'James Cason Jr.', parents: ['james-orphan','anne'], direct: false },
-    'elizabeth': { id: 'elizabeth', generation: 4, name: 'Elizabeth Cason', parents: ['james-orphan','anne'], direct: false },
-    'dynah': { id: 'dynah', generation: 4, name: 'Dynah Cason', parents: ['james-orphan','anne'], direct: false },
+    'elizabeth': { id: 'elizabeth', generation: 4, name: 'Elizabeth Cason', role: 'm. — Whitehurst', parents: ['james-orphan','anne'], spouse: ['whitehurst'], direct: false },
+    'dynah': { id: 'dynah', generation: 4, name: 'Dynah Cason', role: 'm. — Wilber', parents: ['james-orphan','anne'], spouse: ['wilber'], direct: false },
 
     'william-1695': {
       id: 'william-1695', generation: 4, name: 'William Cason',
@@ -90,7 +90,7 @@ const CASON_DATA = {
     },
     'john-1728': { id: 'john-1728', generation: 5, name: 'John Cason', lifespan: 'c.1728 – ?', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'possible', narrative: 'Stayed Pitt Co. 1790 census: 12 slaves. No positive link to Ransom.', tags: ['branch','possible'] },
     'henry-1732': { id: 'henry-1732', generation: 5, name: 'Henry Cason', lifespan: 'c.1732 – after 1823', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'secondary', narrative: '1823 deeds (Book CC p.229) show a separate Pitt County branch with zero mention of Ransom\'s family.', tags: ['branch','secondary'] },
-    'hillery': { id: 'hillery', generation: 5, name: 'Hillery Cason', lifespan: '1737 – 1810', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'unlikely', narrative: 'Moved to interior Georgia 1792 — not coastal Glynn where Ransom settled. Wife: Sarah Barrow Ormond. Different children\'s names.', tags: ['branch','unlikely'] },
+    'hillery': { id: 'hillery', generation: 5, name: 'Hillery Cason', lifespan: '1737 – 1810', parents: ['william-1695','jane-cannon'], spouse: ['sarah-barrow-ormond'], direct: false, evidence: 'unlikely', narrative: 'Moved to interior Georgia 1792 — not coastal Glynn where Ransom settled. Wife: Sarah Barrow Ormond. Different children\'s names.', tags: ['branch','unlikely'] },
 
     'ransom-sr': {
       id: 'ransom-sr', generation: 6, name: 'Ransom Cason Sr.',
@@ -158,7 +158,7 @@ const CASON_DATA = {
       narrative: 'Born during the war. Four when his father left for Gainesville. Eight at war\'s end. On Christmas Eve 1882, married Georgia Quintine McKinney in Columbia County. Moved 15–20 miles west to Fort White, chasing the railroad-and-phosphate boom of 1888. Twelve to fourteen children. Buried Tustenuggee Methodist Cemetery, on land some believe was once a Seminole burial ground.',
     },
     'georgia-mckinney': { id: 'georgia-mckinney', generation: 9, name: 'Georgia Quintine McKinney', spouse: ['thadeous'], lifespan: '1860 – 1937', role: 'm. Thadeous', direct: false },
-    'lena-alice': { id: 'lena-alice', generation: 10, name: 'Lena Alice Cason', lifespan: '1888 – 1927', parents: ['thadeous','georgia-mckinney'], direct: false, narrative: 'm. Guynn.' },
+    'lena-alice': { id: 'lena-alice', generation: 10, name: 'Lena Alice Cason', lifespan: '1888 – 1927', parents: ['thadeous','georgia-mckinney'], spouse: ['guynn'], direct: false, narrative: 'm. Guynn.' },
     'carrie-mae': { id: 'carrie-mae', generation: 10, name: 'Carrie Mae Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
     'james-johnson': { id: 'james-johnson', generation: 10, name: 'James Johnson Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
     'eddie-ross': { id: 'eddie-ross', generation: 10, name: 'Eddie Ross Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
@@ -179,18 +179,18 @@ const CASON_DATA = {
       narrative: 'Born into the ruins of Fort White\'s boom — citrus dead, phosphate gone, boll weevil tearing through cotton. Married Wilma Douglas. Thirteen children. Depression-era relief in rural Florida was less than $7/month per family. He would have done everything: turpentine, logging, farming, open-range cattle (Florida was the last state to pass a mandatory fence law, in 1949), day labor, sawmill work.',
     },
     'wilma-douglas': { id: 'wilma-douglas', generation: 10, name: 'Wilma Douglas', role: 'm. Carl Columbus', spouse: ['carl-columbus'], direct: false },
-    'dot': { id: 'dot', generation: 11, name: 'Dorothy "Dot" Cason', lifespan: '~1928 – 2019', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'm. Raymos. Lake City.' },
+    'dot': { id: 'dot', generation: 11, name: 'Dorothy "Dot" Cason', lifespan: '~1928 – 2019', parents: ['carl-columbus','wilma-douglas'], spouse: ['raymos'], direct: false, narrative: 'm. Raymos. Lake City.' },
     'buddy': { id: 'buddy', generation: 11, name: 'Buddy Cason', parents: ['carl-columbus','wilma-douglas'], direct: false },
     'noah': { id: 'noah', generation: 11, name: 'Noah Cason', lifespan: '1938 – 1942', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'Died young.', tags: ['died-young'] },
-    'wyles': { id: 'wyles', generation: 11, name: 'Daniel Wyles Cason', lifespan: '1939 – 2017', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'm. Becki. Fort White.' },
+    'wyles': { id: 'wyles', generation: 11, name: 'Daniel Wyles Cason', lifespan: '1939 – 2017', parents: ['carl-columbus','wilma-douglas'], spouse: ['becki'], direct: false, narrative: 'm. Becki. Fort White.' },
     'jake': { id: 'jake', generation: 11, name: 'James W. "Jake" Cason', lifespan: '~1943 – 2014', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'Sprint Telephone 39 years. City councilman 14 years. Deacon, Morriston Baptist.' },
     'lawrence': { id: 'lawrence', generation: 11, name: 'Lawrence Milton Cason', lifespan: '1946 – 2017', parents: ['carl-columbus','wilma-douglas'], direct: false },
     'earl': { id: 'earl', generation: 11, name: 'Earl Cason', parents: ['carl-columbus','wilma-douglas'], direct: false },
     'paul': { id: 'paul', generation: 11, name: 'Paul Cason', parents: ['carl-columbus','wilma-douglas'], direct: false },
     'johnny': { id: 'johnny', generation: 11, name: 'Johnny Cason', parents: ['carl-columbus','wilma-douglas'], direct: false },
-    'marie': { id: 'marie', generation: 11, name: 'Marie Cason', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'm. Dorsey.' },
-    'zeke': { id: 'zeke', generation: 11, name: 'Zeke Cason', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'm. Roberts.' },
-    'kate': { id: 'kate', generation: 11, name: 'Kate Cason', parents: ['carl-columbus','wilma-douglas'], direct: false, narrative: 'm. Alexander.' },
+    'marie': { id: 'marie', generation: 11, name: 'Marie Cason', parents: ['carl-columbus','wilma-douglas'], spouse: ['dorsey'], direct: false, narrative: 'm. Dorsey.' },
+    'zeke': { id: 'zeke', generation: 11, name: 'Zeke Cason', parents: ['carl-columbus','wilma-douglas'], spouse: ['roberts'], direct: false, narrative: 'm. Roberts.' },
+    'kate': { id: 'kate', generation: 11, name: 'Kate Cason', parents: ['carl-columbus','wilma-douglas'], spouse: ['alexander'], direct: false, narrative: 'm. Alexander.' },
 
     'robert-sr': {
       id: 'robert-sr', generation: 11, name: 'Robert Randall Cason Sr.',
@@ -204,6 +204,24 @@ const CASON_DATA = {
       narrative: 'Born 1933 in the farmhouse on CR 778 — still standing. Married Mary Nell. In 1957 moved to Titusville on the Indian River, where Brevard County grew 371% in a decade as Kennedy committed to the Moon. Watched rockets leave the Earth. Returned to the family land in Fort White; he and Mary Nell rest there, a stone\'s throw from the farmhouse where he came into the world. From Thomas\'s cargo ship to Robert\'s rockets. The vehicle changes. The instinct doesn\'t.',
     },
     'mary-nell': { id: 'mary-nell', generation: 11, name: 'Mary Nell', role: 'm. Robert Sr.', spouse: ['robert-sr'], direct: false },
+
+    /* ── Extended in-laws & collateral spouses ──
+       Names attested in the family record; the individuals are sparse, so their
+       personas are reconstructed and flagged honestly (see personas.js). */
+    'william-leighton': { id: 'william-leighton', generation: 1, name: 'William Leighton', role: 'Elizabeth’s 1st husband', lifespan: '? – bef. 1641', spouse: ['elizabeth-keeling-leighton'], direct: false, evidence: 'confirmed', narrative: 'First husband of Elizabeth (Keeling); his widow carried the Keeling dower land into her marriage with Thomas Casson.' },
+    'john-stratton': { id: 'john-stratton', generation: 1, name: 'John Stratton', role: 'Elizabeth’s 3rd husband', lifespan: '? – ?', spouse: ['elizabeth-keeling-leighton'], direct: false, evidence: 'confirmed', narrative: 'Married the widow Elizabeth (Keeling, Leighton) Casson late in 1652, after Thomas’s death.' },
+    'woodhouse': { id: 'woodhouse', generation: 2, name: '— Woodhouse', role: 'm. Ruth Cason', lifespan: '? – ?', spouse: ['ruth'], direct: false, evidence: 'secondary', narrative: 'Of the Woodhouse family of Lower Norfolk; married Ruth Cason. Given name not recovered.' },
+    'king-douglas': { id: 'king-douglas', generation: 7, name: 'King Douglas', role: 'm. Clementine Cason', lifespan: '? – ?', spouse: ['clementine'], direct: false, evidence: 'confirmed', narrative: 'Married Clementine Cason; the couple lived eleven miles north of Newnansville on the Fort Call Road in 1842.' },
+    'guynn': { id: 'guynn', generation: 10, name: '— Guynn', role: 'm. Lena Alice Cason', lifespan: '? – ?', spouse: ['lena-alice'], direct: false, evidence: 'secondary', narrative: 'Married Lena Alice Cason. Given name not recovered.' },
+    'raymos': { id: 'raymos', generation: 11, name: '— Raymos', role: 'm. Dorothy “Dot” Cason', lifespan: '? – ?', spouse: ['dot'], direct: false, evidence: 'secondary', narrative: 'Married Dorothy “Dot” Cason; the couple settled at Lake City. Given name not recovered.' },
+    'becki': { id: 'becki', generation: 11, name: 'Becki', role: 'm. Daniel Wyles Cason', lifespan: '? – ?', spouse: ['wyles'], direct: false, evidence: 'secondary', narrative: 'Married Daniel Wyles Cason; the couple lived at Fort White.' },
+    'dorsey': { id: 'dorsey', generation: 11, name: '— Dorsey', role: 'm. Marie Cason', lifespan: '? – ?', spouse: ['marie'], direct: false, evidence: 'secondary', narrative: 'Married Marie Cason. Given name not recovered.' },
+    'roberts': { id: 'roberts', generation: 11, name: '— Roberts', role: 'm. Zeke Cason', lifespan: '? – ?', spouse: ['zeke'], direct: false, evidence: 'secondary', narrative: 'Married Zeke Cason. Given name not recovered.' },
+    'alexander': { id: 'alexander', generation: 11, name: '— Alexander', role: 'm. Kate Cason', lifespan: '? – ?', spouse: ['kate'], direct: false, evidence: 'secondary', narrative: 'Married Kate Cason. Given name not recovered.' },
+    'whitehurst': { id: 'whitehurst', generation: 4, name: '— Whitehurst', role: 'm. Elizabeth Cason', lifespan: '? – ?', spouse: ['elizabeth'], direct: false, evidence: 'secondary', narrative: 'Married Elizabeth Cason — named “Elizabeth Whitehurst” in her father James’s 1720 will. Given name not recovered.' },
+    'moore': { id: 'moore', generation: 4, name: '— Moore', role: 'm. Susannah Cason', lifespan: '? – ?', spouse: ['susannah'], direct: false, evidence: 'secondary', narrative: 'Married Susannah Cason — named “Susannah Moore” in James’s 1720 will. Given name not recovered.' },
+    'wilber': { id: 'wilber', generation: 4, name: '— Wilber', role: 'm. Dynah Cason', lifespan: '? – ?', spouse: ['dynah'], direct: false, evidence: 'secondary', narrative: 'Married Dynah Cason — named “Dynah Wilber” in James’s 1720 will. Given name not recovered.' },
+    'sarah-barrow-ormond': { id: 'sarah-barrow-ormond', generation: 5, name: 'Sarah Barrow Ormond', role: 'm. Hillery Cason', lifespan: '? – ?', spouse: ['hillery'], direct: false, evidence: 'secondary', narrative: 'Wife of Hillery Cason; the couple moved to interior Georgia in 1792.' },
   },
 
   // Direct-line spine in order — used by views that need it.
