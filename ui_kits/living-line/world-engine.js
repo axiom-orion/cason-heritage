@@ -358,6 +358,7 @@
       simDate: opts.simDate ? new Date(opts.simDate) : new Date((opts.year || 1700), 3, 14),
       realClock: opts.realClock || null,
       dayStride: opts.dayStride || 1,
+      roster: opts.roster || null,
       _timer: null,
       env: null,
     };
@@ -369,7 +370,9 @@
 
     function snapshot() {
       refreshEnv();
-      const present = activeAt(data, world.year != null ? world.year : world.simDate.getFullYear());
+      const present = (world.roster && world.roster.length)
+        ? world.roster.slice()
+        : activeAt(data, world.year != null ? world.year : world.simDate.getFullYear());
       // deterministic ordering
       present.sort();
       const agents = present.map(function (pid) {
@@ -409,6 +412,7 @@
     world.step = function () { world.simDate = new Date(world.simDate.getTime() + world.dayStride * 86400000); return snapshot(); };
     world.seekTo = function (o) { if (o.year != null) { world.year = o.year; world.era = H ? H.eraForGen(data, guessGen(data, o.year)) : world.era; } if (o.placeId) world.placeId = o.placeId; if (o.simDate) world.simDate = new Date(o.simDate); return snapshot(); };
     world.setRealClock = function (c) { world.realClock = c; return refreshEnv(); };
+    world.setRoster = function (ids) { world.roster = ids && ids.length ? ids.slice() : null; return snapshot(); };
     world.play = function (onTick, ms) {
       world.pause();
       world._timer = setInterval(function () { onTick && onTick(world.step()); }, ms || 2500);
