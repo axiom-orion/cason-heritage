@@ -1,0 +1,337 @@
+/* ============================================================
+   The Living Line — Shared Memory Graph  (window.CASON_MEMORY)
+   ------------------------------------------------------------
+   A derived, tri-layered knowledge graph for the Cason personas.
+   It is BUILT from window.CASON_DATA — never a duplicate of it.
+
+   Three knowledge tiers (scope):
+     • family       — "Ancestral Trunk":  shared lineage history
+                       (identity, kinship, line-wide throughlines)
+     • generational — "Generational Fabric": era-shared texture
+                       (what everyone of an era knew)
+     • individual   — "Personal Enclave": a person's private
+                       memories, sources, corrections, open questions
+
+   Temporal-visibility rule (accessibleSubgraph):
+     A persona of generation N may see nodes with
+       generation <= N+1   AND   year <= horizonYear
+     and another person's *individual* memory only via a shared
+     encounter (knownPeers). The future is filtered structurally —
+     it never enters an agent's context (the governance circuit breaker).
+
+   Runs no-build in the browser (attaches to window) and also under
+   Node for the self-test (module.exports).
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  /* ---- small deterministic, non-crypto content hash (FNV-1a) ----
+     Stable id => the graph is tamper-evident and re-derivation is
+     idempotent (same facts in => same node ids out). */
+  function contentId(parts) {
+    const str = parts.filter(function (p) { return p != null; }).join('␟');
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(16).padStart(8, '0');
+  }
+
+  /* ---- year parsing: prefer structured fields, fall back to lifespan ---- */
+  function firstYear(s) {
+    if (!s) return null;
+    const m = String(s).match(/\d{4}/);
+    return m ? parseInt(m[0], 10) : null;
+  }
+  function parseLifespan(str) {
+    if (!str) return { birth: null, death: null };
+    const parts = String(str).split(/[–—-]/); // en / em / hyphen
+    if (parts.length >= 2) {
+      return { birth: firstYear(parts[0]), death: firstYear(parts[1]) };
+    }
+    // single chunk: "b. 1933" / "bapt 1608" => birth; else treat as birth
+    return { birth: firstYear(str), death: null };
+  }
+
+  // approximate birth-year anchor per generation, for records with no dates
+  const GEN_ANCHOR = {
+    0: 1600, 1: 1620, 2: 1650, 3: 1680, 4: 1710, 5: 1740,
+    6: 1770, 7: 1805, 8: 1840, 9: 1875, 10: 1905, 11: 1935,
+  };
+
+  function birthYearOf(p) {
+    if (p.born && typeof p.born.year === 'number') return p.born.year;
+    const b = parseLifespan(p.lifespan).birth;
+    return b != null ? b : (GEN_ANCHOR[p.generation] != null ? GEN_ANCHOR[p.generation] : null);
+  }
+  function deathYearOf(p) {
+    if (p.died && typeof p.died.year === 'number') return p.died.year;
+    return parseLifespan(p.lifespan).death;
+  }
+  // the persona's "present" horizon: end of life (what they could ever know)
+  function lifeYearOf(p) {
+    const d = deathYearOf(p);
+    if (d != null) return d;
+    const b = birthYearOf(p);
+    if (b != null) return b + 55;
+    return GEN_ANCHOR[p.generation] != null ? GEN_ANCHOR[p.generation] + 55 : 1700;
+  }
+
+  function eraForGen(data, gen) {
+    const e = (data.eras || []).find(function (er) {
+      return (er.generations || []).indexOf(gen) !== -1;
+    });
+    return e ? e.id : null;
+  }
+
+  function nearestPlace(data, coords) {
+    if (!coords) return null;
+    let best = null, bestD = Infinity;
+    (data.places || []).forEach(function (pl) {
+      if (!pl.coords) return;
+      const dy = pl.coords[0] - coords[0], dx = pl.coords[1] - coords[1];
+      const d = dy * dy + dx * dx;
+      if (d < bestD) { bestD = d; best = pl.id; }
+    });
+    // only count it as "at" a place when reasonably close (~0.4deg)
+    return bestD <= 0.16 ? best : null;
+  }
+  function placeOf(data, p) {
+    return nearestPlace(data, (p.born && p.born.coords)) ||
+           nearestPlace(data, (p.died && p.died.coords)) || null;
+  }
+
+  function sentences(text) {
+    if (!text) return [];
+    return String(text)
+      .split(/(?<=[.?!])\s+/)
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length >= 28; });
+  }
+
+  /* ---- authored layer: Generational Fabric + Ancestral Trunk throughlines.
+     Authored ONLY from facts already present in the narratives. Each is
+     gated by `generation` so no one sees an era beyond their horizon. ---- */
+  const AUTHORED_NODES = [
+    // Generational Fabric (era-shared texture)
+    { scope: 'generational', generation: 1, year: 1640, era: 'colonial', place: 'lynnhaven',
+      text: 'Tobacco is money and law in the Tidewater; land is taken up by headright — one tract per person whose passage you pay. Death takes near half of new arrivals.' },
+    { scope: 'generational', generation: 4, year: 1723, era: 'frontier', place: 'beaufort',
+      text: 'The Carolina frontier is a 300-mile reach south of the Tidewater — cheap land, thin courts, and the constant work of clearing forest into field.' },
+    { scope: 'generational', generation: 6, year: 1823, era: 'pioneer', place: 'newnansville',
+      text: 'Florida is a new territory of some 8,000 souls, no roads, fever in the lowlands, and the Seminole at the edge of every clearing. You travel and defend as a family.' },
+    { scope: 'generational', generation: 8, year: 1863, era: 'civil', place: 'cason-cem',
+      text: 'The county sends its men to the 7th Florida Infantry; those who march come home, if they come home, to a country economically gutted.' },
+    { scope: 'generational', generation: 10, year: 1932, era: 'modern', place: 'fort-white',
+      text: 'Fort White lives by turpentine, logging, open-range cattle and hard farming; Depression relief is a few dollars a month, so a man does every trade at once.' },
+    // Ancestral Trunk (line-wide throughlines)
+    { scope: 'family', generation: 1, year: 1635, era: 'colonial', place: 'lynnhaven',
+      text: 'The line begins in the New World with a single crossing from England to Virginia — the first move into the unknown.' },
+    { scope: 'family', generation: 6, year: 1823, era: 'pioneer', place: 'newnansville',
+      text: 'The family carries one instinct across four centuries: when the known ground is used up, move first into the unknown.' },
+  ];
+
+  /* ============================================================
+     buildMemoryGraph(data) -> { nodes, edges, byId, byOwner, meta }
+     ============================================================ */
+  function buildMemoryGraph(data) {
+    const nodes = [];
+    const edges = [];
+    const identityOf = {}; // personId -> identity node id
+
+    function add(node) {
+      if (!node.id) node.id = 'mem:' + contentId([node.ownerId, node.kind, node.scope, node.text]);
+      nodes.push(node);
+      return node.id;
+    }
+
+    const people = data.people || {};
+    Object.keys(people).forEach(function (pid) {
+      const p = people[pid];
+      const gen = p.generation;
+      const era = eraForGen(data, gen);
+      const place = placeOf(data, p);
+      const birth = birthYearOf(p);
+      const death = deathYearOf(p);
+
+      // --- identity node (Ancestral Trunk): who this person is ---
+      const idNode = {
+        id: 'mem:' + pid + ':identity',
+        ownerId: pid, scope: 'family', generation: gen, year: birth, era: era, place: place,
+        kind: 'fact', evidence: p.evidence || 'possible',
+        text: p.name + (p.lifespan ? ' (' + p.lifespan + ')' : '') + (p.role ? ' — ' + p.role : ''),
+        derivedFrom: ['person.identity'], sources: [], tags: (p.tags || []).slice(),
+      };
+      add(idNode);
+      identityOf[pid] = idNode.id;
+
+      // --- individual event nodes from narrative (Personal Enclave) ---
+      sentences(p.narrative).slice(0, 12).forEach(function (s) {
+        add({
+          ownerId: pid, scope: 'individual', generation: gen, year: death != null ? death : birth,
+          era: era, place: place, kind: 'event', evidence: p.evidence || 'possible',
+          text: s, derivedFrom: ['person.narrative'], sources: [], tags: (p.tags || []).slice(),
+        });
+      });
+
+      // --- source citations as first-class memory (Personal Enclave) ---
+      (p.sources || []).forEach(function (src) {
+        add({
+          ownerId: pid, scope: 'individual', generation: gen, year: death != null ? death : birth,
+          era: era, place: place, kind: 'fact', evidence: p.evidence || 'confirmed',
+          text: 'On the record: ' + src, derivedFrom: ['person.sources'], sources: [src], tags: [],
+        });
+      });
+
+      // --- corrections / disproven claims: what the persona must NOT claim ---
+      if (p.notes) {
+        add({
+          ownerId: pid, scope: 'individual', generation: gen, year: birth,
+          era: era, place: place, kind: 'fact',
+          evidence: /disproven/i.test(p.notes) ? 'disproven' : 'eliminated',
+          text: p.notes, derivedFrom: ['person.notes'], sources: [],
+          tags: ['correction'].concat((p.tags || []).filter(function (t) {
+            return t === 'disproven' || t === 'eliminated' || t === 'unsolved';
+          })),
+        });
+      }
+
+      // --- gap nodes: the persona's own open root-questions (growth loop) ---
+      const gaps = [];
+      const sparse = !p.narrative && !(p.sources && p.sources.length);
+      if (p.evidence === 'unsolved') gaps.push('My place in the line is not yet proven — the record breaks here.');
+      if (/surname (unknown|not recovered|unrecovered)/i.test(p.notes || '') || /\(surname unknown\)/i.test(p.name || ''))
+        gaps.push('My own surname is lost to the record.');
+      if (sparse) gaps.push('Little of my life was written down — my story is still being traced.');
+      if (p.direct && (!p.children || !p.children.length) && gen < 11)
+        gaps.push('Which of my children carried the line on? The next link is not yet drawn.');
+      gaps.forEach(function (g) {
+        add({
+          ownerId: pid, scope: 'individual', generation: gen, year: birth,
+          era: era, place: place, kind: 'gap', evidence: 'unsolved',
+          text: g, derivedFrom: ['derived.gap'], sources: [], tags: ['open-question'],
+        });
+      });
+    });
+
+    // --- authored Generational Fabric + Ancestral Trunk nodes ---
+    AUTHORED_NODES.forEach(function (n) {
+      add({
+        ownerId: null, scope: n.scope, generation: n.generation, year: n.year,
+        era: n.era, place: n.place || null, kind: n.scope === 'family' ? 'fact' : 'era-texture',
+        evidence: 'secondary', text: n.text, derivedFrom: ['authored'], sources: [], tags: [],
+      });
+    });
+
+    // --- edges: kin / thematic(owner) / temporal / location ---
+    Object.keys(people).forEach(function (pid) {
+      const p = people[pid];
+      const me = identityOf[pid];
+      // kin: parent_of (only when the parent identity exists)
+      (p.parents || []).forEach(function (par) {
+        if (identityOf[par]) edges.push({ from: identityOf[par], to: me, type: 'kin', rel: 'parent_of', weight: 1 });
+      });
+      (p.spouse || []).forEach(function (sp) {
+        if (identityOf[sp]) edges.push({ from: me, to: identityOf[sp], type: 'kin', rel: 'spouse_of', weight: 0.8 });
+      });
+    });
+    // thematic: every individual node belongs to its owner's identity
+    nodes.forEach(function (n) {
+      if (n.scope === 'individual' && n.ownerId && identityOf[n.ownerId] && n.id !== identityOf[n.ownerId]) {
+        edges.push({ from: identityOf[n.ownerId], to: n.id, type: 'thematic', rel: 'remembers', weight: 0.4 });
+      }
+    });
+    // temporal: consecutive direct-line generations
+    const line = data.directLine || [];
+    for (let i = 1; i < line.length; i++) {
+      if (identityOf[line[i - 1]] && identityOf[line[i]]) {
+        edges.push({ from: identityOf[line[i - 1]], to: identityOf[line[i]], type: 'temporal', rel: 'before', weight: 1 });
+      }
+    }
+    // location: identity nodes sharing a place
+    const byPlace = {};
+    nodes.forEach(function (n) {
+      if (n.kind === 'fact' && n.scope === 'family' && n.place && n.id.indexOf(':identity') !== -1) {
+        (byPlace[n.place] = byPlace[n.place] || []).push(n.id);
+      }
+    });
+
+    // indexes
+    const byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+    const byOwner = {};
+    nodes.forEach(function (n) {
+      if (n.ownerId) (byOwner[n.ownerId] = byOwner[n.ownerId] || []).push(n);
+    });
+
+    return {
+      nodes: nodes, edges: edges, byId: byId, byOwner: byOwner, identityOf: identityOf,
+      meta: { built: 'derived from CASON_DATA', nodeCount: nodes.length, edgeCount: edges.length },
+    };
+  }
+
+  /* ============================================================
+     accessibleSubgraph(graph, data, personId, opts)
+       opts.simNow      -> override horizon year (sim clock)
+       opts.knownPeers  -> ids whose individual memories are unlocked
+                           (shared encounters; default: none)
+     -> { individual, generational, family, horizonYear, maxGen, blocked, stats }
+     ============================================================ */
+  function accessibleSubgraph(graph, data, personId, opts) {
+    opts = opts || {};
+    const p = (data.people || {})[personId];
+    if (!p) return { individual: [], generational: [], family: [], horizonYear: null, maxGen: null,
+                     blocked: [], stats: { visible: 0, blockedFuture: 0, blockedGen: 0, blockedScope: 0 } };
+
+    const N = p.generation;
+    const maxGen = N + 1;
+    const horizon = (opts.simNow != null) ? opts.simNow : lifeYearOf(p);
+    const known = {};
+    (opts.knownPeers || []).forEach(function (id) { known[id] = true; });
+    known[personId] = true;
+
+    const out = { individual: [], generational: [], family: [] };
+    const blocked = [];
+    let bFuture = 0, bGen = 0, bScope = 0;
+
+    graph.nodes.forEach(function (n) {
+      // GENERATION GATE — never beyond one generation ahead
+      if (n.generation != null && n.generation > maxGen) { bGen++; blocked.push({ id: n.id, why: 'gen' }); return; }
+      // TEMPORAL GATE — never the future (the circuit breaker)
+      if (n.year != null && n.year > horizon) { bFuture++; blocked.push({ id: n.id, why: 'future' }); return; }
+      // SCOPE GATE — others' private memory only via a shared encounter
+      if (n.scope === 'individual' && n.ownerId && !known[n.ownerId]) { bScope++; return; }
+      out[n.scope] ? out[n.scope].push(n) : null;
+    });
+
+    return {
+      individual: out.individual, generational: out.generational, family: out.family,
+      horizonYear: horizon, maxGen: maxGen, blocked: blocked,
+      stats: { visible: out.individual.length + out.generational.length + out.family.length,
+               blockedFuture: bFuture, blockedGen: bGen, blockedScope: bScope },
+    };
+  }
+
+  // ---- public API ----
+  const API = {
+    build: buildMemoryGraph,
+    access: accessibleSubgraph,
+    helpers: { birthYearOf: birthYearOf, deathYearOf: deathYearOf, lifeYearOf: lifeYearOf,
+               eraForGen: eraForGen, placeOf: placeOf, parseLifespan: parseLifespan, contentId: contentId },
+    AUTHORED_NODES: AUTHORED_NODES,
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  if (root) {
+    root.buildMemoryGraph = buildMemoryGraph;
+    root.accessibleSubgraph = accessibleSubgraph;
+    root.CASON_MEMORY_API = API;
+    // Build a default graph once data is present (browser convenience).
+    if (root.CASON_DATA) {
+      const g = buildMemoryGraph(root.CASON_DATA);
+      g.access = function (personId, opts) { return accessibleSubgraph(g, root.CASON_DATA, personId, opts); };
+      root.CASON_MEMORY = g;
+    }
+  }
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : null));
