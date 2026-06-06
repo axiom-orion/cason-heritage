@@ -202,5 +202,11 @@ const liveAdd = MEM.addUserMemory({ personId: 'thomas-sr', text: 'Live-added ora
 check('addUserMemory() appends live and becomes accessible', !!liveAdd && MEM.access('thomas-sr').individual.some(function (n) { return n.id === liveAdd.id; }));
 check('one persona cannot see another\'s private contribution', !MEM.access('thomas-sr').individual.some(function (n) { return n.ownerId === 'ransom-sr'; }));
 
+console.log('\n— Open lines (the trace-every-line worklist) —');
+const gapNodes = MEM.nodes.filter(function (n) { return n.kind === 'gap'; });
+check('open-line gap nodes exist (' + gapNodes.length + ')', gapNodes.length > 5);
+check('the load-bearing Gen-5 link is an open line', gapNodes.some(function (n) { return n.ownerId === 'james-1727'; }));
+check('a lost surname surfaces as an open line (Anne)', gapNodes.some(function (n) { return n.ownerId === 'anne'; }));
+
 console.log('\n' + (failures === 0 ? '✅ ALL PASS' : '❌ ' + failures + ' FAILURE(S)') + '\n');
 process.exit(failures === 0 ? 0 : 1);

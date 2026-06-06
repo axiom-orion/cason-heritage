@@ -83,6 +83,16 @@ test('The Living World is usable on a narrow (mobile) viewport', async ({ page }
   expect(errors, 'mobile errors:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The Open Lines worklist renders with research actions', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Open lines' }).click();
+  await expect(page.getByText(/unresolved threads/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Research/ }).first()).toBeVisible();
+  expect(errors, 'errors on Open lines:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The family-tree dashboard loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/dashboard');
