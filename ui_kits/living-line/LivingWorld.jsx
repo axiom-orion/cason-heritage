@@ -268,7 +268,7 @@ function ConsensusView({ data }) {
   );
 }
 
-function PersonaDossier({ personId, sheet, person, snap, onSaved }) {
+function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState('templated');
@@ -281,6 +281,10 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved }) {
   const [saved, setSaved] = useState(false);
 
   useEffect(function () { setMsgs([]); setRdata(null); setRerr(null); setSaved(false); setRq(''); }, [personId]);
+
+  useEffect(function () {
+    if (pending) { setShowR(true); setRq(pending); research(pending); if (onPendingConsumed) onPendingConsumed(); }
+  }, [pending]);
 
   function send(text) {
     const t = (text != null ? text : input).trim();
@@ -298,8 +302,8 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved }) {
       .then(function () { setBusy(false); });
   }
 
-  function research() {
-    const q = rq.trim(); if (!q || rbusy) return;
+  function research(qArg) {
+    const q = (qArg != null ? qArg : rq).trim(); if (!q || rbusy) return;
     setRbusy(true); setRerr(null); setRdata(null); setSaved(false);
     window.CASON_AI.researchConsensus(q)
       .then(function (r) { setRdata(r); })
@@ -366,7 +370,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved }) {
             <div style={{ display: 'flex', gap: 6 }}>
               <input value={rq} onChange={function (e) { setRq(e.target.value); }} onKeyDown={function (e) { if (e.key === 'Enter') research(); }}
                 placeholder="e.g. Where in England did Thomas Casson originate?" style={{ flex: 1, padding: '7px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12.5 }} />
-              <button onClick={research} disabled={rbusy} style={{ ...ctlBtn(true), opacity: rbusy ? 0.5 : 1 }}>{rbusy ? '…' : 'Cross-check'}</button>
+              <button onClick={function () { research(); }} disabled={rbusy} style={{ ...ctlBtn(true), opacity: rbusy ? 0.5 : 1 }}>{rbusy ? '…' : 'Cross-check'}</button>
             </div>
             <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>
               Three independent models answer; an adjudicator corroborates only what ≥2 agree on, so one hallucination can’t become fact. Needs server keys.
@@ -612,6 +616,62 @@ function PeopleExplorer({ onSelect }) {
   );
 }
 
+/* ---------------- Open Lines — the worklist of unresolved threads ---------------- */
+function OpenLines({ onSelect, onResearch }) {
+  const rows = useMemo(function () {
+    const list = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap' && n.ownerId; });
+    const byPerson = {};
+    list.forEach(function (n) { (byPerson[n.ownerId] = byPerson[n.ownerId] || []).push(n); });
+    const out = Object.keys(byPerson).map(function (pid) {
+      const p = DATA.people[pid]; const per = PERS.byId[pid];
+      const ev = p.evidence || 'possible';
+      const evScore = { confirmed: 3, leading: 2.5, secondary: 2, possible: 1, unlikely: 0.7, unsolved: 0.5, eliminated: 0.4 }[ev] || 1;
+      const hasSrc = (p.sources && p.sources.length) ? 1 : 0;
+      const priority = (p.tags && (p.tags.indexOf('priority-1') !== -1 || p.tags.indexOf('leading') !== -1)) ? 5 : 0;
+      return { pid: pid, name: p.name, gen: p.generation, era: per.era, ev: ev, gaps: byPerson[pid], score: priority + evScore + hasSrc, priority: priority };
+    });
+    out.sort(function (a, b) { return b.score - a.score || a.gen - b.gen; });
+    return out;
+  }, []);
+  const total = rows.reduce(function (s, r) { return s + r.gaps.length; }, 0);
+  function closeness(r) {
+    if (r.priority) return ['load-bearing', 'var(--blood)'];
+    if (r.score >= 4) return ['record nearby', 'var(--sea-green)'];
+    if (r.score >= 2.5) return ['traceable', 'var(--gold)'];
+    return ['research frontier', 'var(--faded)'];
+  }
+  const nameBtn = { fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--deep-blue)', background: 'transparent', border: 'none', borderBottom: '1px dotted var(--deep-blue)', cursor: 'pointer', padding: 0 };
+  return (
+    <div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--ink)' }}>Open lines — {total} unresolved threads</div>
+      <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', margin: '4px 0 16px' }}>
+        One boy carried the name three hundred years ago; these are the threads still hanging from the line — lost surnames, branches that split off, the load-bearing Gen-5 link. Cross-check each with Grok · Gemini · Claude; corroborated findings save back into that person’s record.
+      </p>
+      {rows.map(function (r) {
+        const c = closeness(r);
+        return (
+          <div key={r.pid} style={{ background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.15)', borderLeft: '3px solid ' + c[1], borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+              <button onClick={function () { onSelect(r.pid); }} style={nameBtn}>{r.name}</button>
+              <Chip>Gen {r.gen}</Chip>
+              {r.era && <Chip>{ERA[r.era] ? ERA[r.era].label.split(' (')[0] : r.era}</Chip>}
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: c[1], border: '1px solid ' + c[1], borderRadius: 3, padding: '0 6px' }}>{c[0]}</span>
+            </div>
+            {r.gaps.map(function (g, i) {
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--ink)', flex: 1, minWidth: 0 }}>{g.text}</span>
+                  <button onClick={function () { onResearch(r.pid, g.text); }} style={ctlBtn(false)} title="Cross-check with Grok · Gemini · Claude">Research ▸</button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ============================================================
    Root
    ============================================================ */
@@ -636,6 +696,7 @@ function LivingWorld() {
   const narrow = vp.narrow;
   const [navOpen, setNavOpen] = useState(typeof window === 'undefined' ? true : window.innerWidth >= 860);
   const [memOpen, setMemOpen] = useState(true);
+  const [pendingResearch, setPendingResearch] = useState(null);
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
@@ -716,6 +777,7 @@ function LivingWorld() {
     setSelectedId(id); setView('homestead');
     if (st && st.id !== stageId) setStageId(st.id); else keepSel.current = false;
   }
+  function researchLine(id, q) { selectPerson(id); setPendingResearch({ personId: id, q: q }); }
 
   return (
     <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
@@ -723,7 +785,7 @@ function LivingWorld() {
         subtitle={narrow ? undefined : 'The Living Line'}
         right={
           <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
             {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
@@ -779,6 +841,12 @@ function LivingWorld() {
             </div>
           )}
 
+          {view === 'lines' && (
+            <div style={{ padding: '20px 24px 60px', maxWidth: 720 }}>
+              <OpenLines onSelect={selectPerson} onResearch={researchLine} />
+            </div>
+          )}
+
           {view === 'hearth' && sel && (
             <div style={{ padding: '20px 24px 60px' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--ink)', marginBottom: 4 }}>{person.name} — Memory Hearth</h2>
@@ -812,7 +880,7 @@ function LivingWorld() {
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
                 </div>
                 {sheet && person ? (
-                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} />
+                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} pending={pendingResearch && pendingResearch.personId === sel ? pendingResearch.q : null} onPendingConsumed={function () { setPendingResearch(null); }} />
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}
