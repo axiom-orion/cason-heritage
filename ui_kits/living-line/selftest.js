@@ -28,6 +28,7 @@ vm.createContext(ctx);
   path.join(dir, '..', 'family-tree-app', 'data.js'),
   path.join(dir, 'memory-graph.js'),
   path.join(dir, 'personas.js'),
+  path.join(dir, 'world-engine.js'),
 ].forEach(function (f) {
   vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f });
 });
@@ -35,6 +36,8 @@ vm.createContext(ctx);
 const data = ctx.CASON_DATA;
 const MEM = ctx.CASON_MEMORY;          // built graph with .access()
 const PERS = ctx.CASON_PERSONAS;       // { byId, list }
+const ENG = ctx.CASON_ENGINE;          // world engine
+const Hh = ctx.CASON_MEMORY_API.helpers;
 
 let failures = 0;
 function check(name, cond, detail) {
@@ -111,6 +114,63 @@ const collatAvg = avg(PERS.list.filter(function (x) { return !x.direct; }).map(f
 check('collateral levity (' + collatAvg.toFixed(2) + ') > direct-line levity (' + directAvg.toFixed(2) + ')', collatAvg > directAvg);
 
 function avg(a) { return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : 0; }
+
+console.log('\n— Engine: determinism (same seed ⇒ same world) —');
+const clk = new Date(2026, 5, 6, 9, 0, 0); // 9am local → morning
+const w1 = ENG.createWorld({ year: 1845, seed: 7, simDate: new Date(1845, 5, 15), realClock: clk });
+const w2 = ENG.createWorld({ year: 1845, seed: 7, simDate: new Date(1845, 5, 15), realClock: clk });
+check('two worlds, identical seed/date/clock ⇒ byte-identical snapshot', JSON.stringify(w1.snapshot()) === JSON.stringify(w2.snapshot()));
+
+console.log('\n— Engine: no future leak in any spoken or reflected line —');
+function speakerOK(spId, nodeId) {
+  const node = MEM.byId[nodeId]; if (!node) return false;
+  const p = data.people[spId]; const horizon = Hh.lifeYearOf(p);
+  if (node.generation != null && node.generation > p.generation + 1) return false;
+  if (node.year != null && node.year > horizon) return false;
+  return true;
+}
+const scenarios = [
+  { y: 1640, sd: new Date(1640, 9, 3) }, { y: 1722, sd: new Date(1722, 2, 9) },
+  { y: 1845, sd: new Date(1845, 5, 15) }, { y: 1863, sd: new Date(1863, 6, 4) },
+  { y: 1935, sd: new Date(1935, 11, 25) },
+];
+const hours = [6, 9, 13, 16, 18, 23];
+let utterChecked = 0, leak = 0, comicSeen = false, churchSeen = false;
+scenarios.forEach(function (sc) {
+  hours.forEach(function (h) {
+    const w = ENG.createWorld({ year: sc.y, seed: 3, simDate: sc.sd, realClock: new Date(2026, 5, 6, h, 0, 0) });
+    const s = w.snapshot();
+    s.agents.forEach(function (a) {
+      if (a.kind === 'comic') comicSeen = true;
+      if (a.kind === 'sabbath') churchSeen = true;
+      if (a.reflection) a.reflection.sources.forEach(function (id) { utterChecked++; if (!speakerOK(a.id, id)) leak++; });
+    });
+    if (s.encounter) s.encounter.lines.forEach(function (l) {
+      (l.sources || []).forEach(function (id) { utterChecked++; if (!speakerOK(l.speaker, id)) leak++; });
+    });
+  });
+});
+check('every spoken/reflected source is within the speaker’s horizon (' + utterChecked + ' checked)', leak === 0);
+
+console.log('\n— Engine: only the living are present —');
+const present1845 = ENG.activeAt(data, 1845);
+check('activeAt(1845) returns only people alive that year (' + present1845.length + ')', present1845.every(function (id) {
+  const p = data.people[id]; const b = Hh.birthYearOf(p); let d = Hh.deathYearOf(p); if (d == null) d = b + 70;
+  return b <= 1845 && 1845 <= d;
+}));
+check('Ransom Sr. is present in 1845; Thomas Sr. (d.1651) is not',
+  present1845.indexOf('ransom-sr') !== -1 && present1845.indexOf('thomas-sr') === -1);
+
+console.log('\n— Engine: Sunday worship, season-true weather, real-time day/night —');
+let sunday = new Date(1845, 5, 1); while (sunday.getDay() !== 0) sunday = new Date(sunday.getTime() + 86400000);
+const wSun = ENG.createWorld({ year: 1845, seed: 1, simDate: sunday, realClock: new Date(2026, 5, 6, 9, 0, 0) });
+const sSun = wSun.snapshot();
+check('on a Sunday morning, someone is at worship', sSun.agents.some(function (a) { return a.kind === 'sabbath'; }));
+check('summer date ⇒ no winter frost/snow in the weather', wSun.env.season === 'summer' && !/frost|snow/i.test(wSun.env.weather.label));
+check('9am real clock ⇒ morning, not night', wSun.env.timeOfDay.phase === 'morning' && wSun.env.timeOfDay.isNight === false);
+const wNight = ENG.createWorld({ year: 1845, seed: 1, simDate: sunday, realClock: new Date(2026, 5, 6, 23, 0, 0) });
+check('11pm real clock ⇒ night', wNight.refreshEnv().timeOfDay.isNight === true);
+check('humor surfaces and Church appears across the week', comicSeen && churchSeen);
 
 console.log('\n' + (failures === 0 ? '✅ ALL PASS' : '❌ ' + failures + ' FAILURE(S)') + '\n');
 process.exit(failures === 0 ? 0 : 1);

@@ -189,6 +189,104 @@ function MemoryView({ sheet, person }) {
   );
 }
 
+/* ---- Phase-2 world engine: a living day on the homestead ---- */
+function btnStyle(active) {
+  return {
+    fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em',
+    padding: '4px 9px', borderRadius: 5, cursor: 'pointer',
+    border: '1px solid ' + (active ? 'var(--gold)' : 'rgba(139,69,19,0.25)'),
+    background: active ? 'var(--gold-bright)' : 'var(--cream)', color: active ? 'var(--deep-blue)' : 'var(--faded)',
+  };
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+function DayInLife({ person, sheet }) {
+  const H = window.CASON_MEMORY_API.helpers;
+  const ENG = window.CASON_ENGINE;
+  const worldRef = React.useRef(null);
+  const [, force] = useState(0);
+  const [live, setLive] = useState(false);
+  const rerender = () => force((n) => n + 1);
+
+  React.useEffect(() => {
+    const b = H.birthYearOf(person) || 1700;
+    let d = H.deathYearOf(person); if (d == null) d = b + 60;
+    const yr = Math.max(b + 1, Math.min(b + 30, d));
+    worldRef.current = ENG.createWorld({ year: yr, era: sheet.era, seed: person.id, simDate: new Date(yr, 3, 14), realClock: new Date() });
+    rerender();
+  }, [person.id]);
+
+  React.useEffect(() => {
+    if (!live) return;
+    const t = setInterval(() => { if (worldRef.current) { worldRef.current.setRealClock(new Date()); rerender(); } }, 3000);
+    return () => clearInterval(t);
+  }, [live]);
+
+  const world = worldRef.current;
+  if (!world) return null;
+  world.setRealClock(new Date());
+  const snap = world.snapshot();
+  const me = snap.agents.find((a) => a.id === person.id) || snap.agents[0];
+  const env = snap.env;
+  const wxGlyph = { fair: '☀️', rain: '🌧️', storm: '⛈️', cold: '❄️', hot: '🔥' }[env.weather.kind] || '·';
+  const todGlyph = env.timeOfDay.isNight ? '🌙' : (env.timeOfDay.phase === 'dawn' || env.timeOfDay.phase === 'dusk' ? '🌅' : '🌞');
+  const nm = (id) => (DATA.people[id] ? DATA.people[id].name.split(' ')[0] : id);
+
+  return (
+    <div style={{ marginTop: 22, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>A day on the homestead</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => { world.dayStride = 7; world.step(); rerender(); }} style={btnStyle(false)}>Advance a week ›</button>
+          <button onClick={() => setLive((v) => !v)} style={btnStyle(live)}>{live ? '⏸ live' : '▶ live'}</button>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+        background: env.timeOfDay.isNight ? 'rgba(26,39,68,0.10)' : 'rgba(212,168,37,0.12)',
+        border: '1px solid rgba(139,69,19,0.15)', borderRadius: 8, padding: '8px 12px', marginBottom: 10,
+      }}>
+        <span style={{ fontSize: 20 }}>{todGlyph}</span>
+        <div style={{ flex: 1, minWidth: 160 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{env.date.label} · {cap(env.season)}</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--faded)' }}>{wxGlyph} {cap(env.weather.label)} · {env.timeOfDay.label}{env.isSunday ? ' · the Sabbath' : ''}</div>
+        </div>
+      </div>
+
+      {me && (
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--ink)', lineHeight: 1.6, marginBottom: 8 }}>
+          <strong>{nm(person.id)}</strong> {me.activity}.
+          <span style={{ marginLeft: 8 }}><Chip tone="var(--rust)">{me.mood}</Chip></span>
+        </div>
+      )}
+
+      {me && (
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }} title="The agent loop behind this moment">
+          {me.trace.map((t, i) => (
+            <span key={i} style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--faded)', background: 'rgba(154,123,45,0.08)', border: '1px solid rgba(154,123,45,0.2)', borderRadius: 3, padding: '1px 5px' }}>{t.step}{t.tool ? ' · ' + t.tool : ''}</span>
+          ))}
+        </div>
+      )}
+
+      {me && me.reflection && (
+        <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13.5, color: 'var(--rust)', lineHeight: 1.55, borderLeft: '3px solid var(--gold)', paddingLeft: 10, marginBottom: 10 }}>“{me.reflection.text}”</p>
+      )}
+
+      {snap.encounter && snap.encounter.lines.length > 0 && (
+        <div style={{ background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.15)', borderRadius: 8, padding: '10px 12px' }}>
+          <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Overheard nearby · {snap.encounter.relationship}</div>
+          {snap.encounter.lines.map((l, i) => (
+            <div key={i} style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--ink)', marginBottom: 3 }}>
+              <strong style={{ color: 'var(--deep-blue)' }}>{nm(l.speaker)}:</strong> “{l.text}”
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ============================================================
    Root
    ============================================================ */
@@ -224,7 +322,7 @@ function LivingPrototype() {
   return (
     <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <AppHeader
-        subtitle="The Living Line — memory & personas"
+        subtitle="The Living Line — memory, personas & daily life"
         right={<a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none' }}>↗ family tree</a>}
       />
 
@@ -284,6 +382,7 @@ function LivingPrototype() {
             <React.Fragment>
               <div style={{ flex: '1 1 0', minWidth: 280, maxWidth: 460 }}>
                 <PersonaSheet sheet={sheet} person={person} />
+                <DayInLife person={person} sheet={sheet} />
               </div>
               <div style={{ flex: '1 1 0', minWidth: 300 }}>
                 <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 10 }}>
