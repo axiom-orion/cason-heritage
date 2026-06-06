@@ -73,6 +73,39 @@ function tabBtn(active) {
 function ctlBtn(active) {
   return { fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', padding: '4px 9px', borderRadius: 5, cursor: 'pointer', border: '1px solid ' + (active ? 'var(--gold)' : 'rgba(139,69,19,0.25)'), background: active ? 'var(--gold-bright)' : 'var(--cream)', color: active ? 'var(--deep-blue)' : 'var(--faded)' };
 }
+const roleInput = { padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: '#fff', fontSize: 12.5, minWidth: 180 };
+
+/* narrator vs vetted-member controls (Supabase magic-link when configured; local preview otherwise) */
+function RoleControls({ role, field, setField, msg, onSignIn, onPreview, onSignOut }) {
+  const enabled = window.CASON_AUTH && window.CASON_AUTH.enabled;
+  if (role && role.mode === 'member') {
+    return (
+      <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--ink)' }}>
+        <strong style={{ color: 'var(--sea-green)' }}>✦ {role.name}</strong> — you’re embodied as a family member{role.preview ? ' (preview — not verified)' : role.verified ? ' (verified)' : ''}. Open the 3-D homestead and click the ground to walk your avatar; your saved findings are attributed to you.
+        <button onClick={onSignOut} style={{ ...ctlBtn(false), marginLeft: 8 }}>{role.preview ? 'leave preview' : 'sign out'}</button>
+      </div>
+    );
+  }
+  return (
+    <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--ink)' }}>
+      <div style={{ marginBottom: 6 }}>You’re exploring as a <strong>narrator</strong> — watch the line, ask the ancestors, research. Verified family can embody an avatar and leave attributed history.</div>
+      {enabled ? (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={field} onChange={function (e) { setField(e.target.value); }} placeholder="family email" style={roleInput} />
+          <button onClick={onSignIn} style={ctlBtn(true)}>Send sign-in link</button>
+          {role && role.signedIn && !role.verified && <span style={{ color: 'var(--rust)', fontSize: 12 }}>Signed in, but not on the family list yet.</span>}
+          {msg && <span style={{ color: 'var(--faded)', fontSize: 12 }}>{msg}</span>}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={field} onChange={function (e) { setField(e.target.value); }} placeholder="your name" style={roleInput} />
+          <button onClick={onPreview} style={ctlBtn(true)}>Enter as family (preview)</button>
+          <span style={{ color: 'var(--faded)', fontSize: 11.5 }}>Preview only — real verification needs Supabase sign-in (not yet connected).</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ---------------- persona role sheet ---------------- */
 function PersonaSheet({ sheet, person, onAskAbility }) {
@@ -268,7 +301,7 @@ function ConsensusView({ data }) {
   );
 }
 
-function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed }) {
+function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed, member }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState('templated');
@@ -315,7 +348,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
     if (!rdata || !rdata.consensus) return;
     const c = rdata.consensus;
     const ev = c.confidence === 'high' ? 'secondary' : c.confidence === 'medium' ? 'possible' : 'unlikely';
-    const rec = { personId: personId, question: rdata.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', when: Date.now() };
+    const rec = { personId: personId, question: rdata.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)' + (member ? ' · saved by ' + member : ''), when: Date.now() };
     try {
       const k = 'cason-memory-' + personId;
       const arr = JSON.parse(localStorage.getItem(k) || '[]');
@@ -323,6 +356,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
       localStorage.setItem(k, JSON.stringify(arr));
     } catch (e) {}
     if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) window.CASON_MEMORY.addUserMemory(rec); // live into the graph
+    if (member && window.CASON_AUTH && window.CASON_AUTH.addContribution) window.CASON_AUTH.addContribution(rec); // shared + attributed (Supabase)
     setSaved(true);
     if (onSaved) onSaved();
   }
@@ -697,6 +731,10 @@ function LivingWorld() {
   const [navOpen, setNavOpen] = useState(typeof window === 'undefined' ? true : window.innerWidth >= 860);
   const [memOpen, setMemOpen] = useState(true);
   const [pendingResearch, setPendingResearch] = useState(null);
+  const [role, setRole] = useState(window.CASON_AUTH ? window.CASON_AUTH.getState() : { mode: 'narrator', enabled: false });
+  const [showRole, setShowRole] = useState(false);
+  const [authField, setAuthField] = useState('');
+  const [authMsg, setAuthMsg] = useState('');
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
@@ -751,12 +789,29 @@ function LivingWorld() {
       stage: stage,
       snapshot: worldRef.current ? worldRef.current.snapshot() : null,
       onSelect: function (id) { setSelectedId(id); },
-    }).then(function (ctrl) { if (!alive) { ctrl.dispose(); return; } sceneCtrl.current = ctrl; })
+    }).then(function (ctrl) { if (!alive) { ctrl.dispose(); return; } sceneCtrl.current = ctrl; if (ctrl.setAvatar) ctrl.setAvatar(isMember ? (role.name || 'You') : null); })
       .catch(function (e) { if (alive) setSceneErr('Could not load the 3-D world (' + (e && e.message) + ').'); });
     return function () { alive = false; if (sceneCtrl.current) { sceneCtrl.current.dispose(); sceneCtrl.current = null; } };
   }, [threeD, stageId]);
 
   useEffect(function () { if (threeD && sceneCtrl.current && snap) sceneCtrl.current.update(snap); });
+
+  // roles — subscribe to auth, and pull shared (member) contributions into the graph
+  useEffect(function () {
+    if (!window.CASON_AUTH) return;
+    const off = window.CASON_AUTH.onChange(function (s) { setRole(s); });
+    if (window.CASON_AUTH.enabled && window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) {
+      window.CASON_AUTH.loadContributions().then(function (recs) { recs.forEach(function (r) { window.CASON_MEMORY.addUserMemory(r); }); if (recs.length) rerender(); });
+    }
+    return off;
+  }, []);
+
+  const isMember = !!(role && role.mode === 'member');
+
+  // embody / un-embody the member's avatar in the 3-D scene
+  useEffect(function () {
+    if (sceneCtrl.current && sceneCtrl.current.setAvatar) sceneCtrl.current.setAvatar(isMember ? (role.name || 'You') : null);
+  }, [isMember, threeD, role.name]);
 
   const sel = selectedId || cohort[0] || null;
   const selPresent = !!(sel && cohort.indexOf(sel) !== -1);
@@ -785,6 +840,7 @@ function LivingWorld() {
         subtitle={narrow ? undefined : 'The Living Line'}
         right={
           <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button onClick={function () { setShowRole(function (v) { return !v; }); }} style={tabBtn(isMember)} title="Your role">{isMember ? '✦ ' + String(role.name || 'Member').split(' ')[0] : 'Narrator'}</button>
             {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
@@ -792,6 +848,15 @@ function LivingWorld() {
           </div>
         }
       />
+
+      {showRole && (
+        <div style={{ borderBottom: '1px solid rgba(139,69,19,0.15)', background: 'var(--cream)', padding: '12px 22px' }}>
+          <RoleControls role={role} field={authField} setField={setAuthField} msg={authMsg}
+            onSignIn={function () { setAuthMsg('Sending…'); window.CASON_AUTH.signIn(authField).then(function () { setAuthMsg('Check your email for a sign-in link.'); }).catch(function (e) { setAuthMsg('Error: ' + (e && e.message || e)); }); }}
+            onPreview={function () { window.CASON_AUTH.previewMember(authField); setShowRole(false); }}
+            onSignOut={function () { window.CASON_AUTH.signOut(); }} />
+        </div>
+      )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: narrow ? 'column' : 'row', minHeight: 0 }}>
         {/* navigator column (collapsible) */}
@@ -863,7 +928,7 @@ function LivingWorld() {
                   <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>
                     {sceneErr && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--faded)' }}>{sceneErr}</div>}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>Drag to look · scroll to zoom · click a figure to select them. The sky follows the real clock; weather rolls in as the day turns.</div>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>{isMember ? 'You’re embodied ✦ — click the ground to walk your avatar. Drag to look, scroll to zoom, click a figure to meet them.' : 'Drag to look · scroll to zoom · click a figure to select them. You’re observing as narrator.'}</div>
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: (narrow || !memOpen) ? 'column' : 'row', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
@@ -880,7 +945,7 @@ function LivingWorld() {
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
                 </div>
                 {sheet && person ? (
-                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} pending={pendingResearch && pendingResearch.personId === sel ? pendingResearch.q : null} onPendingConsumed={function () { setPendingResearch(null); }} />
+                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} member={isMember ? role.name : null} pending={pendingResearch && pendingResearch.personId === sel ? pendingResearch.q : null} onPendingConsumed={function () { setPendingResearch(null); }} />
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}

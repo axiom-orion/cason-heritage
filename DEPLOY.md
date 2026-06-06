@@ -82,6 +82,53 @@ Notes:
   clearly-labelled "AI consensus" notes — never as `confirmed`, which stays reserved
   for documented genealogical sources.
 
+## Verified family members (roles + avatar)
+
+`/living` has two roles: **narrator** (every guest — observes, asks, researches; their notes stay private to their browser) and **member** (a vetted living family member who can embody an avatar in the 3-D homestead and leave attributed, shared contributions). With no Supabase connected the site is narrator-only and offers a clearly-labelled local "member preview".
+
+To turn on real verification (free):
+1. Create a **Free-plan** Supabase organization + project (dashboard → New organization → Free).
+2. In the SQL editor, run the migration:
+   ```sql
+   create table public.cason_members (
+     id uuid primary key default gen_random_uuid(),
+     email text unique not null,
+     display_name text not null,
+     generation int,
+     approved boolean not null default true,
+     created_at timestamptz default now()
+   );
+   alter table public.cason_members enable row level security;
+   create policy "read own membership" on public.cason_members
+     for select using (auth.jwt() ->> 'email' = email);
+
+   create table public.cason_contributions (
+     id uuid primary key default gen_random_uuid(),
+     person_id text not null,
+     text text not null,
+     question text,
+     evidence text default 'possible',
+     author_email text not null,
+     author_name text not null,
+     source text default 'family member',
+     created_at timestamptz default now()
+   );
+   alter table public.cason_contributions enable row level security;
+   create policy "public read contributions" on public.cason_contributions for select using (true);
+   create policy "members insert own contributions" on public.cason_contributions for insert
+     with check (
+       auth.jwt() ->> 'email' = author_email
+       and exists (select 1 from public.cason_members m where m.email = auth.jwt() ->> 'email' and m.approved)
+     );
+
+   -- seed the allowlist with the family members you vet:
+   insert into public.cason_members (email, display_name, generation) values ('racason@gmail.com', 'Ryan Cason', 13);
+   ```
+3. **Auth → URL Configuration:** set the Site URL to `https://flcason.com` and add `https://flcason.com/living` as a redirect.
+4. Paste the **Project URL** and the **anon/publishable key** (both public) into `ui_kits/living-line/supabase-config.js` and redeploy.
+
+Members then sign in by email magic-link; only allowlisted emails become members. Add family by inserting more rows into `cason_members`. Contributions are world-readable; only vetted members can write, and only as themselves (enforced by RLS).
+
 ## Caching headers
 
 Set by `vercel.json`:
