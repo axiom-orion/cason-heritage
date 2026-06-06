@@ -28,7 +28,8 @@ const PLACE = {}; DATA.places.forEach(function (p) { PLACE[p.id] = p; });
 const STAGES = [
   { id: 'va', placeId: 'lynnhaven', era: 'colonial', year: 1645, label: 'Lynnhaven Parish, Virginia', blurb: 'Tobacco coast · 1640s' },
   { id: 'nc', placeId: 'beaufort', era: 'frontier', year: 1740, label: 'Beaufort / Pitt Co., North Carolina', blurb: 'Carolina frontier · 1740s' },
-  { id: 'fl', placeId: 'newnansville', era: 'pioneer', year: 1845, label: 'Newnansville, Alachua Co., Florida', blurb: 'Pioneer homestead · 1840s' },
+  { id: 'ga', placeId: 'glynn', era: 'pioneer', year: 1810, label: 'Glynn County, Georgia', blurb: 'The Georgia years · seven of nine would move on' },
+  { id: 'fl', placeId: 'newnansville', era: 'pioneer', year: 1845, label: 'Newnansville, Alachua Co., Florida', blurb: 'Florida pioneer homestead · 1840s' },
   { id: 'war', placeId: 'cason-cem', era: 'civil', year: 1864, label: 'Alachua County at War', blurb: 'The county at war · 1860s' },
   { id: 'fw', placeId: 'fort-white', era: 'modern', year: 1910, label: 'Fort White, Columbia Co., Florida', blurb: 'Turpentine & timber · 1900s' },
   { id: 'sc', placeId: 'titusville', era: 'modern', year: 1957, label: 'Titusville · the Space Coast', blurb: 'Rockets on the horizon · 1957' },
@@ -503,6 +504,54 @@ function LiveFeed({ feed }) {
   );
 }
 
+/* ---------------- Population over time (known relatives living per year) ---------------- */
+function PopulationGraph() {
+  const d = useMemo(function () {
+    const H = window.CASON_MEMORY_API.helpers;
+    const now = new Date().getFullYear(), start = 1600, end = now;
+    const spans = [];
+    Object.keys(DATA.people).forEach(function (k) {
+      const p = DATA.people[k]; const b = H.birthYearOf(p); if (b == null) return;
+      let dd = H.deathYearOf(p); if (dd == null) dd = Math.min(now, b + 100); // still-living or unknown death
+      spans.push([b, dd]);
+    });
+    const series = []; let peak = 0, peakYear = start;
+    for (let y = start; y <= end; y++) {
+      let c = 0;
+      for (let i = 0; i < spans.length; i++) { if (spans[i][0] <= y && y <= spans[i][1]) c++; }
+      series.push(c); if (c > peak) { peak = c; peakYear = y; }
+    }
+    return { series: series, start: start, end: end, peak: peak, peakYear: peakYear, current: series[series.length - 1] };
+  }, []);
+
+  const W = 720, Hh = 150, padB = 18, padT = 10, padL = 4, padR = 6;
+  const n = d.series.length;
+  const X = function (i) { return padL + (i / (n - 1)) * (W - padL - padR); };
+  const Y = function (c) { return padT + (1 - c / Math.max(d.peak, 1)) * (Hh - padT - padB); };
+  let area = 'M ' + X(0).toFixed(1) + ' ' + Y(0).toFixed(1);
+  d.series.forEach(function (c, i) { area += ' L ' + X(i).toFixed(1) + ' ' + Y(c).toFixed(1); });
+  area += ' L ' + X(n - 1).toFixed(1) + ' ' + Y(0).toFixed(1) + ' Z';
+  let line = '';
+  d.series.forEach(function (c, i) { line += (i ? ' L ' : 'M ') + X(i).toFixed(1) + ' ' + Y(c).toFixed(1); });
+  const ticks = [1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
+  const events = [{ y: 1635, t: 'crossing' }, { y: 1723, t: 'NC' }, { y: 1823, t: 'Florida' }, { y: 1957, t: 'Space Coast' }];
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>Known relatives living, by year</div>
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginBottom: 6 }}>
+        The recorded family across four centuries · peak {d.peak} living around {d.peakYear} · {d.current} on record through {d.end}. Documented records only — approximate where dates are thin.
+      </div>
+      <svg viewBox={'0 0 ' + W + ' ' + Hh} width="100%" style={{ maxWidth: W, height: 'auto', background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.15)', borderRadius: 8 }}>
+        {ticks.map(function (t) { const i = t - d.start; if (i < 0 || i >= n) return null; return <g key={'t' + t}><line x1={X(i)} y1={padT} x2={X(i)} y2={Hh - padB} stroke="rgba(139,69,19,0.07)" /><text x={X(i)} y={Hh - 5} textAnchor="middle" style={{ fontFamily: 'var(--font-sans)', fontSize: 8, fill: 'var(--faded)' }}>{t}</text></g>; })}
+        <path d={area} fill="rgba(45,90,74,0.18)" />
+        <path d={line} fill="none" stroke="var(--sea-green)" strokeWidth="1.5" />
+        {events.map(function (e) { const i = e.y - d.start; if (i < 0 || i >= n) return null; return <g key={'e' + e.y}><line x1={X(i)} y1={padT} x2={X(i)} y2={Hh - padB} stroke="var(--rust)" strokeOpacity="0.45" strokeDasharray="2 2" /><text x={X(i)} y={padT + 7} textAnchor="middle" style={{ fontFamily: 'var(--font-sans)', fontSize: 8, fill: 'var(--rust)' }}>{e.t}</text></g>; })}
+      </svg>
+    </div>
+  );
+}
+
 /* ---------------- People Explorer ---------------- */
 function PeopleExplorer({ onSelect }) {
   const [q, setQ] = useState('');
@@ -724,7 +773,10 @@ function LivingWorld() {
         {/* main pane */}
         <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
           {view === 'people' && (
-            <div style={{ padding: '20px 24px 60px' }}><PeopleExplorer onSelect={selectPerson} /></div>
+            <div style={{ padding: '20px 24px 60px' }}>
+              <PopulationGraph />
+              <PeopleExplorer onSelect={selectPerson} />
+            </div>
           )}
 
           {view === 'hearth' && sel && (
