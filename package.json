@@ -4,9 +4,13 @@
   "private": true,
   "description": "The Cason Line — heritage narrative + audit-verified lineage ledger + family-tree-app variants + research prompt. Static site, deployed to Vercel.",
   "scripts": {
-    "dev": "npx serve . -p 4000"
+    "dev": "npx serve . -p 4000",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "serve": "^14.2.4"
   }
 }

@@ -1,0 +1,11 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/heritage", "destination": "/index.html" },
+    { "source": "/tree", "destination": "/cason-tree.html" },
+    { "source": "/dashboard", "destination": "/ui_kits/family-tree-app/index.html" },
+    { "source": "/living", "destination": "/ui_kits/living-line/index.html" },
+    { "source": "/deck", "destination": "/slides/index.html" }
+  ]
+}
