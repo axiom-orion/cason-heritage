@@ -142,8 +142,32 @@
       });
     }
 
+    /* per-era flora — the lifestyle of the land, made visible */
+    function palmetto(x, z) { var f = new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.5, 7), new THREE.MeshLambertMaterial({ color: 0x3f6b3a })); f.position.set(x, 0.25, z); f.scale.y = 0.6; scene.add(f); }
+    function citrus(x, z) { box(0.16, 0.5, 0.16, 0x5a3a22, x, 0.25, z); var cc = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 7), new THREE.MeshLambertMaterial({ color: 0x2f6b35 })); cc.position.set(x, 0.85, z); scene.add(cc); }
+    function pine(x, z) { box(0.18, 1.3, 0.18, 0x4a3320, x, 0.65, z); for (var k = 0; k < 3; k++) { var pt = new THREE.Mesh(new THREE.ConeGeometry(0.72 - k * 0.18, 0.9, 7), new THREE.MeshLambertMaterial({ color: 0x244a22 })); pt.position.set(x, 1.25 + k * 0.5, z); scene.add(pt); } }
+    var era = (opts.stage && opts.stage.era) || 'modern';
+    var fid = hash((opts.stage ? opts.stage.id : 'x') + 'flora');
+    function floraAt(i) { return [-11 + ((fid >> (i * 3)) % 22), -10 + ((fid >> (i + 1)) % 17)]; }
+    if (era === 'frontier') { for (var pf = 0; pf < 8; pf++) { var pp = floraAt(pf); pine(pp[0], pp[1]); } }
+    else if (era === 'colonial') { for (var cf = 0; cf < 3; cf++) box(2.4, 0.12, 0.12, 0x6b5a3a, -3 + cf * 3, 1.3, -8.5); } // tobacco drying racks
+    else { for (var sf = 0; sf < 7; sf++) { var s2 = floraAt(sf); palmetto(s2[0], s2[1]); } if (era === 'modern') { for (var mf = 0; mf < 4; mf++) citrus(-6 + mf * 3, 6.5); } }
+
     /* people */
     var figures = {}; // id -> { group, target:THREE.Vector3, label }
+    var bubble = null, bubbleFor = null, bubbleText = '';
+    function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+    function makeBubbleSprite(text) {
+      var cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
+      var g = cv.getContext('2d');
+      g.fillStyle = 'rgba(250,246,240,0.96)'; roundRect(g, 3, 3, 250, 44, 10); g.fill();
+      g.strokeStyle = 'rgba(139,69,19,0.45)'; g.lineWidth = 2; roundRect(g, 3, 3, 250, 44, 10); g.stroke();
+      g.fillStyle = '#2c1810'; g.font = '20px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(text.length > 30 ? text.slice(0, 29) + '…' : text, 128, 26);
+      var tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+      sp.scale.set(3.6, 0.9, 1); sp.renderOrder = 10; return sp;
+    }
     function makeLabel(text) {
       var cv = document.createElement('canvas'); cv.width = 128; cv.height = 36;
       var g = cv.getContext('2d'); g.font = '600 22px sans-serif'; g.fillStyle = '#2c1810'; g.textAlign = 'center'; g.fillText(text, 64, 26);
@@ -190,6 +214,16 @@
         figures[a.id].kind = a.kind;
       });
       Object.keys(figures).forEach(function (id) { if (!present[id]) { scene.remove(figures[id].group); disposeObj(figures[id].group); delete figures[id]; } });
+
+      // encounter speech bubble — the first overheard line, above its speaker
+      var enc = snap.encounter, line0 = enc && enc.lines && enc.lines[0];
+      if (line0 && figures[line0.speaker]) {
+        if (line0.text !== bubbleText) {
+          if (bubble) { scene.remove(bubble); if (bubble.material.map) bubble.material.map.dispose(); bubble.material.dispose(); }
+          bubble = makeBubbleSprite(line0.text); scene.add(bubble); bubbleText = line0.text;
+        }
+        bubbleFor = line0.speaker;
+      } else { bubbleFor = null; if (bubble) bubble.visible = false; }
     }
     function archetypeOf(id) { return ((root.CASON_PERSONAS && root.CASON_PERSONAS.byId[id]) || {}).archetype; }
 
@@ -236,6 +270,8 @@
         if (d > 0.05) { p.x += dx * 0.03; p.z += dz * 0.03; f.group.position.y = Math.abs(Math.sin(clock * 6 + (hash(id) % 6))) * 0.06; f.group.rotation.y = Math.atan2(dx, dz); }
         else { f.group.position.y = 0; if (f.kind === 'comic') f.group.rotation.y += 0.01; }
       });
+      if (bubble && bubbleFor && figures[bubbleFor]) { var bpos = figures[bubbleFor].group.position; bubble.position.set(bpos.x, bpos.y + 2.15, bpos.z); bubble.visible = true; }
+      else if (bubble) { bubble.visible = false; }
       renderer.render(scene, camera);
     }
     tick();
