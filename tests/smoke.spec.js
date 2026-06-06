@@ -47,6 +47,16 @@ test('The Living World renders, navigates all views, zero console errors', async
   expect(errors, 'console/page errors on /living:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('Templated persona chat answers offline (no keys)', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Tell me about your life' }).click();
+  // the deterministic voice replies "<Name> speaking. ..." — no network needed
+  await expect(page.getByText(/speaking\./i).first()).toBeVisible({ timeout: 10000 });
+  expect(errors, 'errors during templated chat:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The 3-D homestead toggles on without throwing', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/living');

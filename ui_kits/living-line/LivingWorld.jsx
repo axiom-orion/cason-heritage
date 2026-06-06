@@ -196,6 +196,169 @@ function TracePanel({ snap, personId }) {
   );
 }
 
+/* ---------------- Speak with a persona + multi-model research ---------------- */
+function Bubble({ m }) {
+  const mine = m.role === 'user';
+  return (
+    <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: 6 }}>
+      <div style={{
+        maxWidth: '85%', fontFamily: 'var(--font-serif)', fontSize: 13, lineHeight: 1.5,
+        background: mine ? 'var(--deep-blue)' : 'var(--cream)', color: mine ? 'var(--cream)' : 'var(--ink)',
+        border: mine ? 'none' : '1px solid rgba(139,69,19,0.15)', borderRadius: 9, padding: '7px 11px',
+      }}>
+        {m.text}
+        {m.mode && !mine && (
+          <span style={{ display: 'block', marginTop: 3, fontFamily: 'var(--font-sans)', fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase', color: m.mode === 'live' ? 'var(--sea-green)' : m.mode === 'error' ? 'var(--blood)' : 'var(--faded)' }}>
+            {m.mode === 'live' ? '✦ live Claude' : m.mode === 'error' ? 'offline' : 'templated'}{m.note ? ' · ' + m.note : ''}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ConsensusView({ data }) {
+  const c = data.consensus || {};
+  const tone = { high: 'var(--sea-green)', medium: 'var(--gold)', low: 'var(--blood)' }[c.confidence] || 'var(--faded)';
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        {(data.providers || []).map(function (s, i) {
+          return (
+            <div key={i} style={{ flex: '1 1 150px', minWidth: 140, background: 'var(--cream)', border: '1px solid rgba(139,69,19,0.15)', borderRadius: 7, padding: '7px 9px' }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: s.ok ? 'var(--deep-blue)' : 'var(--blood)', marginBottom: 3 }}>{s.provider}{s.ok ? '' : ' · failed'}</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 11.5, lineHeight: 1.45, color: s.ok ? 'var(--ink)' : 'var(--faded)' }}>{s.ok ? s.answer : s.error}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ border: '1px solid ' + tone, borderRadius: 8, padding: '9px 11px', background: 'rgba(255,255,255,0.5)' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 5 }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)' }}>Consensus</span>
+          <Chip tone={tone}>{c.agreement || '—'}</Chip>
+          <Chip tone={tone}>confidence {c.confidence || '—'}</Chip>
+        </div>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)' }}>{c.answer}</p>
+        {c.corroborated && <p style={{ fontFamily: 'var(--font-serif)', fontSize: 11.5, color: 'var(--sea-green)', marginTop: 5 }}><strong>Corroborated:</strong> {c.corroborated}</p>}
+        {c.disputed && <p style={{ fontFamily: 'var(--font-serif)', fontSize: 11.5, color: 'var(--rust)', marginTop: 3 }}><strong>Disputed:</strong> {c.disputed}</p>}
+        {c.unverified && <p style={{ fontFamily: 'var(--font-serif)', fontSize: 11.5, color: 'var(--blood)', marginTop: 3 }}><strong>Unverified (single source):</strong> {c.unverified}</p>}
+        {c.note && <p style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 4 }}>{c.note}</p>}
+      </div>
+    </div>
+  );
+}
+
+function PersonaChat({ personId }) {
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState('');
+  const [mode, setMode] = useState('templated');
+  const [busy, setBusy] = useState(false);
+  const [showR, setShowR] = useState(false);
+  const [rq, setRq] = useState('');
+  const [rdata, setRdata] = useState(null);
+  const [rbusy, setRbusy] = useState(false);
+  const [rerr, setRerr] = useState(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(function () { setMsgs([]); setRdata(null); setRerr(null); setSaved(false); setRq(''); }, [personId]);
+
+  function send(text) {
+    const t = (text != null ? text : input).trim();
+    if (!t || busy) return;
+    setInput('');
+    const history = msgs.map(function (m) { return { role: m.role, content: m.text }; });
+    setMsgs(function (m) { return m.concat([{ role: 'user', text: t }]); });
+    setBusy(true);
+    window.CASON_AI.personaRespond({ personId: personId, userMessage: t, history: history, mode: mode })
+      .then(function (out) { setMsgs(function (m) { return m.concat([{ role: 'persona', text: out.text, mode: out.mode }]); }); })
+      .catch(function (e) {
+        const off = window.CASON_AI.templated(personId, t);
+        setMsgs(function (m) { return m.concat([{ role: 'persona', text: off.text, mode: 'error', note: 'live unavailable' }]); });
+      })
+      .then(function () { setBusy(false); });
+  }
+
+  function research() {
+    const q = rq.trim(); if (!q || rbusy) return;
+    setRbusy(true); setRerr(null); setRdata(null); setSaved(false);
+    window.CASON_AI.researchConsensus(q)
+      .then(function (r) { setRdata(r); })
+      .catch(function (e) { setRerr(String(e && e.message || e)); })
+      .then(function () { setRbusy(false); });
+  }
+
+  function saveFinding() {
+    if (!rdata || !rdata.consensus) return;
+    const c = rdata.consensus;
+    const ev = c.confidence === 'high' ? 'secondary' : c.confidence === 'medium' ? 'possible' : 'unlikely';
+    try {
+      const k = 'cason-memory-' + personId;
+      const arr = JSON.parse(localStorage.getItem(k) || '[]');
+      arr.push({ personId: personId, question: rdata.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', when: Date.now() });
+      localStorage.setItem(k, JSON.stringify(arr));
+      setSaved(true);
+    } catch (e) {}
+  }
+
+  const QUICK = [['Tell me about your life', 'Tell me about your life.'], ['Reflect', 'Reflect on your life.'], ['What are you missing?', 'What do you wish you knew?']];
+
+  return (
+    <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>Speak with {nm(personId)}</div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button onClick={function () { setMode('templated'); }} style={ctlBtn(mode === 'templated')}>Templated</button>
+          <button onClick={function () { setMode('live'); }} style={ctlBtn(mode === 'live')}>Live Claude</button>
+        </div>
+      </div>
+
+      {msgs.length > 0 && (
+        <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8, padding: '2px 2px 2px 0' }}>
+          {msgs.map(function (m, i) { return <Bubble key={i} m={m} />; })}
+          {busy && <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--faded)' }}>…thinking</div>}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 7 }}>
+        {QUICK.map(function (qa, i) { return <button key={i} onClick={function () { send(qa[1]); }} style={ctlBtn(false)}>{qa[0]}</button>; })}
+      </div>
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input value={input} onChange={function (e) { setInput(e.target.value); }} onKeyDown={function (e) { if (e.key === 'Enter') send(); }}
+          placeholder={'Ask ' + nm(personId) + '…'} style={{ flex: 1, padding: '7px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12.5 }} />
+        <button onClick={function () { send(); }} disabled={busy} style={{ ...ctlBtn(true), opacity: busy ? 0.5 : 1 }}>Send</button>
+      </div>
+      {mode === 'live' && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Live mode needs a server key; it falls back to the offline voice if unavailable.</div>}
+
+      {/* multi-model research */}
+      <div style={{ marginTop: 12 }}>
+        <button onClick={function () { setShowR(function (v) { return !v; }); }} style={{ ...ctlBtn(showR), width: '100%' }}>
+          {showR ? '▾' : '▸'} Research a question — cross-check Grok · Gemini · Claude
+        </button>
+        {showR && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input value={rq} onChange={function (e) { setRq(e.target.value); }} onKeyDown={function (e) { if (e.key === 'Enter') research(); }}
+                placeholder="e.g. Where in England did Thomas Casson originate?" style={{ flex: 1, padding: '7px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12.5 }} />
+              <button onClick={research} disabled={rbusy} style={{ ...ctlBtn(true), opacity: rbusy ? 0.5 : 1 }}>{rbusy ? '…' : 'Cross-check'}</button>
+            </div>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>
+              Three independent models answer; an adjudicator corroborates only what ≥2 agree on, so one hallucination can’t become fact. Needs server keys.
+            </div>
+            {rerr && <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--blood)', marginTop: 6 }}>Could not research: {rerr}</div>}
+            {rdata && <ConsensusView data={rdata} />}
+            {rdata && rdata.consensus && rdata.consensus.confidence !== 'low' && (
+              <button onClick={saveFinding} disabled={saved} style={{ ...ctlBtn(false), marginTop: 8 }}>
+                {saved ? '✓ saved as a flagged finding' : 'Save corroborated finding to this persona'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Memory Hearth (rings) ---------------- */
 function MemoryHearth({ personId }) {
   const sub = useMemo(function () { return MEM.access(personId); }, [personId]);
@@ -544,6 +707,7 @@ function LivingWorld() {
                   <React.Fragment>
                     <PersonaSheet sheet={sheet} person={person} />
                     {snap && <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}><CurrentMoment snap={snap} personId={sel} /></div>}
+                    <PersonaChat personId={sel} />
                   </React.Fragment>
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
