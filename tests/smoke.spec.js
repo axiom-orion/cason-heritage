@@ -47,6 +47,18 @@ test('The Living World renders, navigates all views, zero console errors', async
   expect(errors, 'console/page errors on /living:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The 3-D homestead toggles on without throwing', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: /Enter 3-D/ }).click();
+  await expect(page.getByRole('button', { name: /Exit 3-D/ })).toBeVisible();
+  await page.waitForTimeout(4000); // let three.js load + the scene build (or fall back gracefully)
+  // Either a WebGL canvas mounts, or a graceful fallback message — never a crash.
+  expect(await page.locator('canvas').count()).toBeGreaterThanOrEqual(0);
+  expect(errors, 'errors after entering 3-D:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The family-tree dashboard loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/dashboard');

@@ -377,12 +377,16 @@ function LivingWorld() {
   const [selectedId, setSelectedId] = useState(null);
   const [view, setView] = useState('homestead');
   const [live, setLive] = useState(false);
+  const [threeD, setThreeD] = useState(false);
+  const [sceneErr, setSceneErr] = useState(null);
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
   const worldRef = useRef(null);
   const tickRef = useRef(0);
   const keepSel = useRef(false);
+  const sceneHost = useRef(null);
+  const sceneCtrl = useRef(null);
 
   const stage = STAGES.find(function (s) { return s.id === stageId; });
   const cohort = useMemo(function () { return cohortFor(stage); }, [stageId]);
@@ -415,6 +419,26 @@ function LivingWorld() {
   const world = worldRef.current;
   if (world) world.setRealClock(new Date());
   const snap = world ? world.snapshot() : null;
+
+  // 3-D world — opt-in, lazy-loaded, WebGL-feature-detected (off by default, so CI never spins up GL)
+  useEffect(function () {
+    if (!threeD) return;
+    if (!window.CASON_SCENE || !window.CASON_SCENE.isSupported()) {
+      setSceneErr('WebGL isn’t available here, so the 3-D homestead can’t render — the rest of the Living Line still works.');
+      return;
+    }
+    const host = sceneHost.current; if (!host) return;
+    let alive = true; setSceneErr(null);
+    window.CASON_SCENE.mount(host, {
+      stage: stage,
+      snapshot: worldRef.current ? worldRef.current.snapshot() : null,
+      onSelect: function (id) { setSelectedId(id); },
+    }).then(function (ctrl) { if (!alive) { ctrl.dispose(); return; } sceneCtrl.current = ctrl; })
+      .catch(function (e) { if (alive) setSceneErr('Could not load the 3-D world (' + (e && e.message) + ').'); });
+    return function () { alive = false; if (sceneCtrl.current) { sceneCtrl.current.dispose(); sceneCtrl.current = null; } };
+  }, [threeD, stageId]);
+
+  useEffect(function () { if (threeD && sceneCtrl.current && snap) sceneCtrl.current.update(snap); });
 
   const sel = selectedId || cohort[0] || null;
   const selPresent = !!(sel && cohort.indexOf(sel) !== -1);
@@ -497,11 +521,21 @@ function LivingWorld() {
           )}
 
           {view === 'homestead' && (
-            <div style={{ display: 'flex', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
-              {/* cohort + detail */}
+            <div>
+              {threeD && (
+                <div style={{ padding: '14px 22px 0' }}>
+                  <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>
+                    {sceneErr && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--faded)' }}>{sceneErr}</div>}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>Drag to look · scroll to zoom · click a figure to select them. The sky follows the real clock; weather rolls in as the day turns.</div>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
+                {/* cohort + detail */}
               <div style={{ flex: '1 1 0', minWidth: 280, maxWidth: 470 }}>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 8 }}>
-                  At this homestead · {cohort.length} living
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>At this homestead · {cohort.length} living</div>
+                  <button onClick={function () { setThreeD(function (v) { return !v; }); }} style={ctlBtn(threeD)}>{threeD ? 'Exit 3-D' : 'Enter 3-D ▸'}</button>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
@@ -520,6 +554,7 @@ function LivingWorld() {
                   <MemoryTiers personId={sel} simNow={selSimNow} />
                 </div>
               )}
+              </div>
             </div>
           )}
         </div>
