@@ -114,6 +114,21 @@ test('The family-tree dashboard loads with zero console errors', async ({ page }
   expect(errors, 'console/page errors on /dashboard:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('A Day Here and The Long Move views render', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  // the day-in-the-life: movements + the era's documented trial
+  await page.getByRole('button', { name: 'A Day Here' }).click();
+  await expect(page.getByText(/A day at/).first()).toBeVisible();
+  await expect(page.getByText('The trial of this time')).toBeVisible();
+  // the throughline arc ending at the present keeper
+  await page.getByRole('button', { name: 'The Long Move' }).click();
+  await expect(page.getByRole('heading', { name: 'The Long Move' })).toBeVisible();
+  await expect(page.getByText(/present keeper/).first()).toBeVisible();
+  expect(errors, 'errors on day/arc views:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The Proof page loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/proof');

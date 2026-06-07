@@ -49,6 +49,7 @@
 
   /* ---------- calendar & environment ---------- */
   const PHASES = ['dawn', 'morning', 'midday', 'afternoon', 'dusk', 'night'];
+  const PHASE_HOUR = { dawn: 6, morning: 9, midday: 12, afternoon: 15, dusk: 18, night: 22 };
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   function seasonOf(month) { // 0-11
@@ -73,6 +74,20 @@
     'fort-white':{ last: 'the move west, chasing the rail and the phosphate', next: null },
     titusville:  { last: 'the move to the coast, where they are firing rockets at the Moon', next: null },
   };
+
+  // The documented trial of each era — the hardship the family met — and what
+  // they were working toward against it. Drawn straight from the record.
+  const CHALLENGES = {
+    colonial: { trial: 'The seasoning sickness takes near half of new arrivals in their first years; tobacco is money and law, and the grave is never far.', endeavor: 'Plant the name deep enough that the fever cannot take it.' },
+    frontier: { trial: 'Virgin forest to clear into field, thin courts, far neighbors, and a long road back to anywhere.', endeavor: 'Break new ground and take up a grant the children can inherit.' },
+    pioneer: { trial: 'A roadless territory of fever and swamp — the Okefenokee behind, the Seminole at the edge of every clearing.', endeavor: 'Cross into Florida together and break a homestead before the season turns.' },
+    civil: { trial: 'The men gone to the 7th Florida Infantry; the county economically gutted; blockade, impressment, and the long wait for word.', endeavor: 'Hold the family and the land together until those who can come home.' },
+    modern: { trial: 'Citrus killed by the freeze, the phosphate played out, the boll weevil in the cotton, and Depression relief under seven dollars a month.', endeavor: 'Do every trade at once and keep the whole table fed.' },
+  };
+  const PLACE_CHALLENGE = {
+    titusville: { trial: 'The pull between the rooted land and a brand-new frontier — the family leaves the farm for the coast, where they are firing rockets at the Moon.', endeavor: 'Witness the new age, then carry the line home to the old ground.' },
+  };
+  function challengeFor(era, placeId) { return (placeId && PLACE_CHALLENGE[placeId]) || CHALLENGES[era] || CHALLENGES.pioneer; }
 
   // season-true, period-plausible weather per region. kind drives routine variants.
   const WEATHER = {
@@ -521,7 +536,35 @@
         ? [present[0], present[1]] : [present[0], present[1]];
     }
 
+    // A whole day at this homestead — every household member's movements across
+    // all six phases (dawn→night), plus the documented trial of the time.
+    function daySnapshot() {
+      refreshEnv();
+      const present = (world.roster && world.roster.length)
+        ? world.roster.slice()
+        : activeAt(data, world.year != null ? world.year : world.simDate.getFullYear());
+      present.sort();
+      const Hh = helpers();
+      const dd = world.simDate;
+      const movements = PHASES.map(function (phase) {
+        const clk = new Date(dd.getFullYear(), dd.getMonth(), dd.getDate(), PHASE_HOUR[phase] || 12, 0, 0);
+        const env = environment(dd, world.era, world.placeId, clk);
+        const agents = present.map(function (pid) {
+          const persona = world.personas.byId[pid], person = data.people[pid];
+          if (!persona || !person) return null;
+          const bornY = Hh ? Hh.birthYearOf(person) : null;
+          const age = (bornY != null && env.date.y != null) ? env.date.y - bornY : null;
+          const isChild = persona.archetype === 'child' || (age != null && age >= 3 && age <= 13);
+          const act = activityFor(persona, env, makeRng(world.seed + '|day|' + pid + '|' + dd.toDateString() + '|' + phase), isChild ? 'child' : persona.archetype);
+          return { id: pid, name: person.name, activity: act.text, kind: act.kind, isChild: isChild };
+        }).filter(Boolean);
+        return { phase: phase, label: env.timeOfDay.label, isNight: env.timeOfDay.isNight, weather: env.weather, isSunday: env.isSunday, agents: agents };
+      });
+      return { date: world.env.date, era: world.era, placeId: world.placeId, challenge: challengeFor(world.era, world.placeId), movements: movements, present: present };
+    }
+
     world.snapshot = snapshot;
+    world.daySnapshot = daySnapshot;
     world.refreshEnv = refreshEnv;
     world.step = function () { world.simDate = new Date(world.simDate.getTime() + world.dayStride * 86400000); return snapshot(); };
     world.seekTo = function (o) { if (o.year != null) { world.year = o.year; world.era = H ? H.eraForGen(data, guessGen(data, o.year)) : world.era; } if (o.placeId) world.placeId = o.placeId; if (o.simDate) world.simDate = new Date(o.simDate); return snapshot(); };
@@ -556,6 +599,7 @@
   const API = {
     createWorld: createWorld,
     environment: environment, activeAt: activeAt, activityFor: activityFor,
+    challengeFor: challengeFor, CHALLENGES: CHALLENGES,
     SCHEDULES: SCHEDULES, WEATHER: WEATHER, PHASES: PHASES,
     _internals: { makeRng: makeRng, timeOfDay: timeOfDay, seasonOf: seasonOf, reflectionFor: reflectionFor, encounter: encounter },
   };

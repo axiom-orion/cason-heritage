@@ -726,6 +726,98 @@ function useViewport() {
   return { w: w, narrow: w < 860 };
 }
 
+/* ---------- A Day Here: the household's movements, dawn → dark ---------- */
+const PHASE_LABEL = { dawn: '🌅 Dawn', morning: '🌤️ Morning', midday: '☀️ Midday', afternoon: '🌾 Afternoon', dusk: '🔥 Dusk', night: '🌙 Night' };
+function DayHere({ world, stage, onSelect }) {
+  const [hi, setHi] = useState(0);
+  const day = useMemo(function () { try { return world ? world.daySnapshot() : null; } catch (e) { return null; } }, [world, stage.id]);
+  useEffect(function () {
+    const t = setInterval(function () { setHi(function (h) { return (h + 1) % 6; }); }, 3400);
+    return function () { clearInterval(t); };
+  }, [stage.id]);
+  if (!day) return <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No household is recorded here yet.</div>;
+  return (
+    <div style={{ maxWidth: 840 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>A day at {stage.label}</h2>
+      <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 14 }}>{day.date.label} · {cap(day.movements[2].weather.label)} — one day in the household, watched from dawn to dark.</p>
+
+      <div style={{ background: 'rgba(139,30,30,0.06)', border: '1px solid rgba(139,30,30,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 18 }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--blood, #7a1f1f)', marginBottom: 4 }}>The trial of this time</div>
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink)' }}>{day.challenge.trial}</div>
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--rust)', marginTop: 7 }}><strong>Working toward</strong> — {day.challenge.endeavor}</div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {day.movements.map(function (m, i) {
+          const active = i === hi;
+          return (
+            <div key={m.phase} style={{ display: 'flex', gap: 12, padding: '10px 12px', borderRadius: 9, background: active ? 'rgba(154,123,45,0.13)' : 'var(--cream, #faf6f0)', border: '1px solid ' + (active ? 'var(--gold)' : 'rgba(139,69,19,0.14)'), transition: 'background .4s, border-color .4s' }}>
+              <div style={{ minWidth: 104, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>{PHASE_LABEL[m.phase]}{m.isSunday ? <div style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, color: 'var(--sea-green)', textTransform: 'uppercase', letterSpacing: '.08em' }}>the Sabbath</div> : null}</div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {m.agents.slice(0, 7).map(function (a) {
+                  return <div key={a.id} onClick={function () { onSelect && onSelect(a.id); }} style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, lineHeight: 1.4, color: 'var(--ink)', cursor: 'pointer' }}><strong style={{ color: a.isChild ? 'var(--gold-bright)' : 'var(--sea-green)' }}>{a.name.split(' ')[0]}</strong> {a.activity}.</div>;
+                })}
+                {m.agents.length === 0 && <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--faded)' }}>quiet — no one recorded here at this hour.</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- The Long Move: how each generation met its trial and moved on ---------- */
+function LongMove({ onSelect }) {
+  const arc = (DATA.directLine || []).map(function (id) {
+    const p = DATA.people[id] || {}, per = (PERS && PERS.byId[id]) || {};
+    return {
+      id: id, name: p.name, lifespan: p.lifespan || '', generation: p.generation,
+      place: (p.born && p.born.place) || (p.died && p.died.place) || '',
+      move: p.role || per.epithet || '', essence: per.essence || '', drive: per.drive || '',
+      era: per.era, evidence: p.evidence,
+    };
+  });
+  const keeper = DATA.people['ryan'];
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>The Long Move</h2>
+      <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 20, maxWidth: 600 }}>Four centuries, eleven hands. Each generation met the trial of its time and, when the known ground was used up, moved first into the unknown. Read down the line to see how the family got here — and where the instinct points.</p>
+
+      <div style={{ position: 'relative', paddingLeft: 22 }}>
+        <div style={{ position: 'absolute', left: 6, top: 4, bottom: 30, width: 2, background: 'linear-gradient(var(--gold-bright), var(--rust), var(--blood), var(--gold))' }} />
+        {arc.map(function (a, i) {
+          const unproven = a.evidence === 'unsolved' || a.evidence === 'leading';
+          return (
+            <div key={a.id} style={{ position: 'relative', marginBottom: 20 }}>
+              <div style={{ position: 'absolute', left: -22, top: 4, width: 12, height: 12, borderRadius: 12, background: unproven ? 'var(--cream)' : eraHex(a.era), border: '2px solid ' + (unproven ? 'var(--rust)' : eraHex(a.era)) }} />
+              <div onClick={function () { onSelect && onSelect(a.id); }} style={{ cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{a.name}</span>
+                  {a.move && <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--rust)' }}>— {a.move}</span>}
+                </div>
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 1 }}>{a.lifespan}{a.place ? ' · ' + a.place : ''}</div>
+                {a.essence && <div style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink)', marginTop: 5 }}>{a.essence}.</div>}
+                {!a.essence && unproven && <div style={{ fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--faded)', marginTop: 5, fontStyle: 'italic' }}>The load-bearing gap in the pedigree — the link the bloodhound is still running to ground.</div>}
+              </div>
+            </div>
+          );
+        })}
+        {keeper && (
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: -22, top: 4, width: 12, height: 12, borderRadius: 12, background: 'var(--gold)', border: '2px solid var(--gold)' }} />
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{keeper.name} <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--gold)' }}>— the present keeper</span></div>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 1 }}>{keeper.role}</div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13, lineHeight: 1.55, color: 'var(--ink)', marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 11 }}>
+              The pattern holds across four centuries: when the known ground is used up, the line moves first into the unknown. That instinct — not any one place — is the inheritance, and it points wherever the next frontier opens. The record is kept so the next ones can see how they got here, and take the next move with their eyes open.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
@@ -851,7 +943,7 @@ function LivingWorld() {
         right={
           <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <button onClick={function () { setShowRole(function (v) { return !v; }); }} style={tabBtn(isMember)} title="Your role">{isMember ? '✦ ' + String(role.name || 'Member').split(' ')[0] : 'Narrator'}</button>
-            {[['homestead', narrow ? 'Home' : 'Homestead'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth']].map(function (v) {
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['day', narrow ? 'Day' : 'A Day Here'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth'], ['arc', narrow ? 'Arc' : 'The Long Move']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
             {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
@@ -913,6 +1005,18 @@ function LivingWorld() {
             <div style={{ padding: '20px 24px 60px' }}>
               <PopulationGraph />
               <PeopleExplorer onSelect={selectPerson} />
+            </div>
+          )}
+
+          {view === 'day' && (
+            <div style={{ padding: '20px 24px 60px' }}>
+              <DayHere world={world} stage={stage} onSelect={selectPerson} />
+            </div>
+          )}
+
+          {view === 'arc' && (
+            <div style={{ padding: '20px 24px 60px' }}>
+              <LongMove onSelect={selectPerson} />
             </div>
           )}
 
