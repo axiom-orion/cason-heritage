@@ -834,7 +834,7 @@ function GovCard({ cap, children }) {
     </div>
   );
 }
-function GovernancePanel({ personId }) {
+function GovernancePanel({ personId, onSelect }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
     let pass = 0; const fails = [];
@@ -858,7 +858,15 @@ function GovernancePanel({ personId }) {
     });
     const gaps = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }).length;
     let sources = 0; ids.forEach(function (id) { sources += (people[id].sources || []).length; });
-    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources };
+    const watch = { flags: [], verify: [], thin: [], living: [] };
+    ids.forEach(function (id) {
+      const p = people[id], notes = p.notes || '', tags = p.tags || [], per = PERS.byId[id];
+      if (/flag|do not merge|collision|conflat|chronolog|⚠/i.test(notes) || tags.indexOf('name-collision') !== -1) watch.flags.push(id);
+      if (/verify|lead/i.test(notes) || ['possible', 'leading'].indexOf(p.evidence) !== -1) watch.verify.push(id);
+      if (per && per.provenance && per.provenance.reconstructed) watch.thin.push(id);
+      if (tags.indexOf('living') !== -1) watch.living.push(id);
+    });
+    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources, watch: watch };
   }, []);
   const tierOrder = ['confirmed', 'secondary', 'leading', 'possible', 'unsolved', 'reconstructed', 'eliminated', 'disproven'];
   const sub = personId ? MEM.access(personId) : null;
@@ -868,6 +876,23 @@ function GovernancePanel({ personId }) {
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
       <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 18, maxWidth: 620 }}>The honest form of governance over the line: what each agent is allowed to know, how well every claim is sourced, and what the record refuses to repeat — computed live over all {audit.total} people, and enforced by the build.</p>
+
+      <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
+        <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--blood,#7a1f1f)' }}>⚠ Conflation risks · {audit.watch.flags.length}</div>
+          <div style={{ fontSize: 11, color: 'var(--faded)', margin: '1px 0 5px' }}>same-name people that must not be merged, and flagged speculative links</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {audit.watch.flags.map(function (id) {
+              return <span key={id} onClick={function () { onSelect && onSelect(id); }} style={{ cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(139,30,30,0.1)', color: 'var(--blood,#7a1f1f)', border: '1px solid rgba(139,30,30,0.25)' }}>{nm(id)}</span>;
+            })}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 12.5, marginTop: 8, color: 'var(--ink)' }}>
+          <div>🔍 <strong>{audit.watch.verify.length}</strong> awaiting a primary record</div>
+          <div>✎ <strong>{audit.watch.thin.length}</strong> story-in-progress</div>
+          <div>👤 <strong>{audit.watch.living.length}</strong> living, in the public record</div>
+        </div>
+      </GovCard>
 
       <GovCard cap="Knowledge-horizon circuit-breaker">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1136,7 +1161,7 @@ function LivingWorld() {
 
           {view === 'gov' && (
             <div style={{ padding: '20px 24px 60px' }}>
-              <GovernancePanel personId={sel} />
+              <GovernancePanel personId={sel} onSelect={selectPerson} />
             </div>
           )}
 
