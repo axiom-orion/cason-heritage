@@ -818,6 +818,120 @@ function LongMove({ onSelect }) {
   );
 }
 
+/* ---------- Governance — the glass box (the honest Vorion layer) ---------- */
+const GTIER = { confirmed: 'var(--sea-green)', secondary: 'var(--gold)', leading: 'var(--gold-bright)', possible: 'var(--faded)', unsolved: 'var(--rust)', reconstructed: 'var(--deep-blue)', eliminated: 'var(--blood)', disproven: 'var(--blood)' };
+function gTierOf(id) {
+  const per = PERS.byId[id];
+  if (per && per.provenance && per.provenance.reconstructed) return 'reconstructed';
+  return (DATA.people[id] && DATA.people[id].evidence) || 'possible';
+}
+function GovBadge({ t }) { return <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, color: '#fff', background: GTIER[t] || 'var(--faded)' }}>{t}</span>; }
+function GovCard({ cap, children }) {
+  return (
+    <div style={{ background: 'var(--cream,#faf6f0)', border: '1px solid rgba(139,69,19,0.16)', borderRadius: 11, padding: '14px 16px', marginBottom: 14 }}>
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 9 }}>{cap}</div>
+      {children}
+    </div>
+  );
+}
+function GovernancePanel({ personId }) {
+  const audit = useMemo(function () {
+    const people = DATA.people, ids = Object.keys(people);
+    let pass = 0; const fails = [];
+    ids.forEach(function (id) {
+      const gen = people[id].generation, sub = MEM.access(id); let ok = true;
+      ['individual', 'generational', 'family'].forEach(function (s) {
+        (sub[s] || []).forEach(function (n) {
+          if (n.generation != null && n.generation > gen + 1) ok = false;
+          if (n.year != null && sub.horizonYear != null && n.year > sub.horizonYear) ok = false;
+        });
+      });
+      if (ok) pass++; else fails.push(id);
+    });
+    const tiers = {}; ids.forEach(function (id) { const t = gTierOf(id); tiers[t] = (tiers[t] || 0) + 1; });
+    const seen = {}, quarantine = [];
+    (MEM.nodes || []).forEach(function (n) {
+      if ((n.evidence === 'disproven' || n.evidence === 'eliminated') && n.text) {
+        const k = (n.ownerId || '') + '|' + n.text.slice(0, 28);
+        if (!seen[k]) { seen[k] = 1; quarantine.push({ owner: n.ownerId, text: n.text, tier: n.evidence }); }
+      }
+    });
+    const gaps = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }).length;
+    let sources = 0; ids.forEach(function (id) { sources += (people[id].sources || []).length; });
+    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources };
+  }, []);
+  const tierOrder = ['confirmed', 'secondary', 'leading', 'possible', 'unsolved', 'reconstructed', 'eliminated', 'disproven'];
+  const sub = personId ? MEM.access(personId) : null;
+  const selP = personId ? DATA.people[personId] : null;
+  const held = audit.fails.length === 0;
+  return (
+    <div style={{ maxWidth: 780 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
+      <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 18, maxWidth: 620 }}>The honest form of governance over the line: what each agent is allowed to know, how well every claim is sourced, and what the record refuses to repeat — computed live over all {audit.total} people, and enforced by the build.</p>
+
+      <GovCard cap="Knowledge-horizon circuit-breaker">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ fontSize: 26 }}>{held ? '🛡️' : '⚠️'}</div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: held ? 'var(--sea-green)' : 'var(--blood)' }}>{held ? 'Holding' : audit.fails.length + ' breached'}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>{audit.pass}/{audit.total} personas bounded to generations ≤ N+1 and nothing past their own year. No agent can see the future.</div>
+          </div>
+        </div>
+      </GovCard>
+
+      <GovCard cap="Provenance tiers — trust in the record, not in behavior">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {tierOrder.filter(function (t) { return audit.tiers[t]; }).map(function (t) {
+            const n = audit.tiers[t], pct = Math.round(n / audit.total * 100);
+            return (
+              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 100, fontFamily: 'var(--font-sans)', fontSize: 11.5, color: 'var(--ink)' }}>{t}</div>
+                <div style={{ flex: 1, height: 11, background: 'rgba(139,69,19,0.08)', borderRadius: 6, overflow: 'hidden' }}><div style={{ width: Math.max(2, pct) + '%', height: '100%', background: GTIER[t] || 'var(--faded)' }} /></div>
+                <div style={{ width: 28, textAlign: 'right', fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)' }}>{n}</div>
+              </div>
+            );
+          })}
+        </div>
+      </GovCard>
+
+      <GovCard cap={'Quarantine — claims the record refuses (' + audit.quarantine.length + ')'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {audit.quarantine.slice(0, 6).map(function (q, i) {
+            return (
+              <div key={i} style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--ink)', borderLeft: '3px solid var(--blood)', paddingLeft: 9 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, color: 'var(--blood)', textTransform: 'uppercase' }}>{q.tier}</span>{q.owner ? ' · ' + nm(q.owner) : ''}<br />{q.text.length > 160 ? q.text.slice(0, 160) + '…' : q.text}
+              </div>
+            );
+          })}
+          {audit.quarantine.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Nothing quarantined.</div>}
+        </div>
+      </GovCard>
+
+      <GovCard cap="Audit & open threads">
+        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 13, alignItems: 'baseline' }}>
+          <div><strong style={{ fontSize: 19, color: 'var(--sea-green)' }}>{audit.sources}</strong> sources on record</div>
+          <div><strong style={{ fontSize: 19, color: 'var(--rust)' }}>{audit.gaps}</strong> open questions</div>
+          <div><a href="/proof" style={{ fontFamily: 'var(--font-sans)', fontSize: 12.5 }}>the Proof →</a></div>
+        </div>
+      </GovCard>
+
+      {sub && selP ? (
+        <GovCard cap="Governed agent">
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>{selP.name}</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '7px 0' }}>
+            <GovBadge t={gTierOf(personId)} />
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, color: '#fff', background: 'var(--deep-blue)' }}>gen {selP.generation}</span>
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+            Bounded to generations ≤ <strong>{selP.generation + 1}</strong>, nothing past <strong>{sub.horizonYear || '—'}</strong>.<br />
+            <strong>{sub.stats.visible}</strong> memories in reach · <strong>{sub.stats.blockedFuture + sub.stats.blockedGen}</strong> held beyond the horizon by the circuit-breaker.
+          </div>
+        </GovCard>
+      ) : <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)' }}>Select a person to see their governance record.</div>}
+    </div>
+  );
+}
+
 function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
@@ -943,7 +1057,7 @@ function LivingWorld() {
         right={
           <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <button onClick={function () { setShowRole(function (v) { return !v; }); }} style={tabBtn(isMember)} title="Your role">{isMember ? '✦ ' + String(role.name || 'Member').split(' ')[0] : 'Narrator'}</button>
-            {[['homestead', narrow ? 'Home' : 'Homestead'], ['day', narrow ? 'Day' : 'A Day Here'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth'], ['arc', narrow ? 'Arc' : 'The Long Move']].map(function (v) {
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['day', narrow ? 'Day' : 'A Day Here'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth'], ['arc', narrow ? 'Arc' : 'The Long Move'], ['gov', narrow ? 'Gov' : 'Governance']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
             {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
@@ -1017,6 +1131,12 @@ function LivingWorld() {
           {view === 'arc' && (
             <div style={{ padding: '20px 24px 60px' }}>
               <LongMove onSelect={selectPerson} />
+            </div>
+          )}
+
+          {view === 'gov' && (
+            <div style={{ padding: '20px 24px 60px' }}>
+              <GovernancePanel personId={sel} />
             </div>
           )}
 
