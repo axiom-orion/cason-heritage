@@ -129,6 +129,51 @@ test('A Day Here and The Long Move views render', async ({ page }) => {
   expect(errors, 'errors on day/arc views:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('Governance holds: horizon, quarantine, and referential integrity', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  const report = await page.evaluate(() => {
+    const D = window.CASON_DATA, MEM = window.CASON_MEMORY, people = D.people;
+    const out = { refs: [], horizon: [], future: [], disproven: [] };
+    // referential integrity — every kin id resolves to a real person
+    Object.keys(people).forEach((id) => {
+      ['parents', 'children', 'spouse', 'siblings'].forEach((rel) => {
+        (people[id][rel] || []).forEach((rid) => { if (!people[rid]) out.refs.push(id + '.' + rel + ' -> ' + rid); });
+      });
+    });
+    // for every persona: nothing past gen N+1, nothing past their year, no disproven-as-fact
+    const banned = /digswell|elizabeth alcott|church warden|virginia land company/i;
+    Object.keys(people).forEach((id) => {
+      const gen = people[id].generation;
+      const sub = MEM.access(id);
+      ['individual', 'generational', 'family'].forEach((s) => {
+        (sub[s] || []).forEach((n) => {
+          if (n.generation != null && n.generation > gen + 1) out.horizon.push(id + '(g' + gen + ') sees g' + n.generation);
+          if (n.year != null && sub.horizonYear != null && n.year > sub.horizonYear) out.future.push(id + ' sees y' + n.year + ' > ' + sub.horizonYear);
+          if (banned.test(n.text || '') && ['confirmed', 'secondary', 'leading'].indexOf(n.evidence) !== -1) out.disproven.push(id + ': ' + (n.text || '').slice(0, 44));
+        });
+      });
+    });
+    return out;
+  });
+  expect(report.refs, 'dangling kin references:\n' + report.refs.join('\n')).toEqual([]);
+  expect(report.horizon, 'horizon (generation) leaks:\n' + report.horizon.join('\n')).toEqual([]);
+  expect(report.future, 'future-knowledge leaks:\n' + report.future.join('\n')).toEqual([]);
+  expect(report.disproven, 'disproven claims surfaced as fact:\n' + report.disproven.join('\n')).toEqual([]);
+});
+
+test('The Governance glass-box renders with live integrity status', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Governance' }).click();
+  await expect(page.getByRole('heading', { name: /Governance/ })).toBeVisible();
+  await expect(page.getByText('Holding')).toBeVisible();                     // horizon circuit-breaker green
+  await expect(page.getByText(/claims the record refuses/)).toBeVisible();    // quarantine registry
+  expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The Proof page loads with zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/proof');
