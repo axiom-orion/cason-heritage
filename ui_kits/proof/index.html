@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Proof — Cason Heritage</title>
+<meta name="description" content="The Proof — letters, photographs, and primary records behind the Cason line. Family members upload the evidence; each artifact is attached to a person and tiered by how well it is sourced.">
+<meta property="og:title" content="The Proof — Cason Heritage">
+<meta property="og:description" content="The evidence behind the line: scans of wills, deeds, land warrants, photographs and letters, attached to the people they document.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://flcason.com/proof">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<link rel="icon" href="../../assets/favicon.svg" />
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body { font-family: var(--font-serif); background: #f0eee9; color: var(--ink); }
+  strong { font-weight: 600; } em { font-style: italic; }
+  button, input, select, textarea { font-family: inherit; }
+  a { color: var(--deep-blue, #2c4a6b); }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: rgba(154,123,45,0.35); border-radius: 6px; }
+  .pf-card { background: var(--cream, #faf6f0); border: 1px solid rgba(139,69,19,0.18); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(44,24,16,0.06); display: flex; flex-direction: column; }
+  .pf-card img { width: 100%; height: 170px; object-fit: cover; background: #e9e4da; display: block; cursor: zoom-in; }
+  .pf-doc { height: 170px; display: flex; align-items: center; justify-content: center; font-size: 46px; background: #ece6db; color: #8b5a2b; text-decoration: none; }
+  input, select, textarea { padding: 7px 10px; border-radius: 7px; border: 1px solid rgba(139,69,19,0.28); background: var(--cream, #faf6f0); font-size: 13px; color: var(--ink); width: 100%; }
+  label { font-size: 11px; font-family: var(--font-sans); color: var(--faded, #8a7d68); text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: 3px; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="/ui_kits/family-tree-app/data.js"></script>
+<script src="/ui_kits/living-line/supabase-config.js"></script>
+<script src="/ui_kits/living-line/auth.js"></script>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useRef } = React;
+const AUTH = window.CASON_AUTH || null;
+const DATA = window.CASON_DATA || { people: {} };
+
+const TIER = { confirmed: 'var(--sea-green)', leading: 'var(--gold-bright)', secondary: 'var(--gold)', possible: 'var(--faded)', unsolved: 'var(--rust)', eliminated: 'var(--blood)', disproven: 'var(--blood)' };
+const KINDS = ['document', 'record', 'photo', 'letter', 'headstone', 'other'];
+const KIND_ICON = { document: '📄', record: '📜', photo: '🖼️', letter: '✉️', headstone: '🪦', other: '📎' };
+
+const PEOPLE = Object.keys(DATA.people || {})
+  .map(function (id) { return { id: id, name: DATA.people[id].name, gen: DATA.people[id].generation }; })
+  .sort(function (a, b) { return (a.gen - b.gen) || a.name.localeCompare(b.name); });
+function nm(id) { return (DATA.people[id] && DATA.people[id].name) || id; }
+function isImg(u) { return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|svg)(\?|$)/i.test(u || ''); }
+
+function Badge({ children, color }) {
+  return <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 20, color: '#fff', background: color || 'var(--faded)', whiteSpace: 'nowrap' }}>{children}</span>;
+}
+
+function RolePanel({ role, onSignIn, onSignOut, msg }) {
+  const [email, setEmail] = useState('');
+  const enabled = AUTH && AUTH.enabled;
+  if (role && role.mode === 'member') {
+    return (
+      <div style={{ fontSize: 13 }}>
+        <strong style={{ color: 'var(--sea-green)' }}>✦ {role.name}</strong>
+        {role.verified ? ' (verified)' : role.preview ? ' (preview)' : ''} — you can add to the Proof below.
+        <button onClick={onSignOut} style={ctl()}>{role.preview ? 'leave' : 'sign out'}</button>
+      </div>
+    );
+  }
+  return (
+    <div style={{ fontSize: 13 }}>
+      <div style={{ marginBottom: 6 }}>You’re viewing the public record. <strong>Family members</strong> sign in to upload letters, photos, and documents.</div>
+      {enabled ? (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={email} onChange={function (e) { setEmail(e.target.value); }} placeholder="family email" style={{ maxWidth: 220 }} />
+          <button onClick={function () { onSignIn(email); }} style={ctl(true)}>Send sign-in link</button>
+          {msg && <span style={{ color: 'var(--faded)', fontSize: 12 }}>{msg}</span>}
+        </div>
+      ) : <span style={{ color: 'var(--faded)', fontSize: 12 }}>Sign-in isn’t connected yet.</span>}
+    </div>
+  );
+}
+function ctl(primary) {
+  return { marginLeft: 8, padding: '5px 11px', borderRadius: 7, border: '1px solid ' + (primary ? 'var(--gold)' : 'rgba(139,69,19,0.3)'), background: primary ? 'var(--gold)' : 'transparent', color: primary ? '#fff' : 'var(--ink)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-sans)' };
+}
+
+function UploadPanel({ onAdded }) {
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState('');
+  const [kind, setKind] = useState('document');
+  const [personId, setPersonId] = useState('');
+  const [evidence, setEvidence] = useState('confirmed');
+  const [visibility, setVisibility] = useState('public');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const fileRef = useRef(null);
+
+  function submit() {
+    setErr(null);
+    if (!file) { setErr('Choose a file first.'); return; }
+    if (!title.trim()) { setErr('Give it a title.'); return; }
+    setBusy(true);
+    AUTH.uploadArtifact(file, { title: title.trim(), kind: kind, personId: personId || null, evidence: evidence, visibility: visibility, note: note.trim() || null })
+      .then(function () {
+        setBusy(false); setFile(null); setTitle(''); setNote(''); if (fileRef.current) fileRef.current.value = '';
+        onAdded();
+      })
+      .catch(function (e) { setBusy(false); setErr((e && e.message) || 'Upload failed.'); });
+  }
+
+  return (
+    <div style={{ background: 'var(--cream,#faf6f0)', border: '1px solid rgba(139,69,19,0.2)', borderRadius: 12, padding: 16, marginBottom: 22 }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Add to the Proof</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label>File (image or PDF)</label>
+          <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={function (e) { setFile(e.target.files[0] || null); }} />
+        </div>
+        <div><label>Title</label><input value={title} onChange={function (e) { setTitle(e.target.value); }} placeholder="e.g. 1878 will of James Green Cason" /></div>
+        <div><label>Kind</label><select value={kind} onChange={function (e) { setKind(e.target.value); }}>{KINDS.map(function (k) { return <option key={k} value={k}>{k}</option>; })}</select></div>
+        <div><label>About whom</label>
+          <select value={personId} onChange={function (e) { setPersonId(e.target.value); }}>
+            <option value="">— the line in general —</option>
+            {PEOPLE.map(function (p) { return <option key={p.id} value={p.id}>{p.name}{p.gen ? ' (gen ' + p.gen + ')' : ''}</option>; })}
+          </select>
+        </div>
+        <div><label>Evidence tier</label><select value={evidence} onChange={function (e) { setEvidence(e.target.value); }}>{['confirmed', 'secondary', 'leading', 'possible'].map(function (t) { return <option key={t} value={t}>{t}</option>; })}</select></div>
+        <div><label>Visibility</label><select value={visibility} onChange={function (e) { setVisibility(e.target.value); }}><option value="public">public</option><option value="family">family only</option></select></div>
+        <div style={{ gridColumn: '1 / -1' }}><label>Note / citation (optional)</label><input value={note} onChange={function (e) { setNote(e.target.value); }} placeholder="Source, archive, book & page…" /></div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
+        <button onClick={submit} disabled={busy} style={Object.assign(ctl(true), { marginLeft: 0, padding: '8px 16px', opacity: busy ? 0.6 : 1 })}>{busy ? 'Uploading…' : 'Add to the Proof'}</button>
+        {err && <span style={{ color: 'var(--blood,#7a1f1f)', fontSize: 12.5 }}>{err}</span>}
+        <span style={{ color: 'var(--faded)', fontSize: 11.5 }}>Files are stored publicly; mark sensitive items “family only.”</span>
+      </div>
+    </div>
+  );
+}
+
+function Card({ a, onZoom }) {
+  return (
+    <div className="pf-card">
+      {isImg(a.url)
+        ? <img src={a.url} alt={a.title} loading="lazy" onClick={function () { onZoom(a); }} />
+        : <a className="pf-doc" href={a.url} target="_blank" rel="noopener">{KIND_ICON[a.kind] || '📄'}</a>}
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, lineHeight: 1.25 }}>{a.title}</div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          <Badge color="var(--faded)">{KIND_ICON[a.kind] || ''} {a.kind}</Badge>
+          {a.evidence && <Badge color={TIER[a.evidence] || 'var(--faded)'}>{a.evidence}</Badge>}
+          {a.visibility === 'family' && <Badge color="var(--rust)">family</Badge>}
+        </div>
+        {a.person_id && <div style={{ fontSize: 12 }}>on <strong>{nm(a.person_id)}</strong></div>}
+        {a.note && <div style={{ fontSize: 11.5, color: 'var(--faded)', fontStyle: 'italic' }}>{a.note}</div>}
+        <div style={{ marginTop: 'auto', fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)' }}>
+          added by {a.author_name || 'family'} · {new Date(a.created_at).toLocaleDateString()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProofApp() {
+  const [role, setRole] = useState(AUTH ? AUTH.getState() : { mode: 'narrator' });
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [kindFilter, setKindFilter] = useState('');
+  const [authMsg, setAuthMsg] = useState('');
+  const [zoom, setZoom] = useState(null);
+
+  function refresh() { if (AUTH) AUTH.loadArtifacts().then(function (list) { setItems(list); setLoaded(true); }); else setLoaded(true); }
+  useEffect(function () {
+    if (!AUTH) { setLoaded(true); return; }
+    const off = AUTH.onChange(function (s) { setRole(s); });
+    refresh();
+    return off;
+  }, []);
+
+  const isMember = role && role.mode === 'member';
+  const shown = useMemo(function () { return kindFilter ? items.filter(function (a) { return a.kind === kindFilter; }) : items; }, [items, kindFilter]);
+  const present = useMemo(function () { const s = {}; items.forEach(function (a) { s[a.kind] = (s[a.kind] || 0) + 1; }); return s; }, [items]);
+
+  return (
+    <div style={{ maxWidth: 1120, margin: '0 auto', padding: '26px 20px 70px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 10, marginBottom: 6 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 30, color: 'var(--ink)' }}>The Proof</h1>
+        <nav style={{ fontFamily: 'var(--font-sans)', fontSize: 13, display: 'flex', gap: 14 }}>
+          <a href="/living">The Living Line</a><a href="/tree">The Tree</a><a href="/">Home</a>
+        </nav>
+      </div>
+      <p style={{ color: 'var(--faded)', fontSize: 14, marginBottom: 18, maxWidth: 720 }}>
+        The evidence behind the line — letters, photographs, and primary records, each attached to the person it documents and marked by how well it’s sourced. This is the family’s <em>proof plane</em>: an open, attributed record of what backs every claim.
+      </p>
+
+      <div style={{ background: 'rgba(154,123,45,0.07)', border: '1px solid rgba(139,69,19,0.18)', borderRadius: 12, padding: 14, marginBottom: 22 }}>
+        <RolePanel role={role}
+          onSignIn={function (email) { setAuthMsg('Sending…'); AUTH.signIn(email).then(function () { setAuthMsg('Check your email for a sign-in link.'); }).catch(function (e) { setAuthMsg('Error: ' + ((e && e.message) || e)); }); }}
+          onSignOut={function () { AUTH.signOut(); }} msg={authMsg} />
+      </div>
+
+      {isMember && <UploadPanel onAdded={refresh} />}
+
+      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--faded)' }}>{items.length} artifact{items.length === 1 ? '' : 's'}</span>
+        {['', 'document', 'record', 'photo', 'letter', 'headstone', 'other'].filter(function (k) { return k === '' || present[k]; }).map(function (k) {
+          return <button key={k || 'all'} onClick={function () { setKindFilter(k); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11.5, padding: '4px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: kindFilter === k ? 'var(--gold)' : 'transparent', color: kindFilter === k ? '#fff' : 'var(--ink)' }}>{k === '' ? 'all' : k}</button>;
+        })}
+      </div>
+
+      {!loaded ? <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>Loading the record…</div>
+        : shown.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--faded)' }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🗃️</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--ink)', marginBottom: 4 }}>No records here yet.</div>
+            <div style={{ fontSize: 13.5 }}>{isMember ? 'Use “Add to the Proof” above to upload the first scan.' : 'Family members can sign in to add the first letter, photo, or document.'}</div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+            {shown.map(function (a) { return <Card key={a.id} a={a} onZoom={setZoom} />; })}
+          </div>
+        )}
+
+      {zoom && (
+        <div onClick={function () { setZoom(null); }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,14,8,0.86)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 50, cursor: 'zoom-out' }}>
+          <div style={{ maxWidth: 920, maxHeight: '92vh', textAlign: 'center' }}>
+            <img src={zoom.url} alt={zoom.title} style={{ maxWidth: '100%', maxHeight: '82vh', borderRadius: 8, boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }} />
+            <div style={{ color: '#f0eee9', fontFamily: 'var(--font-display)', marginTop: 10, fontSize: 15 }}>{zoom.title}{zoom.person_id ? ' — ' + nm(zoom.person_id) : ''}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<ProofApp />);
+</script>
+</body>
+</html>

@@ -114,6 +114,16 @@ test('The family-tree dashboard loads with zero console errors', async ({ page }
   expect(errors, 'console/page errors on /dashboard:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The Proof page loads with zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/proof');
+  await expect(page.getByRole('heading', { name: 'The Proof' })).toBeVisible({ timeout: 25000 });
+  // the gallery chrome resolves (artifact count + sign-in prompt for guests)
+  await expect(page.getByText(/\d+ artifact/).first()).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(/Family members/).first()).toBeVisible();
+  expect(errors, 'console/page errors on /proof:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The heritage landing responds', async ({ page }) => {
   const res = await page.goto('/');
   expect(res.status()).toBeLessThan(400);
