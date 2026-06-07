@@ -120,12 +120,12 @@ const CASON_DATA = {
       id: 'james-green', generation: 7, name: 'James Green Cason',
       role: 'The Builder',
       lifespan: 'c.1800 – 1878',
-      born: { place: 'Alachua County, Florida', coords: [29.8086, -82.4787] },
+      born: { year: 1800, place: 'Georgia (the Glynn Co. coast) — born before the 1823 Florida crossing', coords: [31.21, -81.50] },
       died: { year: 1878, place: 'Alachua County, Florida', coords: [29.89, -82.45] },
       parents: ['ransom-sr','phoebe-munden'], spouse: ['lucy-barrow'],
       children: ['mary-ann','john-barrow','george-washington','ransom-2'],
       direct: true, evidence: 'confirmed',
-      narrative: 'Married Lucinda "Lucy" Barrow. At least nine children. His father arrived when Alachua County had 300 people; by 1878, thousands. James Green\'s generation turned a homestead into a community.',
+      narrative: 'Born in Georgia c.1800, he was one of the children Ransom Sr. brought south through the Okefenokee in 1823 — so the family\'s Florida-born line begins not with him but with his son, Lt. Ransom "2" (1835). Married Lucinda "Lucy" Barrow. At least nine children. His father arrived when Alachua County had 300 people; by 1878, thousands. James Green\'s generation turned a homestead into a community.',
       notes: 'NAMING LEAD: the middle name "Green" almost certainly preserves a maternal surname (a near-universal 18th–19th-c. Southern custom), pointing to a Green in Ransom Sr.\'s mother\'s line or the Munden line — a concrete un-bricking target (Greens of Pitt/Beaufort/Craven Co. NC and Princess Anne Co. VA). Separately, that Ransom named a son "James" supports a father named James.',
     },
     'lucy-barrow': { id: 'lucy-barrow', generation: 7, name: 'Lucinda "Lucy" Barrow', role: 'm. James Green', spouse: ['james-green'], direct: false },
@@ -221,7 +221,7 @@ const CASON_DATA = {
 
     /* ── Gen 13–14 — the living keepers (added by the family; first names and
        only the dates the family provided; LIVING individuals). ── */
-    'ryan': { id: 'ryan', generation: 13, name: 'Ryan Cason', role: 'keeper of the family record', born: { year: 1982, place: 'Orlando, Florida' }, parents: ['robert-jr'], direct: false, evidence: 'secondary', tags: ['living'], narrative: 'Son of Robert Randall Cason Jr.; AI systems architect / software developer in Central Florida (Orlando → Winter Garden), and the present keeper compiling this record. Spouse and children are held out of the public record pending a privacy decision.' },
+    'ryan': { id: 'ryan', generation: 13, name: 'Ryan Cason', role: 'keeper of the family record · 6th-generation Floridian', born: { year: 1982, place: 'Orlando, Florida' }, parents: ['robert-jr'], direct: false, evidence: 'secondary', tags: ['living'], narrative: 'Son of Robert Randall Cason Jr., and the sixth generation of the line born in Florida — counting from Lt. Ransom "2" (1835), the first Florida-born Cason of the direct line, down through Thadeous, Carl Columbus, Robert Randall Sr. and Jr. An AI systems architect / software developer in Central Florida (Orlando → Winter Garden), and the present keeper compiling this record. Spouse and children are held out of the public record pending a privacy decision.' },
     'robert-carl': { id: 'robert-carl', generation: 13, name: 'Robert Carl Cason', role: 'son of Robert Randall Jr.', parents: ['robert-jr'], children: ['robert-randall-3'], born: { year: 1984 }, direct: false, evidence: 'secondary', tags: ['living'], narrative: 'Son of Robert Randall Cason Jr. (b. 27 Mar 1984). His fuller story is to be set down later.' },
     'robert-randall-3': { id: 'robert-randall-3', generation: 14, name: 'Robert Randall Cason III', role: 'first child of Robert Carl', parents: ['robert-carl'], direct: false, evidence: 'secondary', tags: ['living'], narrative: 'First child of Robert Carl Cason, named for his grandfather Robert Randall Cason Jr. and great-grandfather Robert Randall Cason Sr. — the ancestral name revived across a generation, echoing Ransom "2" (named for his grandfather Ransom Sr.) and Thomas Cason III.' },
 
