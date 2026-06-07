@@ -103,6 +103,15 @@
                'naps in the curing barn and blames the fumes',
                'mistakes a neighbor’s mule for his own and rides it home'],
     },
+    child: { // the young ones — chores half-done, then off to play
+      occupation: 'of the household, mostly at play',
+      personality: ['quick', 'curious', 'full of motion', 'half-wild'],
+      abilities: ['running everywhere', 'finding the creek', 'half-doing a chore', 'minding a smaller one'],
+      goals: ['get back to playing', 'keep up with the bigger cousins', 'not be caught idling'],
+      voice: { register: 'breathless and direct; a child of the place', idioms: ['watch me!', 'is it supper yet', 'I almost had it'] },
+      levity: 0.85,
+      quirks: ['swears they were not the least bit tired', 'turns one chore into three games'],
+    },
   };
 
   /* ---- era-grounded wisdom: the advice each archetype hands down ---- */
@@ -123,6 +132,8 @@
              'Watch the weather and the soil — they argue, but they do not lie.'],
     collateral: ['Stay close to kin and you’ll never want for a meal or a story.',
                  'A borrowed mule is only borrowed if somebody saw you.'],
+    child: ['The creek is always better than the chore.',
+            'If you run fast enough, nobody can give you a job.'],
   };
 
   /* ---- hand-authored depth for the anchor personas. Grounded entirely in the
@@ -228,6 +239,7 @@
     const tags = p.tags || [];
     const female = /^(elizabeth|ruth|sarah|anne|susannah|dynah|jane|phoebe|clementine|martha|becky|lucy|lucinda|casey|susan|georgia|lena|carrie|julia|wilma|dot|dorothy|marie|kate|mary)\b/i.test(p.name || '');
 
+    if (tags.indexOf('child') !== -1) return 'child'; // explicitly a young one (e.g. shown playing)
     if (/orphan/.test(t)) return 'orphan';
     if (/lieutenant|infantry|army of tennessee|chickamauga|mustered|surrendered/.test(t)) return 'soldier';
     if (tags.indexOf('tobacco-planter') !== -1 || /tobacco|planter|headright|vestry/.test(t)) return 'planter';

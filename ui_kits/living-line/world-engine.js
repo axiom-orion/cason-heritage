@@ -425,7 +425,8 @@
     // age in the sim year → the young ones live a child's day, not a grown one
     const bornY = H ? H.birthYearOf(person) : null;
     const age = (bornY != null && env.date.y != null) ? env.date.y - bornY : null;
-    const isChild = age != null && age >= 3 && age <= 13;
+    const taggedChild = persona.archetype === 'child'; // explicitly depicted as a young one
+    const isChild = taggedChild || (age != null && age >= 3 && age <= 13);
     const effArch = isChild ? 'child' : persona.archetype;
     // Perceive
     trace.push({ step: 'perceive', detail: env.timeOfDay.phase + ', ' + env.weather.label + (env.isSunday ? ', the Sabbath' : '') });

@@ -143,9 +143,19 @@
      'possible' = family tradition, not yet documented — never asserted as fact. ---- */
   const AUTHORED_GAPS = [
     { ownerId: 'ransom-sr', tags: ['migration', 'in-law'],
-      text: 'One of my brothers is said to have married a sister of my wife, Phoebe Munden — a second Cason–Munden match. Which brother, and her given name, are not yet in our record.' },
+      text: 'Bo Williams names my brother William’s wife as Ann Munden — the second Cason–Munden match. Is she truly a sister of my Phoebe, and where is the primary marriage record?' },
+    { ownerId: 'ransom-sr', tags: ['migration', 'brothers'],
+      text: 'My brothers are named now — Eli, William, James and Henry — but when and where each of them was born and died is still unwritten, and no primary record yet names our father.' },
     { ownerId: 'phoebe-munden', tags: ['migration', 'in-law'],
-      text: 'A sister of mine is said to have married one of my husband Ransom’s brothers. Her name is not yet recovered.' },
+      text: 'Ann Munden married Ransom’s brother William. If Ann is my sister, our shared parents and the Munden line before Georgia are still to be proven.' },
+    { ownerId: 'phoebe-munden', tags: ['in-law', 'munden'],
+      text: 'My own people, the Mundens — my father and mother, my brothers and sisters — are scarcely written down. Where did the Mundens come from before Georgia?' },
+    { ownerId: 'james-jr-1750', tags: ['branch', 'unsolved'],
+      text: 'My marriage into the Watkins family is in the 1771 will, but no record yet fixes the year I was born or the year and place I died.' },
+    { ownerId: 'james-green', tags: ['naming', 'maternal'],
+      text: 'My middle name is Green — but whose people were the Greens? It has the look of a mother’s maiden name, and I cannot yet say which line carried it down to me.' },
+    { ownerId: 'casey-ann', tags: ['endogamy', 'cason'],
+      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. None of it is yet proven on paper.' },
   ];
 
   /* ============================================================
