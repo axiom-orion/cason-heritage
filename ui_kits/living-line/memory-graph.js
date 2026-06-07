@@ -152,6 +152,10 @@
       text: 'My own people, the Mundens — my father and mother, my brothers and sisters — are scarcely written down. Where did the Mundens come from before Georgia?' },
     { ownerId: 'james-jr-1750', tags: ['branch', 'unsolved'],
       text: 'My marriage into the Watkins family is in the 1771 will, but no record yet fixes the year I was born or the year and place I died.' },
+    { ownerId: 'james-green', tags: ['naming', 'maternal'],
+      text: 'My middle name is Green — but whose people were the Greens? It has the look of a mother’s maiden name, and I cannot yet say which line carried it down to me.' },
+    { ownerId: 'casey-ann', tags: ['endogamy', 'cason'],
+      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. None of it is yet proven on paper.' },
   ];
 
   /* ============================================================
