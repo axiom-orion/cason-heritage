@@ -383,10 +383,11 @@
       (snap.agents || []).forEach(function (a) {
         present[a.id] = true;
         var arch = a.archetype || archetypeOf(a.id);
-        if (!figures[a.id]) { var grp = makeFigure(a.id, a); scene.add(grp); var st0 = slot(a.id, stationKey(a, arch, env)); grp.position.copy(st0); figures[a.id] = { group: grp, target: st0.clone(), phase: hash(a.id) % 6, limbs: grp.userData.limbs }; }
-        figures[a.id].target = slot(a.id, stationKey(a, arch, env));
-        figures[a.id].kind = a.kind;
-        figures[a.id].isChild = a.isChild;
+        var sk = stationKey(a, arch, env);
+        if (!figures[a.id]) { var grp = makeFigure(a.id, a); scene.add(grp); var st0 = slot(a.id, sk); grp.position.copy(st0); figures[a.id] = { group: grp, home: st0.clone(), wt: st0.clone(), stationKey: sk, phase: hash(a.id) % 6, pause: 0, limbs: grp.userData.limbs }; }
+        var fg = figures[a.id];
+        fg.kind = a.kind; fg.arch = arch; fg.isChild = a.isChild;
+        if (fg.stationKey !== sk) { fg.stationKey = sk; fg.home = slot(a.id, sk); fg.wt = fg.home.clone(); }
       });
       Object.keys(figures).forEach(function (id) { if (!present[id]) { scene.remove(figures[id].group); disposeObj(figures[id].group); delete figures[id]; } });
 
@@ -441,23 +442,46 @@
       if (limbs.armL) limbs.armL.rotation.x = ang; if (limbs.armR) limbs.armR.rotation.x = -ang;
       if (limbs.legL) limbs.legL.rotation.x = -ang; if (limbs.legR) limbs.legR.rotation.x = ang;
     }
+    // task gestures performed while a figure is at a spot — so they're DOING something
+    function gesture(f, c) {
+      var L = f.limbs; if (!L) return; var t = c * (f.isChild ? 6 : 3.6) + f.phase;
+      if (L.legL) L.legL.rotation.x = 0; if (L.legR) L.legR.rotation.x = 0; f.group.rotation.z = 0;
+      if (f.kind === 'play') { f.group.position.y = Math.abs(Math.sin(c * 7 + f.phase)) * 0.12; swingLimbs(L, Math.sin(t) * 0.5); }
+      else if (f.kind === 'watch') { f.group.position.y = 0; f.group.rotation.y += Math.sin(c * 0.6 + f.phase) * 0.006; if (L.armR) L.armR.rotation.x = -0.5; if (L.armL) L.armL.rotation.x = -0.25; }
+      else if (f.kind === 'fireside' || f.kind === 'rest') { f.group.position.y = Math.abs(Math.sin(c * 1.4)) * 0.012; f.group.rotation.z = Math.sin(c * 1.2 + f.phase) * 0.04; if (L.armR) L.armR.rotation.x = Math.sin(c * 1.3) * 0.08; if (L.armL) L.armL.rotation.x = Math.sin(c * 1.3) * 0.08; }
+      else if (f.kind === 'sabbath') { f.group.position.y = 0; if (L.armL) L.armL.rotation.x = 0.12; if (L.armR) L.armR.rotation.x = 0.12; }
+      else if (f.arch === 'matriarch') { f.group.position.y = Math.abs(Math.sin(c * 2.6)) * 0.03; if (L.armR) L.armR.rotation.x = Math.sin(c * 3.2) * 0.5 - 0.1; if (L.armL) L.armL.rotation.x = 0.1; }
+      else { // generic work — a steady chop / hoe / saw with the right arm
+        if (L.armR) L.armR.rotation.x = -Math.abs(Math.sin(t)) * 0.95 - 0.05;
+        if (L.armL) L.armL.rotation.x = -0.12;
+        f.group.position.y = Math.abs(Math.sin(t)) * 0.025;
+      }
+    }
     function tick() {
       if (disposed) return;
       raf = requestAnimationFrame(tick); clock += 0.016;
       Object.keys(figures).forEach(function (id) {
-        var f = figures[id], p = f.group.position, tg = f.target;
-        var dx = tg.x - p.x, dz = tg.z - p.z, d = Math.hypot(dx, dz);
-        var speed = f.isChild ? 0.045 : 0.03, wob = f.isChild ? 9 : 7;
-        if (d > 0.05) {
+        var f = figures[id], p = f.group.position;
+        var home = f.home || f.wt; if (!f.wt) f.wt = home.clone();
+        var dx = f.wt.x - p.x, dz = f.wt.z - p.z, d = Math.hypot(dx, dz);
+        var speed = f.isChild ? 0.04 : 0.028, wob = f.isChild ? 9 : 7;
+        if (d > 0.06) {
+          // ambling to a spot
           p.x += dx * speed; p.z += dz * speed;
-          f.group.position.y = Math.abs(Math.sin(clock * wob + f.phase)) * (f.isChild ? 0.09 : 0.06);
-          f.group.rotation.y = Math.atan2(dx, dz);
+          f.group.position.y = Math.abs(Math.sin(clock * wob + f.phase)) * (f.isChild ? 0.09 : 0.055);
+          f.group.rotation.y = Math.atan2(dx, dz); f.group.rotation.z = 0;
           swingLimbs(f.limbs, Math.sin(clock * (wob + 1) + f.phase) * 0.6);
         } else {
-          f.group.position.y = 0;
+          // arrived — perform the task, then after a beat amble to another spot nearby
+          gesture(f, clock);
           if (f.kind === 'comic') f.group.rotation.y += 0.01;
-          // gentle idle: children fidget, watchers turn, others breathe
-          swingLimbs(f.limbs, Math.sin(clock * 1.5 + f.phase) * (f.isChild ? 0.18 : 0.05));
+          if (clock > (f.pause || 0)) {
+            f.pause = clock + 1.4 + (hash(id + '|' + Math.floor(clock)) % 220) / 100;
+            var still = f.kind === 'fireside' || f.kind === 'sabbath' || f.kind === 'rest' || f.kind === 'watch';
+            var ang = (hash(id + ':' + Math.floor(clock * 1.3)) % 628) / 100;
+            var rad = still ? 0.12 : (0.3 + (hash(id + 'r' + Math.floor(clock)) % 60) / 100);
+            f.wt = new THREE.Vector3(home.x + Math.cos(ang) * rad, 0, home.z + Math.sin(ang) * rad);
+          }
         }
       });
       if (avatar && avatarTarget) { var apx = avatar.position; var adx = avatarTarget.x - apx.x, adz = avatarTarget.z - apx.z, add = Math.hypot(adx, adz); if (add > 0.06) { apx.x += adx * 0.05; apx.z += adz * 0.05; avatar.position.y = Math.abs(Math.sin(clock * 7)) * 0.07; avatar.rotation.y = Math.atan2(adx, adz); swingLimbs(avatar.userData.limbs, Math.sin(clock * 8) * 0.5); } else { avatar.position.y = 0; swingLimbs(avatar.userData.limbs, Math.sin(clock * 1.5) * 0.05); } }
