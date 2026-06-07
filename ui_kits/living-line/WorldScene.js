@@ -136,6 +136,8 @@
     var renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(W, Hh);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.cursor = 'grab';
@@ -153,15 +155,18 @@
     }
     placeCamera();
 
-    var hemi = new THREE.HemisphereLight(0xbfd4ff, 0x55502f, 0.7); scene.add(hemi);
-    var sun = new THREE.DirectionalLight(0xfff1d0, 0.9); sun.position.set(8, 14, 6); scene.add(sun);
+    var hemi = new THREE.HemisphereLight(0xbfd4ff, 0x6b6448, 0.75); scene.add(hemi);
+    var sun = new THREE.DirectionalLight(0xfff1d0, 1.15); sun.position.set(8, 14, 6); sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.02;
+    var sc = sun.shadow.camera; sc.near = 1; sc.far = 70; sc.left = -28; sc.right = 28; sc.top = 28; sc.bottom = -28; sc.updateProjectionMatrix();
+    scene.add(sun);
 
-    function mat(color) { return new THREE.MeshLambertMaterial({ color: color }); }
-    function box(w, h, d, color, x, y, z) { var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color)); m.position.set(x, y, z); scene.add(m); return m; }
+    function mat(color) { return new THREE.MeshStandardMaterial({ color: color, roughness: 0.95, metalness: 0.0 }); }
+    function box(w, h, d, color, x, y, z) { var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color)); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; scene.add(m); return m; }
 
-    // ground
-    var ground = new THREE.Mesh(new THREE.CircleGeometry(26, 40), mat(profile.ground));
-    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+    // ground (a soft disc that catches the shadows)
+    var ground = new THREE.Mesh(new THREE.CircleGeometry(26, 48), mat(profile.ground));
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
     // water — river, marsh, or the wide Indian River at Titusville
     if (profile.water) {
@@ -214,7 +219,7 @@
     function deadtree(x, z) { box(0.18, 1.6, 0.18, 0x4a4034, x, 0.8, z); box(0.7, 0.1, 0.1, 0x4a4034, x + 0.2, 1.4, z); }
     function scatterTrees(color, n, seedKey) {
       var s = hash(seedKey);
-      for (var i = 0; i < n; i++) { var x = -11 + ((s >> (i * 2)) % 22), z = -10 + (((s >> i) * 3 + i * 5) % 17); box(0.22, 0.9, 0.22, 0x4a3320, x, 0.45, z); var f = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.7, 6), mat(color)); f.position.set(x, 1.7, z); scene.add(f); }
+      for (var i = 0; i < n; i++) { var x = -11 + ((s >> (i * 2)) % 22), z = -10 + (((s >> i) * 3 + i * 5) % 17); box(0.22, 0.9, 0.22, 0x4a3320, x, 0.45, z); var f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95, 0), mat(color)); f.position.set(x, 1.55, z); scene.add(f); var f2 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.62, 0), mat(color)); f2.position.set(x + 0.15, 2.1, z - 0.1); scene.add(f2); }
     }
     function rows(fn, x0, z0, cols, rws, dx, dz) { for (var r = 0; r < rws; r++) for (var c = 0; c < cols; c++) fn(x0 + c * dx, z0 + r * dz); }
 
@@ -281,6 +286,11 @@
     var fireLight = new THREE.PointLight(0xff7a2a, 0, 10); fireLight.position.set(0, 0.9, 0); fire.add(fireLight);
     fire.position.set(STATIONS.fire[0], 0, STATIONS.fire[1]); fire.visible = false; scene.add(fire);
 
+    // soft shadows across the whole static scene (people get theirs as they spawn)
+    scene.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    ground.castShadow = false; if (water) { water.castShadow = false; }
+    [flame, flameInner].forEach(function (m) { m.castShadow = false; m.receiveShadow = false; });
+
     /* ---------- people ---------- */
     var figures = {}; // id -> { group, target, kind, isChild, phase, limbs }
     var bubble = null, bubbleFor = null, bubbleText = '';
@@ -304,7 +314,7 @@
     }
     function limb(color, len, x, y) {
       var pivot = new THREE.Group();
-      var m = new THREE.Mesh(new THREE.BoxGeometry(0.1, len, 0.1), mat(color)); m.position.y = -len / 2; pivot.add(m);
+      var m = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, Math.max(0.04, len - 0.11), 3, 8), mat(color)); m.position.y = -len / 2; m.castShadow = true; pivot.add(m);
       pivot.position.set(x, y, 0); return pivot;
     }
 
@@ -313,13 +323,14 @@
     function setAvatar(name) {
       if (name && !avatar) {
         avatar = new THREE.Group();
-        var ab = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.9, 8), mat(0x2f6f8f)); ab.position.y = 0.62; avatar.add(ab);
-        var ah = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), mat(0xe6c39a)); ah.position.y = 1.2; avatar.add(ah);
+        var ab = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.5, 4, 16), mat(0x2f6f8f)); ab.position.y = 0.62; ab.castShadow = true; avatar.add(ab);
+        var ah = new THREE.Mesh(new THREE.SphereGeometry(0.19, 18, 14), mat(0xe6c39a)); ah.position.y = 1.2; ah.castShadow = true; avatar.add(ah);
         var al = limb(0x2f6f8f, 0.4, -0.16, 0.18), ar = limb(0x2f6f8f, 0.4, 0.16, 0.18); avatar.add(al); avatar.add(ar);
         avatar.userData.limbs = { armL: limb(0x2f6f8f, 0.38, -0.28, 0.78), armR: limb(0x2f6f8f, 0.38, 0.28, 0.78), legL: al, legR: ar };
         avatar.add(avatar.userData.limbs.armL); avatar.add(avatar.userData.limbs.armR);
         var rg = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 8, 24), new THREE.MeshBasicMaterial({ color: 0xd4a825 })); rg.rotation.x = Math.PI / 2; rg.position.y = 0.05; avatar.add(rg);
         avatar.add(makeLabel((name || 'You') + ' ✦'));
+        avatar.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
         avatar.position.set(STATIONS.square[0], 0, STATIONS.square[1] + 2);
         scene.add(avatar);
       } else if (!name && avatar) { scene.remove(avatar); disposeObj(avatar); avatar = null; avatarTarget = null; }
@@ -329,9 +340,9 @@
       var arch = (agent && agent.archetype) || per.archetype;
       var col = archColor(arch);
       var g = new THREE.Group();
-      var body = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.24, 0.6, 6), mat(col)); body.position.y = 0.62; g.add(body);
-      var head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), mat(0xe6c39a)); head.position.y = 1.05; g.add(head);
-      if (!(agent && agent.isChild)) { var hat = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.18, 6), mat(arch === 'matriarch' ? 0x5a3a4a : 0x3a2a1a)); hat.position.y = 1.18; g.add(hat); }
+      var body = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.34, 4, 14), mat(col)); body.position.y = 0.6; g.add(body);
+      var head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 18, 14), mat(0xe6c39a)); head.position.y = 1.05; g.add(head);
+      if (!(agent && agent.isChild)) { var hat = new THREE.Mesh(new THREE.ConeGeometry(0.21, 0.18, 14), mat(arch === 'matriarch' ? 0x5a3a4a : 0x3a2a1a)); hat.position.y = 1.18; g.add(hat); }
       var armL = limb(col, 0.42, -0.22, 0.86), armR = limb(col, 0.42, 0.22, 0.86);
       var legL = limb(0x3a2f28, 0.4, -0.1, 0.34), legR = limb(0x3a2f28, 0.4, 0.1, 0.34);
       g.add(armL); g.add(armR); g.add(legL); g.add(legR);
@@ -339,7 +350,7 @@
       g.add(makeLabel((per.name || id).split(' ')[0]));
       if (agent && agent.isChild) g.scale.setScalar(0.6);
       g.userData.personId = id;
-      g.traverse(function (o) { o.userData.personId = id; });
+      g.traverse(function (o) { o.userData.personId = id; if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
       return g;
     }
     function slot(id, key) {
