@@ -169,6 +169,7 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Governance' }).click();
   await expect(page.getByRole('heading', { name: /Governance/ })).toBeVisible();
+  await expect(page.getByText(/Needs your eye/)).toBeVisible();              // the watch dashboard
   await expect(page.getByText('Holding')).toBeVisible();                     // horizon circuit-breaker green
   await expect(page.getByText(/claims the record refuses/)).toBeVisible();    // quarantine registry
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);

@@ -308,7 +308,7 @@ function ConsensusView({ data }) {
   );
 }
 
-function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed, member }) {
+function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed, member, focusSignal }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState('templated');
@@ -319,8 +319,14 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
   const [rbusy, setRbusy] = useState(false);
   const [rerr, setRerr] = useState(null);
   const [saved, setSaved] = useState(false);
+  const chatRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(function () { setMsgs([]); setRdata(null); setRerr(null); setSaved(false); setRq(''); }, [personId]);
+
+  useEffect(function () {
+    if (focusSignal && chatRef.current) { try { chatRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} if (inputRef.current) inputRef.current.focus(); }
+  }, [focusSignal]);
 
   useEffect(function () {
     if (pending) { setShowR(true); setRq(pending); research(pending); if (onPendingConsumed) onPendingConsumed(); }
@@ -351,6 +357,30 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
       .then(function () { setRbusy(false); });
   }
 
+  // push the current question to all three models, inline in the conversation
+  function pushToAll(text) {
+    const t = (text != null ? text : input).trim(); if (!t || busy) return;
+    setInput('');
+    setMsgs(function (m) { return m.concat([{ role: 'user', text: t }]); });
+    setBusy(true);
+    const ctx = nm(personId) + (person && person.lifespan ? ' (' + person.lifespan + ')' : '') + (person && person.born && person.born.place ? ', ' + person.born.place : '');
+    window.CASON_AI.researchConsensus(t, ctx)
+      .then(function (r) { setMsgs(function (m) { return m.concat([{ role: 'consensus', data: r }]); }); })
+      .catch(function (e) { setMsgs(function (m) { return m.concat([{ role: 'persona', text: 'The three-model cross-check could not run (' + (e && e.message || e) + ').', mode: 'error' }]); }); })
+      .then(function () { setBusy(false); });
+  }
+
+  function saveConsensus(data) {
+    if (!data || !data.consensus) return;
+    const c = data.consensus;
+    const ev = c.confidence === 'high' ? 'secondary' : c.confidence === 'medium' ? 'possible' : 'unlikely';
+    const rec = { personId: personId, question: data.question, text: c.answer, corroborated: c.corroborated, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)' + (member ? ' · saved by ' + member : ''), when: Date.now() };
+    try { const k = 'cason-memory-' + personId; const arr = JSON.parse(localStorage.getItem(k) || '[]'); arr.push(rec); localStorage.setItem(k, JSON.stringify(arr)); } catch (e) {}
+    if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) window.CASON_MEMORY.addUserMemory(rec);
+    if (member && window.CASON_AUTH && window.CASON_AUTH.addContribution) window.CASON_AUTH.addContribution(rec);
+    if (onSaved) onSaved();
+  }
+
   function saveFinding() {
     if (!rdata || !rdata.consensus) return;
     const c = rdata.consensus;
@@ -374,7 +404,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
     <div>
       {sheet && person && <PersonaSheet sheet={sheet} person={person} onAskAbility={function (a) { send('I should like to learn — tell me of your skill in ' + a + '.'); }} />}
       {snap && person && <div style={{ marginTop: 14, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 12 }}><CurrentMoment snap={snap} personId={personId} /></div>}
-      <div style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}>
+      <div ref={chatRef} style={{ marginTop: 16, borderTop: '1px solid rgba(139,69,19,0.15)', paddingTop: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)' }}>Speak with {nm(personId)}</div>
         <div style={{ display: 'flex', gap: 4 }}>
@@ -384,8 +414,19 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
       </div>
 
       {msgs.length > 0 && (
-        <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8, padding: '2px 2px 2px 0' }}>
-          {msgs.map(function (m, i) { return <Bubble key={i} m={m} />; })}
+        <div style={{ maxHeight: 260, overflowY: 'auto', marginBottom: 8, padding: '2px 2px 2px 0' }}>
+          {msgs.map(function (m, i) {
+            if (m.role === 'consensus') {
+              return (
+                <div key={i} style={{ margin: '8px 0', padding: '8px 10px', background: 'rgba(44,74,107,0.06)', border: '1px solid rgba(44,74,107,0.18)', borderRadius: 8 }}>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--deep-blue)', marginBottom: 4 }}>⚖ Cross-check · Grok · Gemini · Claude</div>
+                  <ConsensusView data={m.data} />
+                  {m.data.consensus && m.data.consensus.confidence !== 'low' && <button onClick={function () { saveConsensus(m.data); }} style={{ ...ctlBtn(false), marginTop: 6 }}>Save corroborated finding to {nm(personId).split(' ')[0]}</button>}
+                </div>
+              );
+            }
+            return <Bubble key={i} m={m} />;
+          })}
           {busy && <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--faded)' }}>…thinking</div>}
         </div>
       )}
@@ -395,11 +436,13 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
       </div>
 
       <div style={{ display: 'flex', gap: 6 }}>
-        <input value={input} onChange={function (e) { setInput(e.target.value); }} onKeyDown={function (e) { if (e.key === 'Enter') send(); }}
+        <input ref={inputRef} value={input} onChange={function (e) { setInput(e.target.value); }} onKeyDown={function (e) { if (e.key === 'Enter') send(); }}
           placeholder={'Ask ' + nm(personId) + '…'} style={{ flex: 1, padding: '7px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12.5 }} />
         <button onClick={function () { send(); }} disabled={busy} style={{ ...ctlBtn(true), opacity: busy ? 0.5 : 1 }}>Send</button>
+        {member && <button onClick={function () { pushToAll(); }} disabled={busy} title="Push this question to all three models — Grok, Gemini & Claude — and bring the cross-checked answer into the conversation" style={{ ...ctlBtn(false), opacity: busy ? 0.5 : 1, whiteSpace: 'nowrap' }}>⚖ All 3</button>}
       </div>
-      {mode === 'live' && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Live mode needs a server key; it falls back to the offline voice if unavailable.</div>}
+      {member && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Send speaks with {nm(personId).split(' ')[0]} in their own voice (bounded to what they could know). <strong>⚖ All 3</strong> pushes the question to Grok, Gemini &amp; Claude and brings the cross-checked answer into the conversation.</div>}
+      {mode === 'live' && !member && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Live mode needs a server key; it falls back to the offline voice if unavailable.</div>}
 
       {/* multi-model research */}
       <div style={{ marginTop: 12 }}>
@@ -834,7 +877,7 @@ function GovCard({ cap, children }) {
     </div>
   );
 }
-function GovernancePanel({ personId }) {
+function GovernancePanel({ personId, onSelect }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
     let pass = 0; const fails = [];
@@ -858,7 +901,15 @@ function GovernancePanel({ personId }) {
     });
     const gaps = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }).length;
     let sources = 0; ids.forEach(function (id) { sources += (people[id].sources || []).length; });
-    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources };
+    const watch = { flags: [], verify: [], thin: [], living: [] };
+    ids.forEach(function (id) {
+      const p = people[id], notes = p.notes || '', tags = p.tags || [], per = PERS.byId[id];
+      if (/flag|do not merge|collision|conflat|chronolog|⚠/i.test(notes) || tags.indexOf('name-collision') !== -1) watch.flags.push(id);
+      if (/verify|lead/i.test(notes) || ['possible', 'leading'].indexOf(p.evidence) !== -1) watch.verify.push(id);
+      if (per && per.provenance && per.provenance.reconstructed) watch.thin.push(id);
+      if (tags.indexOf('living') !== -1) watch.living.push(id);
+    });
+    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources, watch: watch };
   }, []);
   const tierOrder = ['confirmed', 'secondary', 'leading', 'possible', 'unsolved', 'reconstructed', 'eliminated', 'disproven'];
   const sub = personId ? MEM.access(personId) : null;
@@ -868,6 +919,23 @@ function GovernancePanel({ personId }) {
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
       <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 18, maxWidth: 620 }}>The honest form of governance over the line: what each agent is allowed to know, how well every claim is sourced, and what the record refuses to repeat — computed live over all {audit.total} people, and enforced by the build.</p>
+
+      <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
+        <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--blood,#7a1f1f)' }}>⚠ Conflation risks · {audit.watch.flags.length}</div>
+          <div style={{ fontSize: 11, color: 'var(--faded)', margin: '1px 0 5px' }}>same-name people that must not be merged, and flagged speculative links</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {audit.watch.flags.map(function (id) {
+              return <span key={id} onClick={function () { onSelect && onSelect(id); }} style={{ cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(139,30,30,0.1)', color: 'var(--blood,#7a1f1f)', border: '1px solid rgba(139,30,30,0.25)' }}>{nm(id)}</span>;
+            })}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 12.5, marginTop: 8, color: 'var(--ink)' }}>
+          <div>🔍 <strong>{audit.watch.verify.length}</strong> awaiting a primary record</div>
+          <div>✎ <strong>{audit.watch.thin.length}</strong> story-in-progress</div>
+          <div>👤 <strong>{audit.watch.living.length}</strong> living, in the public record</div>
+        </div>
+      </GovCard>
 
       <GovCard cap="Knowledge-horizon circuit-breaker">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -947,6 +1015,7 @@ function LivingWorld() {
   const [role, setRole] = useState(window.CASON_AUTH ? window.CASON_AUTH.getState() : { mode: 'narrator', enabled: false });
   const [showRole, setShowRole] = useState(false);
   const [authField, setAuthField] = useState('');
+  const [chatFocus, setChatFocus] = useState(0);
   const [authMsg, setAuthMsg] = useState('');
   const [feed, setFeed] = useState([]);
   const [, force] = useState(0);
@@ -1004,7 +1073,7 @@ function LivingWorld() {
     window.CASON_SCENE.mount(host, {
       stage: stage,
       snapshot: worldRef.current ? worldRef.current.snapshot() : null,
-      onSelect: function (id) { setSelectedId(id); },
+      onSelect: function (id) { setSelectedId(id); setView('homestead'); setChatFocus(function (c) { return c + 1; }); },
     }).then(function (ctrl) { if (!alive) { ctrl.dispose(); return; } sceneCtrl.current = ctrl; if (ctrl.setAvatar) ctrl.setAvatar(isMember ? (role.name || 'You') : null); })
       .catch(function (e) { if (alive) setSceneErr('Could not load the 3-D world (' + (e && e.message) + ').'); });
     return function () { alive = false; if (sceneCtrl.current) { sceneCtrl.current.dispose(); sceneCtrl.current = null; } };
@@ -1136,7 +1205,7 @@ function LivingWorld() {
 
           {view === 'gov' && (
             <div style={{ padding: '20px 24px 60px' }}>
-              <GovernancePanel personId={sel} />
+              <GovernancePanel personId={sel} onSelect={selectPerson} />
             </div>
           )}
 
@@ -1179,7 +1248,7 @@ function LivingWorld() {
                   {cohort.map(function (id) { return <PersonNode key={id} person={DATA.people[id]} size="sm" selected={id === sel} onClick={function () { setSelectedId(id); }} />; })}
                 </div>
                 {sheet && person ? (
-                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} member={isMember ? role.name : null} pending={pendingResearch && pendingResearch.personId === sel ? pendingResearch.q : null} onPendingConsumed={function () { setPendingResearch(null); }} />
+                  <PersonaDossier personId={sel} sheet={sheet} person={person} snap={snap} onSaved={rerender} member={isMember ? role.name : null} focusSignal={chatFocus} pending={pendingResearch && pendingResearch.personId === sel ? pendingResearch.q : null} onPendingConsumed={function () { setPendingResearch(null); }} />
                 ) : <div style={{ color: 'var(--faded)', fontStyle: 'italic' }}>No one is recorded living here in {stage.year} yet.</div>}
               </div>
               {/* memory + trace */}
