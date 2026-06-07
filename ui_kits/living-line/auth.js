@@ -74,6 +74,33 @@
       .catch(function () { return []; });
   }
 
+  // ---- Proof surface: artifacts (pics, letters, records) in Supabase Storage ----
+  function artifactUrl(path) { return cfg.url ? (cfg.url.replace(/\/$/, '') + '/storage/v1/object/public/proof/' + path) : ''; }
+  function loadArtifacts() {
+    if (!enabled) return Promise.resolve([]);
+    return loadSb().then(function () {
+      return sb.from('cason_artifacts').select('id,person_id,title,kind,storage_path,evidence,note,visibility,author_name,created_at').order('created_at', { ascending: false });
+    }).then(function (r) {
+      return (r.data || []).map(function (a) { return Object.assign({}, a, { url: artifactUrl(a.storage_path) }); });
+    }).catch(function () { return []; });
+  }
+  function uploadArtifact(file, meta) {
+    meta = meta || {};
+    if (!(enabled && state.verified)) return Promise.reject(new Error('Sign in as a verified family member to add to the Proof.'));
+    return loadSb().then(function () {
+      var safe = String(file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
+      var path = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8) + '-' + safe;
+      return sb.storage.from('proof').upload(path, file, { upsert: false }).then(function (up) {
+        if (up.error) throw up.error;
+        return sb.from('cason_artifacts').insert({
+          person_id: meta.personId || null, title: meta.title, kind: meta.kind || 'document',
+          storage_path: path, evidence: meta.evidence || 'possible', note: meta.note || null,
+          visibility: meta.visibility || 'public', author_email: state.email, author_name: state.name,
+        });
+      }).then(function (ins) { if (ins.error) throw ins.error; return { ok: true, url: artifactUrl(path) }; });
+    });
+  }
+
   if (enabled) loadSb().catch(function () {});
 
   root.CASON_AUTH = {
@@ -83,5 +110,6 @@
     signIn: signIn, signOut: signOut,
     previewMember: previewMember, clearPreview: function () { narrator(); },
     addContribution: addContribution, loadContributions: loadContributions,
+    loadArtifacts: loadArtifacts, uploadArtifact: uploadArtifact, artifactUrl: artifactUrl,
   };
 })(typeof window !== 'undefined' ? window : this);
