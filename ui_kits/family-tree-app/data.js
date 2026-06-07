@@ -82,11 +82,11 @@ const CASON_DATA = {
       id: 'james-1727', generation: 5, name: 'James Cason (or — UNFILLED SLOT)',
       role: 'The Missing Link — leading candidate (Gen 5 hole)',
       lifespan: 'c.1727 – ?',
-      parents: ['william-1695','jane-cannon'], children: ['ransom-sr','james-jr-1750'],
+      parents: ['william-1695','jane-cannon'], children: ['ransom-sr','james-jr-1750','eli-cason','william-cason-b','henry-cason-b'],
       direct: true, evidence: 'unsolved',
-      narrative: 'STRUCTURAL WEAKNESS — the load-bearing gap in this pedigree. 72-year span between William⁴ Cason (b. ~1691) and Ransom Cason I (b. ~1763) across one nominal link is two generations, not one. The "11 generations" tradition is folklore; the real count is ~12, and this slot is the hole. Leading candidate is James Cason (c.1727), William⁴\'s son with no land records — landless = most reason to leave; "James Jr." (c.1750) appears as Ransom\'s brother on WikiTree, implying their father was also named James. Resolve via Pitt Co. NC estate files and tax lists 1750–1800, plus Y-DNA triangulation across William⁴\'s documented sons\' lines.',
+      narrative: 'STRUCTURAL WEAKNESS — the load-bearing gap in this pedigree. 72-year span between William⁴ Cason (b. ~1691) and Ransom Cason I (b. ~1763) across one nominal link is two generations, not one. The "11 generations" tradition is folklore; the real count is ~12, and this slot is the hole. Leading candidate is James Cason (c.1727), William⁴\'s son with no significant land records — landless = most reason to leave. STRENGTHENED (6 Jun 2026): the Pitt Co. taxables of 1762 and 1763 list "James Cason — 1" (a single poll — an adult male, no large holding), fitting a c.1727 small-holder; and Bo Williams (Huxford) names Ransom\'s brothers as Eli (m. Cassandra Weeks), William (m. Ann Munden), James (m. Elizabeth Watkins) and Henry — implying their father was also a James. STILL UNSOLVED: no primary will, deed, or bible explicitly names Ransom\'s father. Resolve via Pitt Co. NC estate packets ~1770–1790 (NCDAH, largely un-digitized) and the Huxford Society Cason file.',
       tags: ['unsolved','leading','priority-1'],
-      sources: ['Pitt Co. NC tax & deed indices 1750–1800 (target archive)', 'WikiTree Cason-543 (James Jr. as Ransom brother — derivative)'],
+      sources: ['Pitt Co. NC List of Taxables 1762 & 1763 — "James Cason — 1" (PRIMARY, transcribed; RootsWeb/USGenWeb ptax)', 'Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams — names Ransom\'s brothers; derivative)', 'Pitt Co. NC estate packets ~1770–1790 (target archive, NCDAH)'],
     },
     'john-1728': { id: 'john-1728', generation: 5, name: 'John Cason', lifespan: 'c.1728 – ?', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'possible', narrative: 'Stayed Pitt Co. 1790 census: 12 slaves. No positive link to Ransom.', tags: ['branch','possible'] },
     'henry-1732': { id: 'henry-1732', generation: 5, name: 'Henry Cason', lifespan: 'c.1732 – after 1823', parents: ['william-1695','jane-cannon'], direct: false, evidence: 'secondary', narrative: '1823 deeds (Book CC p.229) show a separate Pitt County branch with zero mention of Ransom\'s family.', tags: ['branch','secondary'] },
@@ -202,11 +202,21 @@ const CASON_DATA = {
       born: { year: 1933, place: 'Fort White, Columbia County, Florida (CR 778)', coords: [29.888409, -82.655932] },
       died: { place: 'Fort White, Florida (returned home)', coords: [29.888409, -82.655932] },
       parents: ['carl-columbus','wilma-douglas'], spouse: ['mary-nell'],
-      children: [],
+      children: ['robert-jr','richard','carol','suzy','paul-r'],
       direct: true, evidence: 'confirmed',
       narrative: 'Born 1933 in the farmhouse on CR 778 — still standing. Married Mary Nell. In 1957 moved to Titusville on the Indian River, where Brevard County grew 371% in a decade as Kennedy committed to the Moon. Watched rockets leave the Earth. Returned to the family land in Fort White; he and Mary Nell rest there, a stone\'s throw from the farmhouse where he came into the world. From Thomas\'s cargo ship to Robert\'s rockets. The vehicle changes. The instinct doesn\'t.',
     },
-    'mary-nell': { id: 'mary-nell', generation: 11, name: 'Mary Nell', role: 'm. Robert Sr.', spouse: ['robert-sr'], direct: false },
+    'mary-nell': { id: 'mary-nell', generation: 11, name: 'Mary Nell', role: 'm. Robert Sr.', spouse: ['robert-sr'], children: ['robert-jr','richard','carol','suzy','paul-r'], direct: false },
+
+    /* ── Generation 12 — Robert Sr. & Mary Nell's children ──
+       LIVING family, added at the family's wish. First names only, no dates
+       or other detail (privacy). Tagged 'child' so they appear as the young
+       ones playing at the Space Coast homestead. */
+    'robert-jr': { id: 'robert-jr', generation: 12, name: 'Robert Cason Jr.', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
+    'richard': { id: 'richard', generation: 12, name: 'Richard Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
+    'carol': { id: 'carol', generation: 12, name: 'Carol Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Daughter of Robert Sr. and Mary Nell.' },
+    'suzy': { id: 'suzy', generation: 12, name: 'Suzy Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Daughter of Robert Sr. and Mary Nell.' },
+    'paul-r': { id: 'paul-r', generation: 12, name: 'Paul Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
 
     /* ── Extended in-laws & collateral spouses ──
        Names attested in the family record; the individuals are sparse, so their
@@ -231,9 +241,18 @@ const CASON_DATA = {
        "bloodhound" research loop is meant to chase down. Evidence is 'unsolved'
        or 'possible' until a primary record fixes a name, date, or place. */
     'munden-father': { id: 'munden-father', generation: 5, name: '— Munden (Phoebe’s father)', role: 'father of Phoebe Munden', lifespan: '? – ?', children: ['phoebe-munden','munden-sister'], direct: false, evidence: 'unsolved', narrative: 'Father of Phoebe Munden (m. Ransom Cason Sr.). Given name, dates, and place not yet recovered. The Munden surname concentrates in Currituck and Princess Anne Counties (coastal NC–VA); a deep Munden study is the open task.', tags: ['in-law','unsolved','munden'] },
-    'munden-sister': { id: 'munden-sister', generation: 6, name: '— Munden (Phoebe’s sister)', role: 'm. a brother of Ransom Sr. (unconfirmed)', lifespan: '? – ?', parents: ['munden-father'], siblings: ['phoebe-munden'], direct: false, evidence: 'unsolved', narrative: 'Family tradition holds a sister of Phoebe Munden married one of Ransom Cason Sr.’s brothers — a second Cason–Munden match. Her given name, which brother, and the dates are unconfirmed. Closing this from the Munden side could also help crack the Gen-5 parentage.', tags: ['in-law','unsolved','munden','migration'] },
-    'james-jr-1750': { id: 'james-jr-1750', generation: 6, name: 'James Cason Jr. (Ransom’s brother?)', role: 'brother of Ransom Sr. — per derivative trees', lifespan: 'c.1750 – ?', parents: ['james-1727'], direct: false, evidence: 'possible', narrative: 'WikiTree lists a "James Jr." (c.1750) as a brother of Ransom Cason Sr. — implying their father was also a James. No primary record yet fixes his birth, his death, or where he died; he is one candidate for the brother said to have married a Munden sister. A target for Pitt Co. NC and Glynn Co. GA record work.', tags: ['branch','possible','migration'], sources: ['WikiTree Cason-543 (derivative — James Jr. as Ransom brother)'] },
+    'munden-sister': { id: 'munden-sister', generation: 6, name: 'Ann Munden', role: 'm. William Cason (Ransom’s brother)', lifespan: '? – ?', parents: ['munden-father'], siblings: ['phoebe-munden'], spouse: ['william-cason-b'], direct: false, evidence: 'secondary', narrative: 'Bo Williams (Huxford) names the wife of Ransom Sr.’s brother William as Ann Munden — the documented "second Cason–Munden match" the family remembered. Family tradition holds Ann was a sister of Phoebe Munden (the surname agrees), but that sister relationship is not yet fixed by a primary record. Her dates are unrecovered.', tags: ['in-law','secondary','munden','migration'] },
+    'james-jr-1750': { id: 'james-jr-1750', generation: 6, name: 'James Cason (m. Elizabeth Watkins)', role: 'brother of Ransom Sr. — stayed in Pitt Co.', lifespan: 'c.1750 – c.1822', parents: ['james-1727'], spouse: ['elizabeth-watkins'], direct: false, evidence: 'leading', narrative: 'The brother of Ransom Sr. who stayed in Pitt County. The William Watkins will (Pitt Co., written 9 Nov 1771, probated 14 Oct 1773) names a son-in-law and executor "James Cason" — a PRIMARY record of his marriage into the Watkins family. Bo Williams (Huxford) lists "James who married Elizabeth Watkins" among Ransom\'s brothers. His exact birth and death are not yet fixed by record. (Earlier this slot was wrongly flagged as the brother who married a Munden — that is his brother William; see Ann Munden.)', tags: ['branch','leading','migration'], sources: ['Pitt Co. NC — William Watkins will, w. 9 Nov 1771 / p. 14 Oct 1773 (PRIMARY — names son-in-law & executor James Cason)', 'Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams; derivative)'] },
     'puckett': { id: 'puckett', generation: 10, name: '— Puckett', role: 'm. Julia Matilda Cason', lifespan: '? – ?', spouse: ['julia-matilda'], direct: false, evidence: 'possible', narrative: 'Married Julia Matilda Cason per a single derivative source; given name not recovered. Verify against a marriage or census record.', tags: ['in-law','possible'] },
+
+    /* ── Ransom Sr.'s brothers (Bo Williams / Huxford, Pioneers of the Wiregrass
+       GA Vol. II p.85) — children of the same unproven Gen-5 father (james-1727).
+       Named by a respected compiler (secondary); birth/death/place still open. */
+    'eli-cason': { id: 'eli-cason', generation: 6, name: 'Eli Cason', role: 'brother of Ransom Sr.', lifespan: '? – ?', parents: ['james-1727'], spouse: ['cassandra-weeks'], direct: false, evidence: 'secondary', narrative: 'Brother of Ransom Cason Sr. per Bo Williams (Huxford); married Cassandra Weeks. Birth, death, and where he passed are not yet established by record.', tags: ['branch','secondary','brothers'], sources: ['Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams; derivative)'] },
+    'cassandra-weeks': { id: 'cassandra-weeks', generation: 6, name: 'Cassandra Weeks', role: 'm. Eli Cason', lifespan: '? – ?', spouse: ['eli-cason'], direct: false, evidence: 'secondary', narrative: 'Wife of Eli Cason (Ransom Sr.’s brother) per Bo Williams (Huxford).', tags: ['in-law','secondary'] },
+    'william-cason-b': { id: 'william-cason-b', generation: 6, name: 'William Cason (Ransom’s brother)', role: 'brother of Ransom Sr. — m. Ann Munden', lifespan: '? – ?', parents: ['james-1727'], spouse: ['munden-sister'], direct: false, evidence: 'secondary', narrative: 'Brother of Ransom Cason Sr. per Bo Williams (Huxford); married Ann Munden — the "second Cason–Munden match." Birth, death, and where he passed are open. Not to be confused with William⁴ Cason (Gen 4) or William Cason Jr. (Gen 5).', tags: ['branch','secondary','brothers','munden'], sources: ['Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams; derivative)'] },
+    'henry-cason-b': { id: 'henry-cason-b', generation: 6, name: 'Henry Cason (Ransom’s brother?)', role: 'brother of Ransom Sr. — per Bo Williams', lifespan: '? – ?', parents: ['james-1727'], direct: false, evidence: 'possible', narrative: 'Bo Williams (Huxford) lists a Henry among Ransom Sr.’s brothers. FLAGGED — likely confused with Henry Cason (c.1732), William⁴’s son and Ransom’s UNCLE (the 1823 Grindal Creek deeds, Deed Book CC p.229). Whether a distinct brother Henry existed needs a primary record.', tags: ['branch','possible','brothers','name-collision'], sources: ['Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams; derivative)'] },
+    'elizabeth-watkins': { id: 'elizabeth-watkins', generation: 6, name: 'Elizabeth Watkins', role: 'm. James Cason (Ransom’s brother)', lifespan: '? – ?', spouse: ['james-jr-1750'], parents: [], direct: false, evidence: 'secondary', narrative: 'Daughter of William Watkins of Pitt Co. (his 1771 will names a daughter Elizabeth and a son-in-law James Cason). Married James Cason, brother of Ransom Sr., per Bo Williams (Huxford).', tags: ['in-law','secondary'], sources: ['Pitt Co. NC — William Watkins will, w. 9 Nov 1771 / p. 14 Oct 1773 (PRIMARY)'] },
   },
 
   // Direct-line spine in order — used by views that need it.
@@ -248,7 +267,7 @@ const CASON_DATA = {
     { id: 'frontier', label: 'Frontier (1723–1822)', generations: [4,5],   color: 'var(--sea-green)' },
     { id: 'pioneer',  label: 'Florida Pioneer (1823–1878)', generations: [6,7], color: 'var(--rust)' },
     { id: 'civil',    label: 'Civil War & After (1862–1900)', generations: [8], color: 'var(--blood)' },
-    { id: 'modern',   label: 'Modern (1900–today)', generations: [9,10,11], color: 'var(--gold)' },
+    { id: 'modern',   label: 'Modern (1900–today)', generations: [9,10,11,12], color: 'var(--gold)' },
   ],
 
   // Locations of interest for map view.

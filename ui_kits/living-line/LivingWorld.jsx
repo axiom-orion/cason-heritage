@@ -39,9 +39,16 @@ const MIGRATION = ['digswell', 'jamestown', 'lynnhaven', 'princess', 'beaufort',
 function eraHex(era) {
   return { colonial: '#d4a825', frontier: '#2d5a4a', pioneer: '#8b4513', civil: '#6b1d1d', modern: '#9a7b2d' }[era] || '#9a7b2d';
 }
+// A few homesteads carry an explicit household beyond the strict alive-in-year
+// filter — e.g. the Space Coast shows Robert Sr., Mary Nell and their children.
+const STAGE_EXTRA = { sc: ['robert-sr', 'mary-nell', 'robert-jr', 'richard', 'carol', 'suzy', 'paul-r'] };
 function cohortFor(stage) {
   const gens = ERA[stage.era].generations;
-  return ENG.activeAt(DATA, stage.year).filter(function (id) { return gens.indexOf(DATA.people[id].generation) !== -1; }).sort();
+  const base = ENG.activeAt(DATA, stage.year).filter(function (id) { return gens.indexOf(DATA.people[id].generation) !== -1; });
+  const extra = (STAGE_EXTRA[stage.id] || []).filter(function (id) { return DATA.people[id]; });
+  const seen = {}, out = [];
+  base.concat(extra).forEach(function (id) { if (!seen[id]) { seen[id] = 1; out.push(id); } });
+  return out.sort();
 }
 function nm(id) { return DATA.people[id] ? DATA.people[id].name.split(' ')[0] : id; }
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }

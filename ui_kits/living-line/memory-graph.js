@@ -143,15 +143,15 @@
      'possible' = family tradition, not yet documented — never asserted as fact. ---- */
   const AUTHORED_GAPS = [
     { ownerId: 'ransom-sr', tags: ['migration', 'in-law'],
-      text: 'One of my brothers is said to have married a sister of my wife, Phoebe Munden — a second Cason–Munden match. Which brother, and her given name, are not yet in our record.' },
+      text: 'Bo Williams names my brother William’s wife as Ann Munden — the second Cason–Munden match. Is she truly a sister of my Phoebe, and where is the primary marriage record?' },
     { ownerId: 'ransom-sr', tags: ['migration', 'brothers'],
-      text: 'My brothers — how many of us there were, their names, and when and where each of them died — are not established. The record of my father’s house in Pitt County is thin.' },
+      text: 'My brothers are named now — Eli, William, James and Henry — but when and where each of them was born and died is still unwritten, and no primary record yet names our father.' },
     { ownerId: 'phoebe-munden', tags: ['migration', 'in-law'],
-      text: 'A sister of mine is said to have married one of my husband Ransom’s brothers. Her name is not yet recovered.' },
+      text: 'Ann Munden married Ransom’s brother William. If Ann is my sister, our shared parents and the Munden line before Georgia are still to be proven.' },
     { ownerId: 'phoebe-munden', tags: ['in-law', 'munden'],
       text: 'My own people, the Mundens — my father and mother, my brothers and sisters — are scarcely written down. Where did the Mundens come from before Georgia?' },
     { ownerId: 'james-jr-1750', tags: ['branch', 'unsolved'],
-      text: 'I am named as Ransom’s brother in the derivative trees, but no primary record fixes my birth, my death, or where I died.' },
+      text: 'My marriage into the Watkins family is in the 1771 will, but no record yet fixes the year I was born or the year and place I died.' },
   ];
 
   /* ============================================================
