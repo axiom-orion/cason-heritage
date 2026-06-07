@@ -137,6 +137,17 @@
       text: 'In 1822 Ransom liquidates the Georgia holdings — power of attorney to his son William — and in 1823 seven of his nine children follow him south into Florida; some of the line stays behind in Georgia.' },
   ];
 
+  /* ---- hand-authored root-questions: open threads the family carries by
+     tradition but the record does not yet close. Owned, so they surface in a
+     persona's "what I'm missing" and the Open Lines worklist. evidence
+     'possible' = family tradition, not yet documented — never asserted as fact. ---- */
+  const AUTHORED_GAPS = [
+    { ownerId: 'ransom-sr', tags: ['migration', 'in-law'],
+      text: 'One of my brothers is said to have married a sister of my wife, Phoebe Munden — a second Cason–Munden match. Which brother, and her given name, are not yet in our record.' },
+    { ownerId: 'phoebe-munden', tags: ['migration', 'in-law'],
+      text: 'A sister of mine is said to have married one of my husband Ransom’s brothers. Her name is not yet recovered.' },
+  ];
+
   /* ============================================================
      buildMemoryGraph(data) -> { nodes, edges, byId, byOwner, meta }
      ============================================================ */
@@ -226,6 +237,17 @@
         ownerId: null, scope: n.scope, generation: n.generation, year: n.year,
         era: n.era, place: n.place || null, kind: n.scope === 'family' ? 'fact' : 'era-texture',
         evidence: 'secondary', text: n.text, derivedFrom: ['authored'], sources: [], tags: [],
+      });
+    });
+
+    // --- authored root-questions (owned open threads) ---
+    AUTHORED_GAPS.forEach(function (g) {
+      const owner = people[g.ownerId]; if (!owner) return;
+      add({
+        ownerId: g.ownerId, scope: 'individual', generation: owner.generation,
+        year: birthYearOf(owner), era: eraForGen(data, owner.generation), place: placeOf(data, owner),
+        kind: 'gap', evidence: 'possible', text: g.text,
+        derivedFrom: ['authored.gap'], sources: [], tags: ['open-question'].concat(g.tags || []),
       });
     });
 
