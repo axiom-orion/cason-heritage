@@ -83,8 +83,8 @@ const CASON_DATA = {
       role: 'The Missing Link — leading candidate (Gen 5 hole)',
       lifespan: 'c.1727 – ?',
       parents: ['william-1695','jane-cannon'], children: ['ransom-sr','james-jr-1750','eli-cason','william-cason-b','henry-cason-b'],
-      direct: true, evidence: 'unsolved',
-      narrative: 'STRUCTURAL WEAKNESS — the load-bearing gap in this pedigree. 72-year span between William⁴ Cason (b. ~1691) and Ransom Cason I (b. ~1763) across one nominal link is two generations, not one. The "11 generations" tradition is folklore; the real count is ~12, and this slot is the hole. Leading candidate is James Cason (c.1727), William⁴\'s son with no significant land records — landless = most reason to leave. STRENGTHENED (6 Jun 2026): the Pitt Co. taxables of 1762 and 1763 list "James Cason — 1" (a single poll — an adult male, no large holding), fitting a c.1727 small-holder; and Bo Williams (Huxford) names Ransom\'s brothers as Eli (m. Cassandra Weeks), William (m. Ann Munden), James (m. Elizabeth Watkins) and Henry — implying their father was also a James. STILL UNSOLVED: no primary will, deed, or bible explicitly names Ransom\'s father. Resolve via Pitt Co. NC estate packets ~1770–1790 (NCDAH, largely un-digitized) and the Huxford Society Cason file.',
+      direct: true, evidence: 'leading',
+      narrative: 'STRUCTURAL WEAKNESS — the load-bearing gap in this pedigree. 72-year span between William⁴ Cason (b. ~1691) and Ransom Cason I (b. ~1763) across one nominal link is two generations, not one. The "11 generations" tradition is folklore; the real count is ~12, and this slot is the hole. Leading candidate is James Cason (c.1727), William⁴\'s son with no significant land records — landless = most reason to leave. STRENGTHENED (6 Jun 2026): the Pitt Co. taxables of 1762 and 1763 list "James Cason — 1" (a single poll — an adult male, no large holding), fitting a c.1727 small-holder; and Bo Williams (Huxford) names Ransom\'s brothers as Eli (m. Cassandra Weeks), William (m. Ann Munden), James (m. Elizabeth Watkins) and Henry — implying their father was also a James. ONOMASTIC WEIGHT: this family names with great consistency — Thomas→Thomas Jr., William→William Jr., Ransom→Ransom Jr., Robert→Robert Jr. — so a "James Jr." among Ransom\'s brothers is strong (if circumstantial) evidence the father was James. On the combined weight of the 1762/63 tax presence, the documented brother-set, and the naming pattern, James is now the LEADING candidate. STILL UNSOLVED: no primary will, deed, or bible explicitly names Ransom\'s father. Resolve via Pitt Co. NC estate packets ~1770–1790 (NCDAH, largely un-digitized) and the Huxford Society Cason file.',
       tags: ['unsolved','leading','priority-1'],
       sources: ['Pitt Co. NC List of Taxables 1762 & 1763 — "James Cason — 1" (PRIMARY, transcribed; RootsWeb/USGenWeb ptax)', 'Huxford, Pioneers of the Wiregrass Georgia Vol. II, p.85 (Bo Williams — names Ransom\'s brothers; derivative)', 'Pitt Co. NC estate packets ~1770–1790 (target archive, NCDAH)'],
     },
@@ -212,11 +212,17 @@ const CASON_DATA = {
        LIVING family, added at the family's wish. First names only, no dates
        or other detail (privacy). Tagged 'child' so they appear as the young
        ones playing at the Space Coast homestead. */
-    'robert-jr': { id: 'robert-jr', generation: 12, name: 'Robert Cason Jr.', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
+    'robert-jr': { id: 'robert-jr', generation: 12, name: 'Robert Randall Cason Jr.', role: 'son of Robert Sr.; carries the family name as Jr.', parents: ['robert-sr','mary-nell'], children: ['robert-carl','ryan'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Randall Cason Sr. and Mary Nell, and a namesake (Jr.) of his father. Shown among the children at the 1957 Space Coast homestead.' },
     'richard': { id: 'richard', generation: 12, name: 'Richard Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
     'carol': { id: 'carol', generation: 12, name: 'Carol Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Daughter of Robert Sr. and Mary Nell.' },
     'suzy': { id: 'suzy', generation: 12, name: 'Suzy Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Daughter of Robert Sr. and Mary Nell.' },
     'paul-r': { id: 'paul-r', generation: 12, name: 'Paul Cason', parents: ['robert-sr','mary-nell'], direct: false, evidence: 'secondary', tags: ['child','living'], narrative: 'Son of Robert Sr. and Mary Nell.' },
+
+    /* ── Gen 13–14 — the living keepers (added by the family; first names and
+       only the dates the family provided; LIVING individuals). ── */
+    'ryan': { id: 'ryan', generation: 13, name: 'Ryan Cason', role: 'keeper of the family record', parents: ['robert-jr'], direct: false, evidence: 'secondary', tags: ['living'], narrative: 'Son of Robert Randall Cason Jr.; the present keeper building this record.' },
+    'robert-carl': { id: 'robert-carl', generation: 13, name: 'Robert Carl Cason', role: 'son of Robert Randall Jr.', parents: ['robert-jr'], children: ['robert-randall-3'], born: { year: 1984 }, direct: false, evidence: 'secondary', tags: ['living'], narrative: 'Son of Robert Randall Cason Jr. (b. 27 Mar 1984). His fuller story is to be set down later.' },
+    'robert-randall-3': { id: 'robert-randall-3', generation: 14, name: 'Robert Randall Cason III', role: 'first child of Robert Carl', parents: ['robert-carl'], direct: false, evidence: 'secondary', tags: ['living'], narrative: 'First child of Robert Carl Cason, named for his grandfather Robert Randall Cason Jr. and great-grandfather Robert Randall Cason Sr. — the ancestral name revived across a generation, echoing Ransom "2" (named for his grandfather Ransom Sr.) and Thomas Cason III.' },
 
     /* ── Extended in-laws & collateral spouses ──
        Names attested in the family record; the individuals are sparse, so their
@@ -267,7 +273,7 @@ const CASON_DATA = {
     { id: 'frontier', label: 'Frontier (1723–1822)', generations: [4,5],   color: 'var(--sea-green)' },
     { id: 'pioneer',  label: 'Florida Pioneer (1823–1878)', generations: [6,7], color: 'var(--rust)' },
     { id: 'civil',    label: 'Civil War & After (1862–1900)', generations: [8], color: 'var(--blood)' },
-    { id: 'modern',   label: 'Modern (1900–today)', generations: [9,10,11,12], color: 'var(--gold)' },
+    { id: 'modern',   label: 'Modern (1900–today)', generations: [9,10,11,12,13,14], color: 'var(--gold)' },
   ],
 
   // Locations of interest for map view.
