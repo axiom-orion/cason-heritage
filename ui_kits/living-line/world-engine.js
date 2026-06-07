@@ -60,6 +60,20 @@
 
   const ERA_REGION = { colonial: 'tidewater', frontier: 'carolina', pioneer: 'florida', civil: 'florida', modern: 'florida' };
 
+  // Documented migrations, keyed by the place a homestead sits at. `last` is the
+  // move that brought the family here; `next` is the move still ahead of them.
+  // These are real, sourced relocations — the musings below are the personas
+  // *contemplating* a move (intent/rumor), never claimed knowledge of the future.
+  const MIGRATIONS = {
+    lynnhaven:   { last: 'the crossing from England', next: { place: 'the Carolina frontier', year: 1723, push: 'the tidewater ground is all taken up' } },
+    beaufort:    { last: 'the long road south from Virginia', next: { place: 'the Georgia coast', year: 1790, push: 'there is open land further south' } },
+    glynn:       { last: 'the move down from Carolina', next: { place: 'the Florida territory, past the Okefenokee', year: 1823, push: 'they say a man can still take up new ground in Florida' } },
+    newnansville:{ last: 'the crossing into Florida through the swamp', next: null },
+    'cason-cem': { last: 'the homestead our grandfather broke from wilderness', next: null },
+    'fort-white':{ last: 'the move west, chasing the rail and the phosphate', next: null },
+    titusville:  { last: 'the move to the coast, where they are firing rockets at the Moon', next: null },
+  };
+
   // season-true, period-plausible weather per region. kind drives routine variants.
   const WEATHER = {
     tidewater: {
@@ -197,7 +211,28 @@
       night: slot(['snores by the fire before anyone else is tired']),
       sunday: { morning: ['arrives at church a hymn and a half late'], afternoon: ['eats two dinners and calls it being neighborly'] },
     },
+    child: { // the young ones — real chores half-done, then off to play
+      dawn: slot(['is shaken awake and sent to fetch water and gather the eggs', 'rubs the sleep away and totes in the morning kindling']),
+      morning: slot(['feeds the chickens, then slips off to play the moment no one is looking', 'minds a smaller sibling — mostly', 'is set to weeding the garden rows and half-does it'], { rain: ['plays jacks in the doorway, kept in by the wet'], cold: ['hugs the hearth and is shooed out to the woodpile'] }),
+      midday: slot(['bolts dinner to get back to the creek', 'races the other young ones three times round the yard']),
+      afternoon: slot(['runs the fields with a stick and a yellow dog', 'fishes the bank with a bent pin and endless patience', 'is kept at letters and figures at the kitchen table'], { hot: ['hunts the cool shade and the swimming hole with the cousins'], storm: ['counts the seconds between the lightning and the thunder from the porch'] }),
+      dusk: slot(['is hollered in from play as the light goes amber', 'lingers at the edge of the firelight, not ready for the day to end']),
+      night: slot(['fights off sleep by the fire, drinking in the grown folks’ talk', 'is carried to bed having sworn they were not the least bit tired']),
+      sunday: { morning: ['squirms through the long sermon in a stiff collar'], afternoon: ['runs wild with a pack of cousins after dinner-on-the-grounds'] },
+    },
   };
+
+  // The evening gathering — when the day's work is done the household draws
+  // together: the fire is built up, and on the frontier someone stands watch.
+  function eveningGatherFor(persona, env, rng) {
+    if (!(env.timeOfDay.phase === 'dusk' || env.timeOfDay.isNight)) return null;
+    const frontier = ['pioneer', 'soldier', 'frontier-farmer'].indexOf(persona.archetype) !== -1;
+    if (env.timeOfDay.isNight && frontier && chance(rng, 0.45))
+      return { text: pick(rng, ['takes the night watch, the rifle across his knees, reading the dark treeline', 'keeps the fire and listens past it for anything moving in the dark']), kind: 'watch' };
+    if (chance(rng, 0.6))
+      return { text: pick(rng, ['settles by the campfire as the talk turns to old roads and far places', 'feeds the evening fire and lets the day’s ache ease out of him', 'gathers the household close around the fire against the coming dark']), kind: 'fireside' };
+    return null;
+  }
 
   function nearestPhaseSlot(sched, phase) {
     if (sched[phase]) return sched[phase];
@@ -208,12 +243,18 @@
     return null;
   }
 
-  function activityFor(persona, env, rng) {
-    const sched = SCHEDULES[persona.archetype] || SCHEDULES.collateral;
+  function activityFor(persona, env, rng, archOverride) {
+    const archetype = archOverride || persona.archetype;
+    const sched = SCHEDULES[archetype] || SCHEDULES.collateral;
     const phase = env.timeOfDay.phase;
     // Sunday daytime → worship
     if (env.isSunday && sched.sunday && !env.timeOfDay.isNight && sched.sunday[phase]) {
       return { text: pick(rng, sched.sunday[phase]), kind: 'sabbath' };
+    }
+    // Evening: the grown household draws to the fire; the frontier keeps a watch.
+    if (archetype !== 'child') {
+      const gather = eveningGatherFor(persona, env, rng);
+      if (gather) return gather;
     }
     const slotDef = nearestPhaseSlot(sched, phase);
     if (!slotDef) return { text: 'goes about the day', kind: 'work' };
@@ -222,7 +263,8 @@
     // weather variant
     const wk = env.weather.kind;
     if (slotDef[wk] && chance(rng, 0.7)) return { text: pick(rng, slotDef[wk]), kind: 'weather' };
-    return { text: pick(rng, slotDef.base), kind: env.timeOfDay.isNight ? 'rest' : 'work' };
+    const kind = archetype === 'child' ? 'play' : env.timeOfDay.isNight ? 'rest' : 'work';
+    return { text: pick(rng, slotDef.base), kind: kind };
   }
 
   /* ---------- who is alive & present ---------- */
@@ -261,6 +303,39 @@
   function lower(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
   function first(name) { return String(name).split(' ')[0]; }
 
+  // A loop of self-discovery: the persona turning over its OWN open questions
+  // (the `gap` nodes — a lost surname, an unproven link, a thin record). This is
+  // the growth loop made first-person — never a claim, always a wondering.
+  function selfDiscoveryFor(persona, sub, rng) {
+    const gaps = (sub.individual || []).filter(function (n) { return n.kind === 'gap'; });
+    if (!gaps.length) return null;
+    const g = pick(rng, gaps);
+    const frames = [
+      'I find myself wondering — ' + lower(g.text),
+      'It nags at me, some nights: ' + lower(g.text),
+      'I would give much to know it: ' + lower(g.text),
+      'Who came before me, and what did they carry? ' + capFirst(lower(g.text)),
+    ];
+    return { text: pick(rng, frames), sources: g.id ? [g.id] : [], kind: 'self-discovery' };
+  }
+
+  // The pull of the next move — a would-be migrant contemplating documented
+  // ground still ahead of them (intent and rumor, never knowledge of outcome).
+  function migrationMusingNode(persona, world, sub, rng) {
+    const mig = MIGRATIONS[world.placeId];
+    if (!mig || !mig.next) return null;
+    const here = (world.env && world.env.date && world.env.date.y) || mig.next.year;
+    if (mig.next.year < here) return null; // the move is already behind them
+    const mover = ['pioneer', 'planter', 'frontier-farmer'].indexOf(persona.archetype) !== -1 || persona.hero;
+    if (!mover && !chance(rng, 0.25)) return null;
+    const frames = [
+      'My mind keeps turning toward ' + mig.next.place + ' — ' + mig.next.push + ', and it is not so far for a family that moves together.',
+      'I hear talk of ' + mig.next.place + '. ' + capFirst(mig.next.push) + '. A man wonders if he has one more move left in him.',
+      'We came through ' + mig.last + ', and I do not think it is the last of it. ' + capFirst(mig.next.place) + ' is on my mind.',
+    ];
+    return { text: pick(rng, frames), sources: [], kind: 'migration' };
+  }
+
   /* ---------- encounters & coordination ---------- */
   function relationship(data, aId, bId) {
     const a = data.people[aId] || {};
@@ -283,32 +358,59 @@
     const pa = world.personas.byId[a], pb = world.personas.byId[b];
     const subA = world.mem.access(a), subB = world.mem.access(b);
     const rel = relationship(data, a, b);
+    const env = world.env || {};
+    const tod = env.timeOfDay || { phase: 'midday', isNight: false };
+    const evening = tod.phase === 'dusk' || tod.isNight;
+    const kin = rel === 'spouse' || rel === 'child' || rel === 'parent' || rel === 'sibling';
     const lines = [];
-    const greet = rel === 'spouse' || rel === 'child' || rel === 'parent' || rel === 'sibling'
-      ? ['Well met, ' + first(pb.name) + '.', 'There you are.', 'Come, ' + first(pb.name) + '.']
-      : ['Good day to you.', 'Fair morning.', 'Neighbor.'];
-    lines.push({ speaker: a, text: pick(rng, greet), sources: [] });
 
-    // B answers with something they actually know (horizon-bounded)
-    const topicB = sharedTopic(subB, rng);
-    if (topicB) lines.push({ speaker: b, text: 'Aye. ' + capFirst(lower(shorten(topicB.text))) + '.', sources: [topicB.id] });
-    else lines.push({ speaker: b, text: 'Aye, that it is.', sources: [] });
+    // 1) a natural opener, aware of kin and the hour
+    const opener = kin
+      ? pick(rng, ['There you are, ' + first(pb.name) + '.', 'Come sit, ' + first(pb.name) + '.',
+                   'Well now, ' + first(pb.name) + '.', evening ? 'Pull up to the fire, ' + first(pb.name) + '.' : 'You’re a welcome sight, ' + first(pb.name) + '.'])
+      : pick(rng, ['Good day to you.', 'Well met, neighbor.', 'Fair to see you.', evening ? 'Evenin’ to you.' : 'You’re about early.']);
+    lines.push({ speaker: a, text: opener, sources: [] });
 
-    // coordination if they share a working archetype
-    if (pa.archetype === pb.archetype && ['planter', 'pioneer', 'frontier-farmer', 'soldier'].indexOf(pa.archetype) !== -1) {
+    // 2) a grounded remark on the day — the weather, the season, or the fire
+    const dayRemark = evening
+      ? pick(rng, ['Good to sit a spell, with the work laid by.', 'The fire’s welcome tonight.', 'Long day. Dark comes on quick this time of year.'])
+      : (env.weather && env.weather.label)
+        ? pick(rng, ['It’s ' + env.weather.label + ', and no mistaking it.', capFirst(env.weather.label) + ' — we take the day the Lord sends.', 'A proper ' + (env.season || 'day') + ' morning.'])
+        : pick(rng, ['Fine day for the work.', 'No use wasting the light.']);
+    lines.push({ speaker: b, text: dayRemark, sources: [] });
+
+    // 3) the heart of it — the next move, the shared work, a memory, or a laugh
+    const mig = MIGRATIONS[world.placeId];
+    if (mig && mig.next && chance(rng, 0.6)) {
+      // village mates weigh the road behind and the ground ahead
+      lines.push({ speaker: a, text: pick(rng, ['We’ve come a fair way since ' + mig.last + '.', 'Feels not so long since ' + mig.last + '.']), sources: [] });
+      lines.push({ speaker: b, text: pick(rng, [
+        'And not done yet, I think. They say ' + mig.next.push + '.',
+        'There’s ground to be had at ' + mig.next.place + ', or so the talk goes. You given it thought?',
+        'Some are speaking of ' + mig.next.place + '. A hard road — but when did that stop this family?',
+      ]), sources: [] });
+      lines.push({ speaker: a, text: pick(rng, [
+        'If we go, we go together. That’s the only way it’s ever held.',
+        'I’ve thought of little else. The young ones could break new ground there.',
+        'One more move in me, maybe. Then let the children put down roots and stay.',
+      ]), sources: [] });
+    } else if (pa.archetype === pb.archetype && ['planter', 'pioneer', 'frontier-farmer', 'soldier'].indexOf(pa.archetype) !== -1) {
       const tasks = { planter: 'curing barn', pioneer: 'cattle', 'frontier-farmer': 'timber', soldier: 'works' };
-      lines.push({ speaker: a, text: 'Lend a hand with the ' + tasks[pa.archetype] + ' and we’ll be done by dusk.', sources: [] });
-      lines.push({ speaker: b, text: 'Done. Together, then.', sources: [] });
+      lines.push({ speaker: a, text: pick(rng, ['Lend me a hand with the ' + tasks[pa.archetype] + ' and we’ll be done by dark.', 'The ' + tasks[pa.archetype] + ' wants two pair of hands — you with me?']), sources: [] });
+      lines.push({ speaker: b, text: pick(rng, ['Aye. Together, then.', 'I’m with you, same as always.', 'Sooner begun, sooner done.']), sources: [] });
     } else if (pa.levity >= 0.6 || pb.levity >= 0.6) {
-      // a bit of comedy
-      const joker = pa.levity >= pb.levity ? a : b;
-      const jp = world.personas.byId[joker];
+      const joker = pa.levity >= pb.levity ? a : b, jp = world.personas.byId[joker];
       lines.push({ speaker: joker, text: capFirst(jp.quirks[0]) + ', if you must know.', sources: [] });
+      lines.push({ speaker: joker === a ? b : a, text: pick(rng, ['You’re a case, you are.', 'Lord. Same as ever with you.', 'Go on with you, then.']), sources: [] });
     } else {
+      const topicB = sharedTopic(subB, rng);
+      if (topicB) lines.push({ speaker: b, text: pick(rng, ['Been turning this over — ', 'You know what stays with me: ', 'I keep coming back to it — ']) + lower(shorten(topicB.text)) + '.', sources: [topicB.id] });
       const topicA = sharedTopic(subA, rng);
-      if (topicA) lines.push({ speaker: a, text: 'I’ve been thinking on it — ' + lower(shorten(topicA.text)) + '.', sources: [topicA.id] });
+      if (topicA) lines.push({ speaker: a, text: pick(rng, ['Aye. ', 'True enough. ', 'I’ve felt the same of it — ']) + lower(shorten(topicA.text)) + '.', sources: [topicA.id] });
+      else if (!topicB) lines.push({ speaker: a, text: pick(rng, ['Aye, that it is.', 'You’re not wrong.', 'Just so.']), sources: [] });
     }
-    return { participants: group.slice(0, 2), relationship: rel, lines: lines };
+
+    return { participants: group.slice(0, 2), relationship: rel, evening: evening, lines: lines };
   }
   function shorten(s) { return s.length > 120 ? s.slice(0, 117).replace(/[\s,;.]+\S*$/, '') + '…' : s; }
   function capFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -318,24 +420,35 @@
     const persona = world.personas.byId[pid];
     const person = world.data.people[pid];
     const env = world.env;
+    const H = helpers();
     const trace = [];
+    // age in the sim year → the young ones live a child's day, not a grown one
+    const bornY = H ? H.birthYearOf(person) : null;
+    const age = (bornY != null && env.date.y != null) ? env.date.y - bornY : null;
+    const isChild = age != null && age >= 3 && age <= 13;
+    const effArch = isChild ? 'child' : persona.archetype;
     // Perceive
     trace.push({ step: 'perceive', detail: env.timeOfDay.phase + ', ' + env.weather.label + (env.isSunday ? ', the Sabbath' : '') });
     // Recall (tool: query_graph)
     const sub = world.mem.access(pid, { simNow: env.date.y });
     trace.push({ step: 'recall', tool: 'query_graph', detail: sub.stats.visible + ' memories in reach; ' + (sub.stats.blockedFuture + sub.stats.blockedGen) + ' beyond the horizon' });
     // Plan + Act (tool: perform_task)
-    const act = activityFor(persona, env, rng);
+    const act = activityFor(persona, env, rng, effArch);
     trace.push({ step: 'act', tool: 'perform_task', detail: act.kind });
-    // Reflect occasionally (tool: reflect)
+    // Reflect occasionally (tool: reflect) — a loop of self-discovery (turning over
+    // an open question), the pull of the next move, or a settled memory.
     let reflection = null;
-    if (chance(rng, 0.22)) {
-      reflection = reflectionFor(persona, sub, rng);
-      if (reflection) trace.push({ step: 'reflect', tool: 'reflect', detail: reflection.sources.length + ' source(s)' });
+    if (chance(rng, isChild ? 0.1 : 0.24)) {
+      reflection = (chance(rng, 0.45) && selfDiscoveryFor(persona, sub, rng))
+                || migrationMusingNode(persona, world, sub, rng)
+                || reflectionFor(persona, sub, rng);
+      if (reflection) trace.push({ step: 'reflect', tool: 'reflect', detail: (reflection.kind || 'memory') + ' · ' + reflection.sources.length + ' source(s)' });
     }
-    const mood = act.kind === 'comic' ? 'bemused' : act.kind === 'sabbath' ? 'reverent'
+    const mood = isChild ? 'at play'
+      : act.kind === 'comic' ? 'bemused' : act.kind === 'sabbath' ? 'reverent'
+      : act.kind === 'watch' ? 'watchful' : act.kind === 'fireside' ? 'easing by the fire'
       : env.weather.kind === 'storm' ? 'driven for cover' : env.timeOfDay.isNight ? 'at rest' : 'at work';
-    return { id: pid, name: person.name, activity: act.text, kind: act.kind, mood: mood, reflection: reflection, trace: trace };
+    return { id: pid, name: person.name, activity: act.text, kind: act.kind, archetype: effArch, isChild: isChild, age: age, mood: mood, reflection: reflection, trace: trace };
   }
 
   /* ============================================================

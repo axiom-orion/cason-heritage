@@ -526,7 +526,7 @@ function snapLines(snap, salt) {
   return out;
 }
 function LiveFeed({ feed }) {
-  const kc = { talk: 'var(--deep-blue)', reflect: 'var(--rust)', comic: 'var(--gold)', sabbath: 'var(--sea-green)' };
+  const kc = { talk: 'var(--deep-blue)', reflect: 'var(--rust)', comic: 'var(--gold)', sabbath: 'var(--sea-green)', play: 'var(--gold-bright)', watch: 'var(--blood)', fireside: 'var(--rust)' };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {feed.length === 0 && <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)' }}>Press ▶ live or Advance to watch the homestead.</div>}
@@ -747,9 +747,12 @@ function LivingWorld() {
   const stage = STAGES.find(function (s) { return s.id === stageId; });
   const cohort = useMemo(function () { return cohortFor(stage); }, [stageId]);
 
-  // (re)build the homestead world when the stage changes
+  // (re)build the homestead world when the stage changes. Every village is
+  // anchored to *today's* calendar day (in its own era's year), so the season,
+  // weather and day/night all read as the same moment across the homesteads.
   useEffect(function () {
-    const w = ENG.createWorld({ year: stage.year, era: stage.era, placeId: stage.placeId, seed: stage.id, simDate: new Date(stage.year, 3, 14), realClock: new Date(), roster: cohort });
+    const today = new Date();
+    const w = ENG.createWorld({ year: stage.year, era: stage.era, placeId: stage.placeId, seed: stage.id, simDate: new Date(stage.year, today.getMonth(), today.getDate()), realClock: new Date(), roster: cohort });
     worldRef.current = w;
     const snap = w.snapshot();
     setFeed(snapLines(snap, 0));
