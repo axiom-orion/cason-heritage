@@ -82,7 +82,7 @@ const CASON_DATA = {
       id: 'james-1727', generation: 5, name: 'James Cason (or — UNFILLED SLOT)',
       role: 'The Missing Link — leading candidate (Gen 5 hole)',
       lifespan: 'c.1727 – ?',
-      parents: ['william-1695','jane-cannon'], children: ['ransom-sr'],
+      parents: ['william-1695','jane-cannon'], children: ['ransom-sr','james-jr-1750'],
       direct: true, evidence: 'unsolved',
       narrative: 'STRUCTURAL WEAKNESS — the load-bearing gap in this pedigree. 72-year span between William⁴ Cason (b. ~1691) and Ransom Cason I (b. ~1763) across one nominal link is two generations, not one. The "11 generations" tradition is folklore; the real count is ~12, and this slot is the hole. Leading candidate is James Cason (c.1727), William⁴\'s son with no land records — landless = most reason to leave; "James Jr." (c.1750) appears as Ransom\'s brother on WikiTree, implying their father was also named James. Resolve via Pitt Co. NC estate files and tax lists 1750–1800, plus Y-DNA triangulation across William⁴\'s documented sons\' lines.',
       tags: ['unsolved','leading','priority-1'],
@@ -103,8 +103,9 @@ const CASON_DATA = {
       direct: true, evidence: 'confirmed',
       narrative: 'Married Phoebe Munden. Nine children, seven moved to Florida. In 1822 he began liquidating Georgia holdings — power of attorney to son William, Cherokee Lottery land sold. In 1823, at age sixty, he walked his wife and children south through the Okefenokee into a territory of 8,000 people with no roads. Survived the Second Seminole War. Florida Pioneer Certificate #2015S0027. Died at ~90.',
       sources: ['Alachua Co. Will Book A, pp. 35-36', 'FL Pioneer Certificate #2015S0027'],
+      notes: 'RESEARCH LEADS (single derivative source — Grok via WikiTree/compilations; verify each against the original before promoting above "possible"): a Georgia footprint before Florida — Glynn Co. tax digest 1794; 1799 land warrants for 200 ac on Turtle River + 200 ac on Beaver Dam Swamp; 1822 power of attorney covering Lots 174 & 172, Munro Co.; Cherokee Lottery land in Houston Co. Will probated 12 Nov 1853. 1830 Alachua census places the household near son John, King Douglas, and one Michael Clements. PARENTAGE (Gen 5) remains the load-bearing unknown; his brothers are unestablished.',
     },
-    'phoebe-munden': { id: 'phoebe-munden', generation: 6, name: 'Phoebe Munden', role: 'm. Ransom Sr.', lifespan: 'c.1770 – c.1850', spouse: ['ransom-sr'], direct: false, evidence: 'confirmed' },
+    'phoebe-munden': { id: 'phoebe-munden', generation: 6, name: 'Phoebe Munden', role: 'm. Ransom Sr.', lifespan: 'c.1770 – c.1850', spouse: ['ransom-sr'], parents: ['munden-father'], siblings: ['munden-sister'], direct: false, evidence: 'confirmed', notes: 'Her Munden family is scarcely documented — parents, birthplace (the Mundens cluster in Currituck / Princess Anne Co., coastal NC–VA) and siblings are all open. A second Cason–Munden match (a sister married a brother of Ransom Sr.) is family tradition, unconfirmed.' },
 
     'john-cason-6': { id: 'john-cason-6', generation: 7, name: 'John Cason', parents: ['ransom-sr','phoebe-munden'], direct: false },
     'speckled-bill': { id: 'speckled-bill', generation: 7, name: 'William "Speckled Bill" Cason', parents: ['ransom-sr','phoebe-munden'], direct: false },
@@ -156,6 +157,7 @@ const CASON_DATA = {
       children: ['lena-alice','carrie-mae','james-johnson','eddie-ross','carl-columbus','wilbur','tom-arthur','julia-matilda','timothy'],
       direct: true, evidence: 'confirmed',
       narrative: 'Born during the war. Four when his father left for Gainesville. Eight at war\'s end. On Christmas Eve 1882, married Georgia Quintine McKinney in Columbia County. Moved 15–20 miles west to Fort White, chasing the railroad-and-phosphate boom of 1888. Twelve to fourteen children. Buried Tustenuggee Methodist Cemetery, on land some believe was once a Seminole burial ground.',
+      notes: 'Derivative refinements to verify against the record: b. 26 Aug 1857; d. 17 Dec 1945; wife Georgia Quintine McKinney d. 3 Sep 1937; FindAGrave memorial #11538485.',
     },
     'georgia-mckinney': { id: 'georgia-mckinney', generation: 9, name: 'Georgia Quintine McKinney', spouse: ['thadeous'], lifespan: '1860 – 1937', role: 'm. Thadeous', direct: false },
     'lena-alice': { id: 'lena-alice', generation: 10, name: 'Lena Alice Cason', lifespan: '1888 – 1927', parents: ['thadeous','georgia-mckinney'], spouse: ['guynn'], direct: false, narrative: 'm. Guynn.' },
@@ -164,7 +166,7 @@ const CASON_DATA = {
     'eddie-ross': { id: 'eddie-ross', generation: 10, name: 'Eddie Ross Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
     'wilbur': { id: 'wilbur', generation: 10, name: 'Wilbur C. Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
     'tom-arthur': { id: 'tom-arthur', generation: 10, name: 'Tom Arthur Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
-    'julia-matilda': { id: 'julia-matilda', generation: 10, name: 'Julia Matilda Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
+    'julia-matilda': { id: 'julia-matilda', generation: 10, name: 'Julia Matilda Cason', parents: ['thadeous','georgia-mckinney'], spouse: ['puckett'], direct: false, evidence: 'possible', narrative: 'm. Puckett — per a single derivative source; given name and dates unverified.' },
     'timothy': { id: 'timothy', generation: 10, name: 'Timothy Cason', parents: ['thadeous','georgia-mckinney'], direct: false },
 
     'carl-columbus': {
@@ -177,6 +179,7 @@ const CASON_DATA = {
       children: ['dot','buddy','robert-sr','noah','wyles','jake','lawrence','earl','paul','johnny','marie','zeke','kate'],
       direct: true, evidence: 'confirmed',
       narrative: 'Born into the ruins of Fort White\'s boom — citrus dead, phosphate gone, boll weevil tearing through cotton. Married Wilma Douglas. Thirteen children. Depression-era relief in rural Florida was less than $7/month per family. He would have done everything: turpentine, logging, farming, open-range cattle (Florida was the last state to pass a mandatory fence law, in 1949), day labor, sawmill work.',
+      notes: 'Derivative refinement to verify: b. 11 Aug 1903.',
     },
     'wilma-douglas': { id: 'wilma-douglas', generation: 10, name: 'Wilma Douglas', role: 'm. Carl Columbus', spouse: ['carl-columbus'], direct: false },
     'dot': { id: 'dot', generation: 11, name: 'Dorothy "Dot" Cason', lifespan: '~1928 – 2019', parents: ['carl-columbus','wilma-douglas'], spouse: ['raymos'], direct: false, narrative: 'm. Raymos. Lake City.' },
@@ -222,6 +225,15 @@ const CASON_DATA = {
     'moore': { id: 'moore', generation: 4, name: '— Moore', role: 'm. Susannah Cason', lifespan: '? – ?', spouse: ['susannah'], direct: false, evidence: 'secondary', narrative: 'Married Susannah Cason — named “Susannah Moore” in James’s 1720 will. Given name not recovered.' },
     'wilber': { id: 'wilber', generation: 4, name: '— Wilber', role: 'm. Dynah Cason', lifespan: '? – ?', spouse: ['dynah'], direct: false, evidence: 'secondary', narrative: 'Married Dynah Cason — named “Dynah Wilber” in James’s 1720 will. Given name not recovered.' },
     'sarah-barrow-ormond': { id: 'sarah-barrow-ormond', generation: 5, name: 'Sarah Barrow Ormond', role: 'm. Hillery Cason', lifespan: '? – ?', spouse: ['hillery'], direct: false, evidence: 'secondary', narrative: 'Wife of Hillery Cason; the couple moved to interior Georgia in 1792.' },
+
+    /* ── Open research branches (seeded as honest leads, NOT documented fact) ──
+       The Munden in-law family and Ransom Sr.'s brothers — the edges the
+       "bloodhound" research loop is meant to chase down. Evidence is 'unsolved'
+       or 'possible' until a primary record fixes a name, date, or place. */
+    'munden-father': { id: 'munden-father', generation: 5, name: '— Munden (Phoebe’s father)', role: 'father of Phoebe Munden', lifespan: '? – ?', children: ['phoebe-munden','munden-sister'], direct: false, evidence: 'unsolved', narrative: 'Father of Phoebe Munden (m. Ransom Cason Sr.). Given name, dates, and place not yet recovered. The Munden surname concentrates in Currituck and Princess Anne Counties (coastal NC–VA); a deep Munden study is the open task.', tags: ['in-law','unsolved','munden'] },
+    'munden-sister': { id: 'munden-sister', generation: 6, name: '— Munden (Phoebe’s sister)', role: 'm. a brother of Ransom Sr. (unconfirmed)', lifespan: '? – ?', parents: ['munden-father'], siblings: ['phoebe-munden'], direct: false, evidence: 'unsolved', narrative: 'Family tradition holds a sister of Phoebe Munden married one of Ransom Cason Sr.’s brothers — a second Cason–Munden match. Her given name, which brother, and the dates are unconfirmed. Closing this from the Munden side could also help crack the Gen-5 parentage.', tags: ['in-law','unsolved','munden','migration'] },
+    'james-jr-1750': { id: 'james-jr-1750', generation: 6, name: 'James Cason Jr. (Ransom’s brother?)', role: 'brother of Ransom Sr. — per derivative trees', lifespan: 'c.1750 – ?', parents: ['james-1727'], direct: false, evidence: 'possible', narrative: 'WikiTree lists a "James Jr." (c.1750) as a brother of Ransom Cason Sr. — implying their father was also a James. No primary record yet fixes his birth, his death, or where he died; he is one candidate for the brother said to have married a Munden sister. A target for Pitt Co. NC and Glynn Co. GA record work.', tags: ['branch','possible','migration'], sources: ['WikiTree Cason-543 (derivative — James Jr. as Ransom brother)'] },
+    'puckett': { id: 'puckett', generation: 10, name: '— Puckett', role: 'm. Julia Matilda Cason', lifespan: '? – ?', spouse: ['julia-matilda'], direct: false, evidence: 'possible', narrative: 'Married Julia Matilda Cason per a single derivative source; given name not recovered. Verify against a marriage or census record.', tags: ['in-law','possible'] },
   },
 
   // Direct-line spine in order — used by views that need it.

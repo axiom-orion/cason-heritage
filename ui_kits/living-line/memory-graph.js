@@ -144,8 +144,14 @@
   const AUTHORED_GAPS = [
     { ownerId: 'ransom-sr', tags: ['migration', 'in-law'],
       text: 'One of my brothers is said to have married a sister of my wife, Phoebe Munden — a second Cason–Munden match. Which brother, and her given name, are not yet in our record.' },
+    { ownerId: 'ransom-sr', tags: ['migration', 'brothers'],
+      text: 'My brothers — how many of us there were, their names, and when and where each of them died — are not established. The record of my father’s house in Pitt County is thin.' },
     { ownerId: 'phoebe-munden', tags: ['migration', 'in-law'],
       text: 'A sister of mine is said to have married one of my husband Ransom’s brothers. Her name is not yet recovered.' },
+    { ownerId: 'phoebe-munden', tags: ['in-law', 'munden'],
+      text: 'My own people, the Mundens — my father and mother, my brothers and sisters — are scarcely written down. Where did the Mundens come from before Georgia?' },
+    { ownerId: 'james-jr-1750', tags: ['branch', 'unsolved'],
+      text: 'I am named as Ransom’s brother in the derivative trees, but no primary record fixes my birth, my death, or where I died.' },
   ];
 
   /* ============================================================
