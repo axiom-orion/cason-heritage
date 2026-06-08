@@ -171,6 +171,9 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByRole('heading', { name: /Governance/ })).toBeVisible();
   await expect(page.getByText(/Needs your eye/)).toBeVisible();              // the watch dashboard
   await expect(page.getByText('Holding')).toBeVisible();                     // horizon circuit-breaker green
+  await expect(page.getByText(/Meta-governance/)).toBeVisible();              // governing the governor
+  await expect(page.getByText(/All governance invariants attest/)).toBeVisible(); // live self-audit green
+  await expect(page.getByText(/Integrity attestation/)).toBeVisible();        // content-addressed digest
   await expect(page.getByText(/claims the record refuses/)).toBeVisible();    // quarantine registry
   await expect(page.getByText(/Contestation & Appeal/)).toBeVisible();        // the appeal ledger (two-way governance)
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);

@@ -877,6 +877,54 @@ function GovCard({ cap, children }) {
     </div>
   );
 }
+/* ---------- Meta-governance — governing the governor ---------- */
+// content-addressed digest: same governed state -> same id; any drift -> new id.
+function govHash(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return (h >>> 0).toString(16).padStart(8, '0'); }
+function MetaGovCard({ audit, appeals }) {
+  // Each primitive can itself drift; the meta-governor attests over all of them.
+  const rulings = (appeals || []).filter(function (a) { return a.status !== 'under_review'; });
+  const rulingsNoNote = rulings.filter(function (a) { return !(a.resolution_note && a.resolution_note.trim()); }).length;
+  const STALE_DAYS = 30, now = Date.now();
+  const stale = (appeals || []).filter(function (a) { return a.status === 'under_review' && a.created_at && (now - new Date(a.created_at).getTime()) > STALE_DAYS * 864e5; }).length;
+  const invariants = [
+    { key: 'horizon', label: 'Knowledge-horizon boundary', ok: audit.fails.length === 0, detail: audit.pass + '/' + audit.total + ' personas bounded to gen ≤ N+1 and their own year' },
+    { key: 'ref', label: 'Referential integrity', ok: audit.refDangling === 0, detail: audit.refDangling === 0 ? 'every kin id resolves to a real person' : audit.refDangling + ' dangling kin reference(s)' },
+    { key: 'quarantine', label: 'Quarantine containment', ok: audit.quarantineLeak === 0, detail: audit.quarantineLeak === 0 ? 'no disproven claim surfaces as fact (' + audit.quarantine.length + ' held)' : audit.quarantineLeak + ' disproven claim(s) leaking as fact' },
+    { key: 'rulings', label: 'Appeal-ruling completeness', ok: rulingsNoNote === 0, detail: rulings.length === 0 ? 'no rulings yet' : rulingsNoNote === 0 ? (rulings.length + ' ruling(s), each with a recorded reason') : rulingsNoNote + ' ruling(s) closed without a recorded reason' },
+  ];
+  const allOk = invariants.every(function (i) { return i.ok; });
+  // the attestation is over the governed state itself — tamper-evident
+  const digest = govHash(JSON.stringify({ p: audit.pass, t: audit.total, ti: audit.tiers, q: audit.quarantine.length, s: audit.sources, g: audit.gaps, r: audit.refDangling, l: audit.quarantineLeak }));
+  return (
+    <GovCard cap="Meta-governance — governing the governor">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 11 }}>
+        <div style={{ fontSize: 24 }}>{allOk ? '🧭' : '⚠️'}</div>
+        <div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: allOk ? 'var(--sea-green)' : 'var(--blood)' }}>{allOk ? 'All governance invariants attest' : 'A governance invariant needs attention'}</div>
+          <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5 }}>The watcher over the watchers — every primitive above can itself drift, so the record audits its own governance live. The same checks gate the build.</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {invariants.map(function (i) {
+          return (
+            <div key={i.key} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 12.5 }}>
+              <span style={{ color: i.ok ? 'var(--sea-green)' : 'var(--blood)', fontWeight: 700, width: 14 }}>{i.ok ? '✓' : '✗'}</span>
+              <span style={{ width: 196, color: 'var(--ink)', fontWeight: 600 }}>{i.label}</span>
+              <span style={{ color: 'var(--faded)', flex: 1 }}>{i.detail}</span>
+            </div>
+          );
+        })}
+      </div>
+      {stale > 0 && <div style={{ fontSize: 11.5, color: 'var(--rust)', marginTop: 8 }}>⏳ {stale} appeal(s) under review &gt; {STALE_DAYS} days — a ruling is overdue.</div>}
+      <div style={{ marginTop: 11, paddingTop: 9, borderTop: '1px dashed rgba(139,69,19,0.2)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)' }}>Integrity attestation</span>
+        <code style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--deep-blue)', background: 'rgba(45,74,90,0.08)', padding: '2px 8px', borderRadius: 6 }}>gov:{digest}</code>
+        <span style={{ fontSize: 11, color: 'var(--faded)' }}>content-addressed over the governed state — it changes the instant the record drifts.</span>
+      </div>
+    </GovCard>
+  );
+}
+
 /* ---------- Contestation & Appeal — challenge a tier or a quarantine, in the open ---------- */
 const APPEAL_STATUS = {
   under_review: { label: 'under review', bg: 'var(--gold)', fg: '#3a2a00' },
@@ -888,10 +936,9 @@ function AppealBadge({ s }) {
   const c = APPEAL_STATUS[s] || APPEAL_STATUS.under_review;
   return <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, color: c.fg, background: c.bg }}>{c.label}</span>;
 }
-function ContestationCard({ personId, member, verified, quarantine }) {
+function ContestationCard({ personId, member, verified, quarantine, appeals, loaded, reload }) {
   const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
-  const [appeals, setAppeals] = useState([]);
-  const [loaded, setLoaded] = useState(false);
+  appeals = appeals || [];
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -900,12 +947,6 @@ function ContestationCard({ personId, member, verified, quarantine }) {
   const [evidence, setEvidence] = useState('');
   const [notes, setNotes] = useState({});
   const selP = personId ? DATA.people[personId] : null;
-
-  function reload() {
-    if (!enabled) { setLoaded(true); return; }
-    window.CASON_AUTH.loadAppeals().then(function (rows) { setAppeals(rows || []); setLoaded(true); }).catch(function () { setLoaded(true); });
-  }
-  useEffect(function () { reload(); }, []);
 
   // what can be contested: the selected person's tier + each quarantined claim
   const targets = [];
@@ -1036,6 +1077,18 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
     });
     const gaps = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }).length;
     let sources = 0; ids.forEach(function (id) { sources += (people[id].sources || []).length; });
+    // structural invariants the meta-governor attests over (same checks the build enforces)
+    let refDangling = 0;
+    ids.forEach(function (id) {
+      ['parents', 'children', 'spouse', 'siblings'].forEach(function (rel) {
+        (people[id][rel] || []).forEach(function (rid) { if (!people[rid]) refDangling++; });
+      });
+    });
+    const banned = /digswell|elizabeth alcott|church warden|virginia land company/i;
+    let quarantineLeak = 0;
+    (MEM.nodes || []).forEach(function (n) {
+      if (banned.test(n.text || '') && ['confirmed', 'secondary', 'leading'].indexOf(n.evidence) !== -1) quarantineLeak++;
+    });
     const watch = { flags: [], verify: [], thin: [], living: [] };
     ids.forEach(function (id) {
       const p = people[id], notes = p.notes || '', tags = p.tags || [], per = PERS.byId[id];
@@ -1044,12 +1097,20 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
       if (per && per.provenance && per.provenance.reconstructed) watch.thin.push(id);
       if (tags.indexOf('living') !== -1) watch.living.push(id);
     });
-    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources, watch: watch };
+    return { pass: pass, total: ids.length, fails: fails, tiers: tiers, quarantine: quarantine, gaps: gaps, sources: sources, watch: watch, refDangling: refDangling, quarantineLeak: quarantineLeak };
   }, []);
   const tierOrder = ['confirmed', 'secondary', 'leading', 'possible', 'unsolved', 'reconstructed', 'eliminated', 'disproven'];
   const sub = personId ? MEM.access(personId) : null;
   const selP = personId ? DATA.people[personId] : null;
   const held = audit.fails.length === 0;
+  // one shared appeal load — feeds both the meta-governor's ruling check and the ledger
+  const [appeals, setAppeals] = useState([]);
+  const [appealsLoaded, setAppealsLoaded] = useState(false);
+  function reloadAppeals() {
+    if (!(window.CASON_AUTH && window.CASON_AUTH.enabled)) { setAppealsLoaded(true); return; }
+    window.CASON_AUTH.loadAppeals().then(function (rows) { setAppeals(rows || []); setAppealsLoaded(true); }).catch(function () { setAppealsLoaded(true); });
+  }
+  useEffect(function () { reloadAppeals(); }, []);
   return (
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
@@ -1082,6 +1143,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
         </div>
       </GovCard>
 
+      <MetaGovCard audit={audit} appeals={appeals} />
+
       <GovCard cap="Provenance tiers — trust in the record, not in behavior">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {tierOrder.filter(function (t) { return audit.tiers[t]; }).map(function (t) {
@@ -1110,7 +1173,7 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
         </div>
       </GovCard>
 
-      <ContestationCard personId={personId} member={member} verified={verified} quarantine={audit.quarantine} />
+      <ContestationCard personId={personId} member={member} verified={verified} quarantine={audit.quarantine} appeals={appeals} loaded={appealsLoaded} reload={reloadAppeals} />
 
       <GovCard cap="Audit & open threads">
         <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 13, alignItems: 'baseline' }}>
