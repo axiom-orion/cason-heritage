@@ -172,6 +172,7 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText(/Needs your eye/)).toBeVisible();              // the watch dashboard
   await expect(page.getByText('Holding')).toBeVisible();                     // horizon circuit-breaker green
   await expect(page.getByText(/claims the record refuses/)).toBeVisible();    // quarantine registry
+  await expect(page.getByText(/Contestation & Appeal/)).toBeVisible();        // the appeal ledger (two-way governance)
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
 

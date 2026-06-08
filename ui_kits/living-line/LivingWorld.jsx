@@ -877,7 +877,142 @@ function GovCard({ cap, children }) {
     </div>
   );
 }
-function GovernancePanel({ personId, onSelect }) {
+/* ---------- Contestation & Appeal — challenge a tier or a quarantine, in the open ---------- */
+const APPEAL_STATUS = {
+  under_review: { label: 'under review', bg: 'var(--gold)', fg: '#3a2a00' },
+  approved: { label: 'approved', bg: 'var(--sea-green)', fg: '#fff' },
+  denied: { label: 'denied', bg: 'var(--blood)', fg: '#fff' },
+  escalated: { label: 'escalated · ⚖ all 3', bg: 'var(--deep-blue)', fg: '#fff' },
+};
+function AppealBadge({ s }) {
+  const c = APPEAL_STATUS[s] || APPEAL_STATUS.under_review;
+  return <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, color: c.fg, background: c.bg }}>{c.label}</span>;
+}
+function ContestationCard({ personId, member, verified, quarantine }) {
+  const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
+  const [appeals, setAppeals] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [targetKey, setTargetKey] = useState('');
+  const [challenge, setChallenge] = useState('');
+  const [evidence, setEvidence] = useState('');
+  const [notes, setNotes] = useState({});
+  const selP = personId ? DATA.people[personId] : null;
+
+  function reload() {
+    if (!enabled) { setLoaded(true); return; }
+    window.CASON_AUTH.loadAppeals().then(function (rows) { setAppeals(rows || []); setLoaded(true); }).catch(function () { setLoaded(true); });
+  }
+  useEffect(function () { reload(); }, []);
+
+  // what can be contested: the selected person's tier + each quarantined claim
+  const targets = [];
+  if (selP) targets.push({ key: 'tier:' + personId, type: 'tier', id: personId, label: selP.name + ' — current tier “' + gTierOf(personId) + '”' });
+  (quarantine || []).slice(0, 12).forEach(function (q, i) {
+    targets.push({ key: 'q:' + i, type: 'quarantine', id: (q.owner || 'claim') + '#' + i, label: 'Quarantined' + (q.owner ? ' · ' + nm(q.owner) : '') + ' — ' + q.text.slice(0, 46) });
+  });
+  const activeKey = targetKey || (targets[0] && targets[0].key) || '';
+  const chosen = targets.find(function (t) { return t.key === activeKey; }) || targets[0] || null;
+
+  function submit() {
+    if (!chosen || !challenge.trim()) { setMsg('Pick what you’re contesting and say why.'); return; }
+    setBusy(true); setMsg('Filing…');
+    window.CASON_AUTH.fileAppeal({ targetType: chosen.type, targetId: chosen.id, targetLabel: chosen.label, challenge: challenge.trim(), evidence: evidence.trim() })
+      .then(function () { setChallenge(''); setEvidence(''); setOpen(false); setMsg('Filed — it’s on the open ledger below.'); reload(); })
+      .catch(function (e) { setMsg('Could not file: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+  function resolve(id, status) {
+    setBusy(true); setMsg('');
+    window.CASON_AUTH.resolveAppeal(id, status, notes[id] || '')
+      .then(function () { setNotes(function (n) { const c = Object.assign({}, n); delete c[id]; return c; }); reload(); })
+      .catch(function (e) { setMsg('Could not update: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+
+  const inp = { width: '100%', boxSizing: 'border-box', fontFamily: 'var(--font-serif)', fontSize: 12.5, padding: '7px 9px', border: '1px solid rgba(139,69,19,0.25)', borderRadius: 7, background: '#fff', color: 'var(--ink)' };
+  const mini = function (bg) { return { fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, padding: '4px 9px', borderRadius: 7, border: 'none', color: '#fff', background: bg, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1 }; };
+  const counts = appeals.reduce(function (a, x) { a[x.status] = (a[x.status] || 0) + 1; return a; }, {});
+
+  return (
+    <GovCard cap={'Contestation & Appeal — the record can be challenged, in the open (' + appeals.length + ')'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Governance isn’t one-way. A verified family member can contest an evidence tier or a quarantined claim with a source; the challenge and its ruling are a <strong>public, auditable ledger</strong> — anyone can read why a decision stands or was overturned.
+      </div>
+
+      {!enabled && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Connect the family backend to open the appeal ledger.</div>}
+
+      {enabled && verified && (
+        <div style={{ marginBottom: 12 }}>
+          {!open && <button onClick={function () { setOpen(true); setMsg(''); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--deep-blue)', background: 'var(--deep-blue)', color: '#fff', cursor: 'pointer' }}>＋ File an appeal</button>}
+          {open && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fff', border: '1px solid rgba(139,69,19,0.2)', borderRadius: 9, padding: 12 }}>
+              <label style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)' }}>What are you contesting?</label>
+              <select value={activeKey} onChange={function (e) { setTargetKey(e.target.value); }} style={inp}>
+                {targets.length === 0 && <option value="">Select a person, or open a quarantined claim</option>}
+                {targets.map(function (t) { return <option key={t.key} value={t.key}>{t.label}</option>; })}
+              </select>
+              <textarea value={challenge} onChange={function (e) { setChallenge(e.target.value); }} placeholder="Why is the current standing wrong, and what should it be?" rows={3} style={Object.assign({}, inp, { resize: 'vertical' })} />
+              <input value={evidence} onChange={function (e) { setEvidence(e.target.value); }} placeholder="Source / citation you’re offering (deed, census, Bible record…)" style={inp} />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button onClick={submit} disabled={busy} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--sea-green)', color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1 }}>Submit appeal</button>
+                <button onClick={function () { setOpen(false); setMsg(''); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--faded)', cursor: 'pointer' }}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {enabled && !verified && (
+        <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12, marginBottom: 12 }}>
+          {member ? 'Preview members can read the ledger; verify by email to file an appeal.' : 'Family members can contest a tier or a quarantined claim — sign in (Narrator → family email) to file one.'}
+        </div>
+      )}
+
+      {msg && <div style={{ fontSize: 11.5, color: /Could not|wrong/.test(msg) ? 'var(--blood)' : 'var(--sea-green)', marginBottom: 8 }}>{msg}</div>}
+
+      {appeals.length > 0 && (
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 11, color: 'var(--faded)', marginBottom: 8 }}>
+          {['under_review', 'approved', 'denied', 'escalated'].filter(function (k) { return counts[k]; }).map(function (k) {
+            return <span key={k}>{APPEAL_STATUS[k].label}: <strong style={{ color: 'var(--ink)' }}>{counts[k]}</strong></span>;
+          })}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {appeals.map(function (a) {
+          return (
+            <div key={a.id} style={{ borderLeft: '3px solid ' + (APPEAL_STATUS[a.status] || APPEAL_STATUS.under_review).bg, paddingLeft: 10 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <AppealBadge s={a.status} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{a.target_type}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{a.target_label || a.target_id}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5, margin: '4px 0' }}>{a.challenge}</div>
+              {a.evidence && <div style={{ fontSize: 11.5, color: 'var(--faded)' }}><strong>Source offered:</strong> {a.evidence}</div>}
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 2 }}>
+                filed by {a.submitter_name || 'a member'}{a.created_at ? ' · ' + new Date(a.created_at).toLocaleDateString() : ''}
+                {a.resolver_name ? ' · ruled by ' + a.resolver_name : ''}
+              </div>
+              {a.resolution_note && <div style={{ fontSize: 11.5, color: 'var(--ink)', fontStyle: 'italic', marginTop: 3 }}>Ruling: {a.resolution_note}</div>}
+              {verified && a.status === 'under_review' && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
+                  <input value={notes[a.id] || ''} onChange={function (e) { const v = e.target.value; setNotes(function (n) { return Object.assign({}, n, { [a.id]: v }); }); }} placeholder="ruling note…" style={Object.assign({}, inp, { width: 200, padding: '4px 8px', fontSize: 11.5 })} />
+                  <button onClick={function () { resolve(a.id, 'approved'); }} disabled={busy} style={mini('var(--sea-green)')}>Approve</button>
+                  <button onClick={function () { resolve(a.id, 'denied'); }} disabled={busy} style={mini('var(--blood)')}>Deny</button>
+                  <button onClick={function () { resolve(a.id, 'escalated'); }} disabled={busy} title="Escalate to the ⚖ all-3 multi-model consensus" style={mini('var(--deep-blue)')}>Escalate ⚖</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {loaded && appeals.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>No appeals filed — the record stands unchallenged.</div>}
+      </div>
+    </GovCard>
+  );
+}
+function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
     let pass = 0; const fails = [];
@@ -974,6 +1109,8 @@ function GovernancePanel({ personId, onSelect }) {
           {audit.quarantine.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Nothing quarantined.</div>}
         </div>
       </GovCard>
+
+      <ContestationCard personId={personId} member={member} verified={verified} quarantine={audit.quarantine} />
 
       <GovCard cap="Audit & open threads">
         <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 13, alignItems: 'baseline' }}>
@@ -1205,7 +1342,7 @@ function LivingWorld() {
 
           {view === 'gov' && (
             <div style={{ padding: '20px 24px 60px' }}>
-              <GovernancePanel personId={sel} onSelect={selectPerson} />
+              <GovernancePanel personId={sel} onSelect={selectPerson} member={isMember ? role.name : null} verified={!!role.verified} />
             </div>
           )}
 

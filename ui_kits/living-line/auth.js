@@ -101,6 +101,37 @@
     });
   }
 
+  // ---- Contestation & Appeal: an auditable challenge ledger ----
+  // Any guest can read the ledger; only a verified family member may file an
+  // appeal (as themselves) or adjudicate one. The record — and its resolution —
+  // is public, so a tier or quarantine decision can always be contested in the open.
+  function loadAppeals() {
+    if (!enabled) return Promise.resolve([]);
+    return loadSb().then(function () {
+      return sb.from('cason_appeals').select('id,target_type,target_id,target_label,challenge,evidence,status,submitter_name,resolver_name,resolution_note,created_at,resolved_at').order('created_at', { ascending: false });
+    }).then(function (r) { return r.data || []; }).catch(function () { return []; });
+  }
+  function fileAppeal(rec) {
+    rec = rec || {};
+    if (!(enabled && state.verified)) return Promise.reject(new Error('Sign in as a verified family member to file an appeal.'));
+    return loadSb().then(function () {
+      return sb.from('cason_appeals').insert({
+        target_type: rec.targetType || 'tier', target_id: rec.targetId, target_label: rec.targetLabel || null,
+        challenge: rec.challenge, evidence: rec.evidence || null,
+        submitter_email: state.email, submitter_name: state.name,
+      }).select().single();
+    }).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+  function resolveAppeal(id, status, note) {
+    if (!(enabled && state.verified)) return Promise.reject(new Error('Sign in as a verified family member to adjudicate.'));
+    return loadSb().then(function () {
+      return sb.from('cason_appeals').update({
+        status: status, resolution_note: note || null, resolver_name: state.name,
+        resolved_at: status === 'under_review' ? null : new Date().toISOString(),
+      }).eq('id', id).select().single();
+    }).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+
   if (enabled) loadSb().catch(function () {});
 
   root.CASON_AUTH = {
@@ -111,5 +142,6 @@
     previewMember: previewMember, clearPreview: function () { narrator(); },
     addContribution: addContribution, loadContributions: loadContributions,
     loadArtifacts: loadArtifacts, uploadArtifact: uploadArtifact, artifactUrl: artifactUrl,
+    loadAppeals: loadAppeals, fileAppeal: fileAppeal, resolveAppeal: resolveAppeal,
   };
 })(typeof window !== 'undefined' ? window : this);
