@@ -160,6 +160,27 @@ which already holds the API keys server-side — so the Action needs **no secret
 only the automatic `GITHUB_TOKEN` to open the PR. To point it elsewhere, set a
 repository variable `KEEPER_CONSENSUS_URL`.
 
+### Straight into the in-app review queue (no GitHub round-trip)
+
+The Keeper can push its **needs-approval** leads directly into the app's
+**Desk → Review queue** (the `cason_proposals` table) so a keeper approves them
+in-app — no dossier PR needed. It posts to the `api/propose.js` ingest endpoint,
+which inserts with the Supabase **service-role** key (server-side only, never the
+browser) and a shared bearer token. The in-app queue still re-runs the **full
+policy gate** on every item, so nothing can be approved that violates policy.
+
+To turn it on:
+
+1. In **Vercel** env: `SUPABASE_SERVICE_ROLE_KEY` (the project's service-role key)
+   and `KEEPER_INGEST_TOKEN` (any long random string you choose).
+2. In **GitHub** repo settings: variable `KEEPER_PROPOSE_URL` =
+   `https://flcason.com/api/propose`, and secret `KEEPER_INGEST_TOKEN` = the
+   same string.
+
+Leave them unset and the Keeper just writes the dossier/PR as before — the push
+is purely additive. Members also feed the same queue from the app: run the
+**⚖ All-3** cross-check on an open line, then **Propose for review**.
+
 ## Approving a dossier
 
 1. Open the Keeper PR; read each question's verdict and the corroborated points.
