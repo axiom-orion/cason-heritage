@@ -92,6 +92,10 @@ conditionals:
 - `no-quarantined-myth` — content repeating a disproven claim (**block**).
 - `no-eliminated-kin` — reviving a ruled-out (`evidence:'eliminated'`) ancestor as
   kin (**block**) — the Seam-1 circuit-breaker, now a named policy rule.
+- `no-haplogroup-conflict` — linking two patrilines a Y-DNA haplogroup exclusion
+  keeps apart, e.g. **Cason↔Causey** (**block**) — the *near-objective* genealogical
+  constraint (`ui_kits/living-line/dna-exclusions.js`), proven by the acceptance
+  test `npm run test:acceptance`.
 - `no-overclaimed-record` — a `confirmed`/`secondary` claim needs a source scoring
   `>= primaryThreshold`; model consensus never reaches it (**block**).
 - `require-model-consensus` — a split model vote routes to a human (**review**).

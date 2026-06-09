@@ -24,8 +24,10 @@
      • a record must cite a source                  (require-provenance, block)
      • never echo a quarantined myth                (no-quarantined-myth, block)
      • never revive a ruled-out ancestor as kin     (no-eliminated-kin, block)
-     • never write above `possible` without a primary
-       document scoring >= primaryThreshold         (no-overclaimed-record, block)
+     • never link two patrilines a Y-DNA haplogroup
+       exclusion keeps apart (Cason↔Causey)          (no-haplogroup-conflict, block)
+     • never write `confirmed`/`secondary` without a
+       primary document scoring >= primaryThreshold  (no-overclaimed-record, block)
      • a split model vote routes to a human         (require-model-consensus, review)
      • every lead parks for the human merge gate    (lead-needs-human-merge, review)
 
@@ -136,6 +138,39 @@
     };
   }
 
+  // near-objective safety (the GPS-grade constraint): a Y-DNA haplogroup is
+  // inherited father-to-son, so two surnames in different haplogroups cannot
+  // share a direct paternal line. A merge/link that crosses a documented
+  // exclusion is not low-confidence — it is provably wrong. Hard block.
+  const PATRILINE = /patriline|paternal line|same male line|same male\b|y-?dna|same family|one (male )?line/i;
+  function makeNoHaplogroupConflict(exclusions) {
+    const list = (exclusions || []).map(function (e) {
+      return { a: String(e.a).toLowerCase(), b: String(e.b).toLowerCase(), basis: e.basis, a0: e.a, b0: e.b };
+    });
+    function surnamesOf(a) {
+      return (a.payload && Array.isArray(a.payload.surnames)) ? a.payload.surnames.map(function (s) { return String(s).toLowerCase(); }) : null;
+    }
+    return {
+      name: 'no-haplogroup-conflict',
+      evaluate: function (a) {
+        const isMerge = a.kind === 'merge_persons' || a.kind === 'link_patriline';
+        const claim = a.payload && (a.payload.claim || a.payload.relation);
+        const assertsPatriline = isMerge || (a.kind === 'write_record' && (claim === 'patriline' || PATRILINE.test(actionText(a))));
+        if (!assertsPatriline) return null;
+        const given = surnamesOf(a);
+        const text = given ? null : actionText(a).toLowerCase();
+        for (let i = 0; i < list.length; i++) {
+          const p = list[i];
+          const hit = given
+            ? (given.indexOf(p.a) !== -1 && given.indexOf(p.b) !== -1)
+            : (new RegExp('\\b' + p.a + '\\b').test(text) && new RegExp('\\b' + p.b + '\\b').test(text));
+          if (hit) return { rule: 'no-haplogroup-conflict', detail: 'proposes a paternal link across a Y-DNA exclusion (' + p.a0 + ' ↔ ' + p.b0 + '): ' + p.basis, severity: 'block' };
+        }
+        return null;
+      },
+    };
+  }
+
   // propose, never publish: every lead parks for the human merge gate.
   const leadNeedsHumanMerge = {
     name: 'lead-needs-human-merge',
@@ -153,6 +188,7 @@
       requireProvenance,
       makeNoQuarantinedMyth(config.bannedPattern),
       makeNoEliminatedKin(config.eliminatedPatterns),
+      makeNoHaplogroupConflict(config.dnaExclusions),
       makeNoOverclaimedRecord(config.primaryThreshold),
       makeRequireModelConsensus(config.consensusThreshold),
       leadNeedsHumanMerge,
@@ -199,6 +235,7 @@
     requireProvenance: requireProvenance,
     makeNoQuarantinedMyth: makeNoQuarantinedMyth,
     makeNoEliminatedKin: makeNoEliminatedKin,
+    makeNoHaplogroupConflict: makeNoHaplogroupConflict,
     makeNoOverclaimedRecord: makeNoOverclaimedRecord,
     makeRequireModelConsensus: makeRequireModelConsensus,
     leadNeedsHumanMerge: leadNeedsHumanMerge,
