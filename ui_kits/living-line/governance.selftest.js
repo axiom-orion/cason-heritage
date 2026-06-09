@@ -64,6 +64,11 @@ ok("...and FLIPS to needs_approval when the threshold drops to 0.7", GOV.evaluat
 const split = { kind: 'write_record', payload: { personId: 'x', evidence: 'possible', text: 'a contested lead' }, justification: 'split', provenance: modelProv(), consensus: { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'leave_open' }], agreementRatio: 0.4, chosenKind: 'write_record' } };
 ok("a split model vote raises the require-model-consensus review", GOV.evaluatePolicy(split, policy).violations.some(function (v) { return v.rule === 'require-model-consensus'; }));
 
+/* 3b. autonomy posture — the top tier (autonomous write) is unoccupied by design */
+ok("no write_record is auto-allowed — the system is supervised (T7 unoccupied)", GOV.autonomyPosture(policy).supervised === true);
+ok("...even a clean, fully-sourced lead lands at needs_approval, not allow", GOV.evaluatePolicy({ kind: 'write_record', payload: { personId: 'x', evidence: 'possible', text: 'clean' }, justification: 'strong', provenance: [{ sourceId: 's', snippet: 'x', score: 1.0 }] }, policy).decision === 'needs_approval');
+ok("...the invariant is real: drop lead-needs-human-merge and supervision breaks", GOV.autonomyPosture([GOV.requireProvenance]).supervised === false);
+
 /* 4. the trace is valid NDJSON in the TraceEvent schema */
 const trace = GOV.Trace('selftest run');
 trace.runStarted();

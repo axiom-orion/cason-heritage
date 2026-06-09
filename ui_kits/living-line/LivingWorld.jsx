@@ -1109,6 +1109,7 @@ function AuditTraceCard() {
     });
   }, []);
 
+  const posture = useMemo(function () { return GOV ? GOV.autonomyPosture(GOV.buildKeeperPolicy({})) : null; }, []);
   if (!GOV || runs.length === 0) {
     return <GovCard cap="Audit trace — the policy gate, live"><div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>The governance module isn’t loaded.</div></GovCard>;
   }
@@ -1119,6 +1120,11 @@ function AuditTraceCard() {
       <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
         The same typed gate the Keeper runs, here in the browser: each proposed action is decided <strong>allow / needs-approval / block</strong> by named rules, and every step is one line of a replayable <strong>NDJSON trace</strong> — the wire format of the audit trail. Pick a scenario and watch it decide.
       </div>
+      {posture && posture.supervised && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: 'var(--ink)', background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: '6px 10px', marginBottom: 11 }}>
+          <span>🔒</span><span>Autonomy: <strong>supervised</strong> — the top tier (autonomous write) is <strong>unoccupied by design</strong>. {posture.detail}.</span>
+        </div>
+      )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 11 }}>
         {runs.map(function (run, i) {
           const active = i === pick;

@@ -102,6 +102,13 @@ conditionals:
 - `lead-needs-human-merge` — every clean lead parks for the human merge gate
   (**review**) — *propose, never publish*, expressed as policy.
 
+**Supervised, by construction.** Because `lead-needs-human-merge` makes *every*
+`write_record` at least `needs_approval`, **no policy path auto-writes a new claim** —
+the top autonomy tier (a model-originated write with no human) is unoccupied by design.
+This is a provable invariant, not a promise: `governance.autonomyPosture(policy)` probes a
+clean, fully-sourced write and confirms it still cannot reach `allow` (and the self-test
+checks that removing the rule breaks it). The living-line glass-box surfaces it.
+
 Because the rules key off **named thresholds**, the family site inherits the demo's
 signature property: lower `primaryThreshold` and a `block` flips to `needs_approval` —
 a real change in the gate, not a cosmetic one. Every run also writes

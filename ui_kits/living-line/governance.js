@@ -218,6 +218,18 @@
     };
   }
 
+  // Autonomy posture — the pitch made provable. The top tier (a model-originated
+  // claim written to the record with no human) is UNOCCUPIED by design:
+  // `lead-needs-human-merge` forces every write_record to at least needs_approval,
+  // so no policy path auto-writes a new claim. This probes a clean, well-sourced
+  // write and confirms it still cannot reach `allow`. supervised:false would mean
+  // the invariant was removed.
+  function autonomyPosture(policy) {
+    const probe = { kind: 'write_record', payload: { personId: '∅probe', evidence: 'possible', text: 'a clean, well-sourced lead with no other violation' }, justification: 'autonomy probe', provenance: [{ sourceId: 'probe', snippet: 'x', score: 1.0 }] };
+    const decision = evaluatePolicy(probe, policy || []);
+    return { supervised: decision.decision !== 'allow', topTier: 'unoccupied', decision: decision.decision, detail: 'no write_record is auto-allowed — every new claim routes to a human merge' };
+  }
+
   // map a gate decision to the trace's terminal event (mirrors loop.ts step 4).
   function reasonOf(decision, severity) {
     return decision.violations
@@ -229,6 +241,7 @@
   const API = {
     evaluatePolicy: evaluatePolicy,
     buildKeeperPolicy: buildKeeperPolicy,
+    autonomyPosture: autonomyPosture,
     Trace: Trace,
     reasonOf: reasonOf,
     // rules exposed for testing / reuse
