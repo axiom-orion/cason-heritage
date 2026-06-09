@@ -1229,6 +1229,43 @@ function SupersessionCard() {
     </GovCard>
   );
 }
+/* ---------- The agent roster — the whole governed system, self-described ---------- */
+function AgentsCard() {
+  const REG = window.CASON_AGENTS;
+  if (!REG) return null;
+  return (
+    <GovCard cap={'The agent roster — what governs this line (' + REG.agents.length + ')'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 11 }}>
+        Every agent, its <strong>system</strong> (how it works) and what it <strong>can do</strong>, and the autonomy that bounds it. The top tier is unoccupied by design — nothing here publishes without a human.
+      </div>
+      {REG.LAYERS.map(function (layer) {
+        const inLayer = REG.byLayer(layer);
+        if (!inLayer.length) return null;
+        return (
+          <div key={layer} style={{ marginBottom: 12 }}>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>{layer}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              {inLayer.map(function (a) {
+                const color = a.status === 'live' ? 'var(--sea-green)' : 'var(--gold)';
+                return (
+                  <div key={a.id} style={{ borderLeft: '3px solid ' + color, paddingLeft: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>{a.name}</span>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 20, color: '#fff', background: color }}>{a.status}</span>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{a.autonomy}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, margin: '2px 0' }}>{a.system}</div>
+                    <div style={{ fontSize: 11, color: 'var(--faded)' }}><strong>Can:</strong> {a.abilities.join(' · ')}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </GovCard>
+  );
+}
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1291,6 +1328,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
       <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 18, maxWidth: 620 }}>The honest form of governance over the line: what each agent is allowed to know, how well every claim is sourced, and what the record refuses to repeat — computed live over all {audit.total} people, and enforced by the build.</p>
+
+      <AgentsCard />
 
       <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
         <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>

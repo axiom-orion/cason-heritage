@@ -45,6 +45,17 @@ conductor at the real services instead.
 
 Each row: the aspirational agent, the module that **is** it today, and its honest status.
 
+> **Now a live, self-verifying module.** This register is no longer just prose: `ui_kits/
+> living-line/agents.js` (`CASON_AGENTS`) is the canonical roster the Conductor routes over
+> and the glass-box renders — every agent declares its *system*, *abilities*, governance
+> *hooks*, and *autonomy*, and `npm run selftest:agents` asserts that every `live` agent names
+> a module that exists on disk (no aspirational entries). The three formerly-GAP agents are now
+> built and live: **Ingestion & Provenance** (+ Gatekeeper) `ingestion.js` — the governed front
+> door that runs every contribution through the same gate; **Narrative Journey** `journey.js`;
+> **Reflection & Self-Improvement** `reflection.js`. **Recovery & Resilience** is honestly marked
+> *cross-cutting* (graceful degradation realized across modules, not one file). The roster is
+> visible in the living-line **Governance** view.
+
 ### Foundation — memory & truth
 
 1. **Memory Graph Steward** — **LIVE (in-browser) / GAP (federated).**

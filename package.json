@@ -15,7 +15,8 @@
     "selftest:governance": "node ui_kits/living-line/governance.selftest.js",
     "selftest:supersessions": "node ui_kits/living-line/supersessions.selftest.js",
     "selftest:memory": "node ui_kits/living-line/memory-client.selftest.js",
-    "selftest:drift": "node scripts/drift-audit.selftest.js"
+    "selftest:drift": "node scripts/drift-audit.selftest.js",
+    "selftest:agents": "node scripts/agents.selftest.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
