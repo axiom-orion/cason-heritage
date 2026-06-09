@@ -216,8 +216,12 @@ graph, which stays the fast path for rendering the world.
 
 Beyond federation, four loops are real GAPs worth building:
 
-- **Drift auditor (agent 7)** — a scheduled job that re-runs `selftest.js`-style no-leak
-  checks *plus* persona-voice consistency across runs, and opens an alert PR on regression.
+- **Drift auditor (agent 7)** — ✅ *landed.* `scripts/drift-audit.js` + the weekly
+  `drift-audit.yml` cron: re-runs the load-bearing invariants (horizon, referential
+  integrity, quarantine, supervised-autonomy, supersession-grounding) **plus** a per-persona
+  voice/levity fingerprint, attests with a content-addressed digest vs a committed baseline
+  (`research/attestation.json`), and opens an alert PR on regression or drift. See
+  `research/DRIFT.md`. Validated by `npm run selftest:drift` (incl. injected-regression detection).
 - **Persona identity fingerprint** — extend `provenance.reconstructed` to a stable
   per-persona signature so impersonation/drift is *detectable*, not just flagged.
 - **Public glass-box pane** — ✅ *landed.* The living-line **Governance** view now runs
