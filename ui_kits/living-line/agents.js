@@ -61,6 +61,13 @@
       hooks: ['public-only (never recommends living-private)', 'memories drawn through MEM.access'],
     },
     {
+      id: 'curator', name: 'Curator (editor-in-residence)', layer: 'interaction', status: 'live', autonomy: 'proposes',
+      modules: ['ui_kits/living-line/curator.js'],
+      system: 'Learns from the record’s current state and the calendar and proposes concrete site improvements — EDITS (no-narrative / no-source / reconstruction-only), SEASONAL features (the season’s chapter + this-year milestone anniversaries), and ADDITIONS (a Gen-5 "help solve this" callout, an open line to surface, an under-told spotlight).',
+      abilities: ['suggest edits', 'seasonal / anniversary features', 'additions & spotlights', 'learns (skips applied suggestions)'],
+      hooks: ['advisory — proposes, never edits the site', 'public-only (never proposes a living person)'],
+    },
+    {
       id: 'evidence-auditor', name: 'Evidence & Proof Auditor', layer: 'specialist', status: 'live', autonomy: 'acts-bounded',
       modules: ['ui_kits/living-line/kinship.js', 'research/bloodhound.md'],
       system: 'Resolves relational truth deterministically from the kinship graph, scores evidence tiers, and catches conflations / ruled-out kin; genealogy-graphrag is the rigorous reference.',

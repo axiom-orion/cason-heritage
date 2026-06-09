@@ -185,6 +185,8 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText('Elizabeth Alcott').first()).toBeVisible();      // a superseded value, kept and marked
   await expect(page.getByText(/The agent roster/)).toBeVisible();              // the self-described agent registry
   await expect(page.getByText('Governance Conductor').first()).toBeVisible();  // an agent in the roster
+  await expect(page.getByText(/The Curator & the interaction agents/)).toBeVisible(); // headless agents now surfaced
+  await expect(page.getByText(/Seasonal —/)).toBeVisible();                    // the Curator's live, date-aware suggestions
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
 

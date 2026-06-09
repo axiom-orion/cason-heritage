@@ -1266,6 +1266,35 @@ function AgentsCard() {
     </GovCard>
   );
 }
+/* ---------- The Curator + the interaction agents — surfaced, learning, proposing ---------- */
+function agentSub(label) {
+  return <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)', margin: '11px 0 5px' }}>{label}</div>;
+}
+function CuratorCard() {
+  const CUR = window.CASON_CURATOR, REF = window.CASON_REFLECTION, JNY = window.CASON_JOURNEY;
+  const DATA = window.CASON_DATA, MEM = window.CASON_MEMORY, PERS = window.CASON_PERSONAS;
+  if (!CUR) return null;
+  const deps = { data: DATA, MEM: MEM, PERS: PERS };
+  const s = CUR.suggest(new Date(), deps);
+  const ref = REF ? REF.report(DATA, MEM, PERS) : null;
+  const jny = JNY ? JNY.recommend({ visited: [], personas: [] }, deps) : [];
+  const ul = { margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55 };
+  return (
+    <GovCard cap="The Curator & the interaction agents — what to do next (proposed, never auto-applied)">
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5 }}>
+        These agents learn from the record and the calendar and <strong>suggest</strong> — seasonal features, edits, additions, and where to look next. A human applies them; nothing here changes the site on its own.
+      </div>
+      {agentSub('Seasonal — ' + s.season)}
+      <ul style={ul}>{s.seasonal.map(function (x, i) { return <li key={i}><strong>{x.title}</strong> — {x.why}</li>; })}</ul>
+      {s.edits.length ? agentSub('Suggested edits') : null}
+      <ul style={ul}>{s.edits.slice(0, 5).map(function (e, i) { return <li key={i}>{e.suggestion}</li>; })}</ul>
+      {s.additions.length ? agentSub('Additions to consider') : null}
+      <ul style={ul}>{s.additions.map(function (a, i) { return <li key={i}><em>{a.kind}</em> — {a.suggestion}</li>; })}</ul>
+      {ref && ref.priorities.length ? <div>{agentSub('Reflection — work on next')}<ul style={ul}>{ref.priorities.slice(0, 3).map(function (p, i) { return <li key={i}>{p.why}</li>; })}</ul></div> : null}
+      {jny.length ? <div>{agentSub('Journey — try next')}<div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55 }}>{jny[0].why}</div></div> : null}
+    </GovCard>
+  );
+}
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1330,6 +1359,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
       <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 18, maxWidth: 620 }}>The honest form of governance over the line: what each agent is allowed to know, how well every claim is sourced, and what the record refuses to repeat — computed live over all {audit.total} people, and enforced by the build.</p>
 
       <AgentsCard />
+
+      <CuratorCard />
 
       <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
         <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>
