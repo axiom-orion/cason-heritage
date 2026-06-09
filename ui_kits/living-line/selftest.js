@@ -205,7 +205,11 @@ check('one persona cannot see another\'s private contribution', !MEM.access('tho
 console.log('\n— Open lines (the trace-every-line worklist) —');
 const gapNodes = MEM.nodes.filter(function (n) { return n.kind === 'gap'; });
 check('open-line gap nodes exist (' + gapNodes.length + ')', gapNodes.length > 5);
-check('the load-bearing Gen-5 link is an open line', gapNodes.some(function (n) { return n.ownerId === 'james-1727'; }));
+// The Gen-5 link itself is no longer an auto-gap — it was strengthened to a
+// LEADING candidate (james-1727). The load-bearing unknown now survives as an
+// authored open line: Ransom Sr.'s father is still unproven by a primary record.
+check('the load-bearing Gen-5 parentage is still an open line (Ransom Sr.\'s father unproven)',
+  gapNodes.some(function (n) { return n.ownerId === 'ransom-sr' && /names our father|father/i.test(n.text); }));
 check('a lost surname surfaces as an open line (Anne)', gapNodes.some(function (n) { return n.ownerId === 'anne'; }));
 
 console.log('\n' + (failures === 0 ? '✅ ALL PASS' : '❌ ' + failures + ' FAILURE(S)') + '\n');

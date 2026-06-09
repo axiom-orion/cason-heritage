@@ -1,0 +1,74 @@
+name: Keeper
+
+# The autonomous research orchestrator. On a schedule (or on demand) it asks
+# the multi-model consensus endpoint the family's top open questions, runs the
+# bloodhound gate, and opens a PR with an honestly-tiered research dossier for
+# a human keeper to review. Propose, never publish — merging the PR is the
+# approval gate; nothing reaches data.js or the live site without it.
+
+on:
+  schedule:
+    - cron: '0 13 * * 1'        # Mondays 13:00 UTC — a weekly research pass
+  workflow_dispatch:
+    inputs:
+      max:
+        description: 'How many open questions to research this run'
+        required: false
+        default: '3'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+
+jobs:
+  research:
+    name: Research the open lines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Don't pile up: if a Keeper PR is already awaiting review, stop and let
+      # the keeper clear the queue first.
+      - name: Skip if a Keeper PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search 'Keeper: research dossier in:title' --json number --jq 'length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then echo "A Keeper PR is already open — skipping this run."; fi
+
+      - name: Run the Keeper
+        if: steps.guard.outputs.open == '0'
+        env:
+          KEEPER_CONSENSUS_URL: ${{ vars.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus' }}
+        run: node scripts/keeper.js --max "${{ github.event.inputs.max || '3' }}"
+
+      - name: Open a proposal PR
+        if: steps.guard.outputs.open == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain research/proposals)" ]; then
+            echo "No new dossier — nothing to propose."; exit 0
+          fi
+          date=$(date -u +%Y-%m-%d)
+          branch="keeper/research-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/proposals
+          git commit -m "Keeper: research dossier $date"
+          git push -u origin "$branch"
+          gh pr create \
+            --title "Keeper: research dossier $date" \
+            --body $'Autonomous research pass over the open lines.\n\n**Propose, not publish** — every item is an honestly-tiered *lead*, not proof. Model consensus is corroboration, never a primary source: nothing here is `confirmed`. Quarantined myths are caught, not repeated.\n\nReview the dossier, then **merge to accept** the leads as a documented research thread, or **close to reject**. Approved leads can then be promoted into `data.js` at their tier.\n\nSee `research/KEEPER.md` for how the pipeline works.' \
+            --base main --head "$branch"
