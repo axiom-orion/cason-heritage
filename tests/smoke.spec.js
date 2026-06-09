@@ -176,6 +176,8 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText(/Integrity attestation/)).toBeVisible();        // content-addressed digest
   await expect(page.getByText(/claims the record refuses/)).toBeVisible();    // quarantine registry
   await expect(page.getByText(/Contestation & Appeal/)).toBeVisible();        // the appeal ledger (two-way governance)
+  await expect(page.getByText(/the policy gate, live/i)).toBeVisible();       // the typed gate, run in the page (glass box)
+  await expect(page.getByText('no-haplogroup-conflict')).toBeVisible();      // the Cason↔Causey refusal, decided on screen
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
 

@@ -209,9 +209,11 @@ Beyond federation, four loops are real GAPs worth building:
   checks *plus* persona-voice consistency across runs, and opens an alert PR on regression.
 - **Persona identity fingerprint** — extend `provenance.reconstructed` to a stable
   per-persona signature so impersonation/drift is *detectable*, not just flagged.
-- **Public glass-box pane** — surface what already exists (per-utterance `sources`,
-  consensus corroboration, the gate decision) as a visible "System Health" section. The
-  trace is already produced; it is simply not shown.
+- **Public glass-box pane** — ✅ *landed.* The living-line **Governance** view now runs
+  the typed gate (`governance.js`) in the browser over representative scenarios and renders
+  the live decision + the replayable NDJSON `TraceEvent` stream — "watch it refuse the
+  Cason↔Causey merge," on screen (`LivingWorld.jsx` → `AuditTraceCard`). Next: feed it the
+  Keeper's actual `keeper-<date>.trace.ndjson` rather than in-page scenarios.
 - **Narrative Journey agent (agent 4)** — drive `world-engine.js` encounters from user
   state so the site can *proactively* surface a relevant memory.
 

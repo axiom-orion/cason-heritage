@@ -1053,6 +1053,78 @@ function ContestationCard({ personId, member, verified, quarantine, appeals, loa
     </GovCard>
   );
 }
+/* ---------- Audit trace — the typed policy gate, live in the page ---------- */
+const GATE_COLOR = { allow: 'var(--sea-green)', needs_approval: 'var(--gold)', block: 'var(--blood)' };
+const GATE_LABEL = { allow: 'ALLOW', needs_approval: 'NEEDS APPROVAL', block: 'BLOCK' };
+function AuditTraceCard() {
+  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, DNA = window.CASON_DNA_EXCLUSIONS;
+  const [pick, setPick] = useState(0);
+  const [raw, setRaw] = useState(false);
+  const runs = useMemo(function () {
+    if (!GOV) return [];
+    const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
+    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), dnaExclusions: (DNA ? DNA.exclusions : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+    const modelProv = [{ sourceId: 'model:grok', snippet: 'a single derivative tree', score: 0.5 }];
+    const corroborated = { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'write_record' }], agreementRatio: 1.0, chosenKind: 'write_record' };
+    const scenarios = [
+      { name: 'Cason ↔ Causey merge', desc: 'A derivative tree merges the Causey line into the Cason patriline — a Y-DNA exclusion.',
+        action: { kind: 'merge_persons', payload: { surnames: ['Cason', 'Causey'], claim: 'patriline', text: 'Merge the Causey line into the Cason patriline as one male line.' }, justification: 'an online tree shows them as one family', provenance: [{ sourceId: 'tree:wikitree', snippet: 'merged tree', score: 0.4 }] } },
+      { name: 'Revive a ruled-out father', desc: "A model names Ransom's father as a branch the family eliminated.",
+        action: { kind: 'write_record', payload: { personId: 'ransom-sr', evidence: 'leading', text: "Ransom Cason Sr.'s father was Cannon Cason Sr. of Pitt County." }, justification: 'two models agree', provenance: modelProv, consensus: corroborated } },
+      { name: 'Repeat a quarantined myth', desc: 'A model repeats the disproven Digswell origin.',
+        action: { kind: 'write_record', payload: { personId: 'thomas-sr', evidence: 'possible', text: 'The Digswell 1608 baptism names his father.' }, justification: 'one source', provenance: modelProv } },
+      { name: 'A clean lead', desc: 'A single-source lead, honestly tiered — parked for a human merge.',
+        action: { kind: 'write_record', payload: { personId: 'james-green', evidence: 'possible', text: 'The Green middle name may trace to a Glynn Co. family.' }, justification: 'one derivative source', provenance: modelProv } },
+      { name: 'Affirm a graph edge', desc: 'A kinship already curated in the record — no model needed.',
+        action: { kind: 'affirm_graph', payload: { personId: 'ransom-sr', relation: 'parents' }, justification: 'parents(Ransom) resolve from the curated graph', provenance: [{ sourceId: 'graph:kinship', snippet: 'curated edge', score: 1.0 }] } },
+    ];
+    return scenarios.map(function (s) {
+      const decision = GOV.evaluatePolicy(s.action, policy);
+      const trace = GOV.Trace(s.name);
+      trace.runStarted();
+      trace.actionProposed('s1', s.action);
+      trace.gateDecision('s1', decision);
+      if (decision.decision === 'allow') trace.executed('s1', s.action.kind === 'affirm_graph' ? 'edge already curated — no write' : 'no record written');
+      else if (decision.decision === 'needs_approval') trace.awaitingApproval('s1', GOV.reasonOf(decision, 'review'));
+      else trace.halted('s1', GOV.reasonOf(decision));
+      trace.runCompleted();
+      return { s: s, decision: decision, ndjson: trace.toNdjson() };
+    });
+  }, []);
+
+  if (!GOV || runs.length === 0) {
+    return <GovCard cap="Audit trace — the policy gate, live"><div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>The governance module isn’t loaded.</div></GovCard>;
+  }
+  const r = runs[pick] || runs[0];
+  const dc = GATE_COLOR[r.decision.decision] || 'var(--faded)';
+  return (
+    <GovCard cap="Audit trace — the policy gate, live in the page">
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        The same typed gate the Keeper runs, here in the browser: each proposed action is decided <strong>allow / needs-approval / block</strong> by named rules, and every step is one line of a replayable <strong>NDJSON trace</strong> — the wire format of the audit trail. Pick a scenario and watch it decide.
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 11 }}>
+        {runs.map(function (run, i) {
+          const active = i === pick;
+          return <button key={i} onClick={function () { setPick(i); setRaw(false); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid ' + (active ? 'var(--deep-blue)' : 'rgba(139,69,19,0.25)'), background: active ? 'var(--deep-blue)' : 'transparent', color: active ? '#fff' : 'var(--faded)' }}>{run.s.name}</button>;
+        })}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', padding: '3px 10px', borderRadius: 7, color: '#fff', background: dc }}>{GATE_LABEL[r.decision.decision]}</span>
+        <span style={{ fontSize: 12.5, color: 'var(--ink)', fontStyle: 'italic' }}>{r.s.desc}</span>
+      </div>
+      {r.decision.violations.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 9 }}>
+          {r.decision.violations.map(function (v, i) {
+            const hard = (v.severity || 'block') === 'block';
+            return <div key={i} style={{ fontSize: 12, color: 'var(--ink)', borderLeft: '3px solid ' + (hard ? 'var(--blood)' : 'var(--gold)'), paddingLeft: 9 }}><code style={{ fontFamily: 'monospace', fontSize: 11.5, color: hard ? 'var(--blood)' : 'var(--rust)' }}>{v.rule}</code> — {v.detail}</div>;
+          })}
+        </div>
+      ) : <div style={{ fontSize: 12, color: 'var(--sea-green)', marginBottom: 9 }}>No violations — the action is permitted.</div>}
+      <button onClick={function () { setRaw(function (x) { return !x; }); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{raw ? 'Hide' : 'View'} raw trace (NDJSON)</button>
+      {raw && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{r.ndjson}</pre>}
+    </GovCard>
+  );
+}
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1172,6 +1244,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
           {audit.quarantine.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Nothing quarantined.</div>}
         </div>
       </GovCard>
+
+      <AuditTraceCard />
 
       <ContestationCard personId={personId} member={member} verified={verified} quarantine={audit.quarantine} appeals={appeals} loaded={appealsLoaded} reload={reloadAppeals} />
 
