@@ -12,7 +12,8 @@
     "selftest": "node ui_kits/living-line/selftest.js",
     "selftest:kinship": "node ui_kits/living-line/kinship.selftest.js",
     "selftest:governance": "node ui_kits/living-line/governance.selftest.js",
-    "selftest:supersessions": "node ui_kits/living-line/supersessions.selftest.js"
+    "selftest:supersessions": "node ui_kits/living-line/supersessions.selftest.js",
+    "selftest:memory": "node ui_kits/living-line/memory-client.selftest.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",

@@ -119,6 +119,29 @@ the governed-agents demo streams — a replayable, inspectable audit trail (and 
 substrate for a future public "glass-box" pane). Validate with
 `npm run selftest:governance`.
 
+### Durable memory across runs (optional, agent-memory-service)
+
+The Keeper is stateless by design — but if you point it at the sibling service
+[`agent-memory-service`](https://github.com/axiom-orion/agent-memory-service), it gains
+**durable, growing, semantically-retrievable memory of its own past runs**. At the start of
+a run it `recall`s what earlier runs found about each open line (folded into the research
+context and the dossier as *Prior memory*); at the end it `ingest`s the run's findings and
+`consolidate`s them — episodic → semantic, with **supersession** keyed on `(subject,
+attribute)`, so a later corroborated finding marks an earlier one inactive instead of both
+coexisting (`ui_kits/living-line/memory-client.js`).
+
+This **complements** the supersession *ledger*: the ledger is the curated record's
+change-history (human truth, refused by the gate); this is the Keeper's own research memory
+(machine-accumulated, advisory). It is **env-gated and graceful** — unset, the Keeper runs
+exactly as before; a memory outage never fails a run:
+
+```bash
+KEEPER_MEMORY_URL=https://<your-cloud-run-host>   # enables recall (public) + ingest
+KEEPER_MEMORY_TOKEN=<admin bearer>                # required for ingest/consolidate (writes)
+```
+
+Validate the client against the service's HTTP contract with `npm run selftest:memory`.
+
 ## Running it
 
 ```bash

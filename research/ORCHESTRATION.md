@@ -201,6 +201,11 @@ This is the concrete work that turns four repos into one autonomous system. The 
    gate rule (refusing any re-assertion, and catching corrections the myth regex misses) and a
    public "what the record used to say, and why it changed" pane. The ledger can only formalize
    corrections already written into `data.js` — its self-test rejects anything ungrounded.
+   *Heavier option, also landed:* the Keeper can now additionally consume the real
+   `agent-memory-service` over HTTP (`ui_kits/living-line/memory-client.js`) — recalling its own
+   past runs and persisting findings with episodic→semantic consolidation + `(subject, attribute)`
+   supersession. Env-gated and graceful (off by default). The ledger governs the *record's*
+   change-history; the service is the *Keeper's* cross-run research memory — complementary.
 
 Each seam is a network call behind a feature flag; none requires rewriting the in-browser
 graph, which stays the fast path for rendering the world.
