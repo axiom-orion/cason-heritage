@@ -7,7 +7,7 @@ const CASON_DATA = {
     name: 'Into the Unknown — The Cason Line',
     span: 'c.1604 – present (~12 generations, Gen 5 unfilled)',
     rootId: 'thomas-sr',
-    notes: 'Post-audit. Gen 1 origin in Digswell, Hertfordshire is DISPROVEN — discard the 1608 baptism, "son of John Cason," "Elizabeth Alcott," and ~1629 crossing. The verified immigrant is Thomas Casson, headright of Capt. Thomas Harwood per the 7 July 1635 patent (Patent Book 1, p.124); born ~1604 (1642 deposition); m. Elizabeth (Keeling) Leighton. The Florida branch from Ransom Cason Sr. (c.1763) forward is anchored independently and inherits zero risk from Gen 1. The Gen 5 link between William⁴ Cason (~1691) and Ransom Sr. (~1763) remains the load-bearing weakness — resolve via Pitt Co. NC records 1750–1800 + Y-DNA.',
+    notes: 'Post-audit. Gen 1 origin in Digswell, Hertfordshire is DISPROVEN — discard the 1608 baptism, "son of John Cason," "Elizabeth Alcott," and ~1629 crossing. The verified immigrant is Thomas Casson, headright of Capt. Thomas Harwood per the 7 July 1635 patent (Patent Book 1, p.124); born ~1604 (1642 deposition); m. Elizabeth (Keeling) Leighton. The Florida branch from Ransom Cason Sr. (c.1763) forward is anchored independently and inherits zero risk from Gen 1. The Gen 5 link between William⁴ Cason (~1691) and Ransom Sr. (~1763) remains the load-bearing weakness — resolve via Pitt Co. NC records 1750–1800.',
   },
 
   people: {

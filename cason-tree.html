@@ -1187,7 +1187,6 @@ table.inv-tab {
         <div class="row" data-t="derivative"><span class="lbl"><span class="glyph">$</span> Tax &amp; civil</span><span class="tier-pip" data-t="derivative">DERIV.</span></div>
         <div class="row" data-t="disputed"><span class="lbl"><span class="glyph">✚</span> Ecclesiastical</span><span class="tier-pip" data-t="disproven">DISPUTED</span></div>
         <div class="row" data-t="primary"><span class="lbl"><span class="glyph">⚖</span> Court records</span><span class="tier-pip" data-t="primary">PRIMARY</span></div>
-        <div class="row" data-t="missing"><span class="lbl"><span class="glyph">∞</span> DNA &amp; FAN</span><span class="tier-pip" data-t="missing">PENDING</span></div>
         <div class="row" data-t="missing"><span class="lbl"><span class="glyph">◫</span> Newspapers</span><span class="tier-pip" data-t="missing">PRE-PRESS</span></div>
       </div>
     </div>
@@ -1307,8 +1306,8 @@ table.inv-tab {
           <span class="repo">repo: NCDAH · microfilm C.075.70001 · original images, not abstracts</span>
         </div>
         <div class="action">
-          <span class="rec">Y-DNA triangulation across William⁴'s six documented sons' lines.</span>
-          <span class="repo">repo: FamilyTreeDNA · Cason Surname Project</span>
+          <span class="rec">Pitt County, NC estate files, tax lists & deed books, 1750–1800 — original images.</span>
+          <span class="repo">repo: NC State Archives (NCDAH)</span>
         </div>
         <div class="action">
           <span class="rec">Source citation for "James Jr. (c.1750) is Ransom's brother" claim.</span>
@@ -1598,14 +1597,6 @@ table.inv-tab {
         <span style="color: #FB7185; font-weight: 600; letter-spacing: 0.06em; text-align: right;">DISPROVEN</span>
       </div>
 
-      <div data-field-log-target="james-1727" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
-        <span style="color: #64748B;">2026-05-08</span>
-        <span style="color: #F1F5F9;">▸ FamilyTreeDNA Cason Surname Project · enrolled known descendant of Robert Sr.
-          <span style="display: block; color: #94A3B8; font-size: 11px; margin-top: 3px;">Big Y-700 ordered · results window 8–10 weeks · will compare against Casson testers in Lancashire/Yorkshire and Cason testers across William⁴'s six sons' lines · resolves both Gen 5 hole AND English origin geography</span>
-        </span>
-        <span style="color: #FBBF24; font-weight: 600; letter-spacing: 0.06em; text-align: right;">PENDING</span>
-      </div>
-
       <div data-field-log-target="thomas-sr" class="field-log-row" style="display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; padding: 12px 0; border-top: 1px solid #1E293B; cursor: pointer; transition: background 0.15s;">
         <span style="color: #64748B;">2026-04-30</span>
         <span style="color: #F1F5F9;">▸ Lower Norfolk Order Books 1640–1652 · re-examined for Thomas Casson
@@ -1705,9 +1696,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'primary', probate: 'primary', cargo: 'primary',
       military: 'missing', census: 'missing', tax: 'derivative', eccles: 'disputed',
-      court: 'primary', dna: 'missing', news: 'missing',
+      court: 'primary', news: 'missing',
     },
-    covLabels: { census: 'PRE-CENSUS', news: 'PRE-PRESS', dna: 'PENDING', eccles: 'DISPUTED' },
+    covLabels: { census: 'PRE-CENSUS', news: 'PRE-PRESS', eccles: 'DISPUTED' },
   },
 
   'thomas-jr': {
@@ -1736,9 +1727,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'primary', probate: 'missing', cargo: 'na',
       military: 'missing', census: 'na', tax: 'derivative', eccles: 'missing',
-      court: 'primary', dna: 'missing', news: 'na',
+      court: 'primary', news: 'na',
     },
-    covLabels: { probate: 'NO WILL', dna: 'PENDING' },
+    covLabels: { probate: 'NO WILL' },
   },
 
   'james-orphan': {
@@ -1767,9 +1758,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'primary', probate: 'primary', cargo: 'na',
       military: 'missing', census: 'derivative', tax: 'primary', eccles: 'missing',
-      court: 'derivative', dna: 'missing', news: 'na',
+      court: 'derivative', news: 'na',
     },
-    covLabels: { census: '1704 QUIT RENT', dna: 'PENDING — FUNNEL NODE' },
+    covLabels: { census: '1704 QUIT RENT' },
   },
 
   'william-1695': {
@@ -1799,9 +1790,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'primary', probate: 'derivative', cargo: 'na',
       military: 'missing', census: 'primary', tax: 'primary', eccles: 'circumstantial',
-      court: 'derivative', dna: 'missing', news: 'na',
+      court: 'derivative', news: 'na',
     },
-    covLabels: { probate: 'NO WILL · 1758 DEED', dna: 'PENDING — KEY NODE', eccles: 'VA→NC TRANSITION' },
+    covLabels: { probate: 'NO WILL · 1758 DEED', eccles: 'VA→NC TRANSITION' },
   },
 
   'james-1727': {
@@ -1826,14 +1817,13 @@ const PEOPLE = {
       ['c.1750', '"James Cason Jr." listed as Ransom\'s brother', 'WikiTree Cason-543 · cites no primary', 'derivative'],
       ['1779', 'Cannon Sr. will · does NOT name Ransom · Fairfield Co. SC', 'Fairfield Co. SC will book', 'primary'],
       ['1823', "Henry Cason deeds of gift · Pitt Co. Deed Book CC, p.229 · no mention of Ransom's family", 'separate local branch confirmed', 'primary'],
-      ['??', 'Y-DNA across William⁴\'s six sons\' lines · resolution path', 'FamilyTreeDNA Cason Surname Project', 'circumstantial'],
     ],
     cov: {
       vital: 'missing', land: 'missing', probate: 'missing', cargo: 'na',
       military: 'missing', census: 'missing', tax: 'missing', eccles: 'missing',
-      court: 'missing', dna: 'missing', news: 'na',
+      court: 'missing', news: 'na',
     },
-    covLabels: { vital: 'NO RECORD', land: 'ZERO HITS', tax: 'NEGATIVE SEARCH', dna: 'RESOLUTION PATH' },
+    covLabels: { vital: 'NO RECORD', land: 'ZERO HITS', tax: 'NEGATIVE SEARCH' },
   },
 
   'ransom-sr': {
@@ -1866,9 +1856,9 @@ const PEOPLE = {
     cov: {
       vital: 'primary', land: 'primary', probate: 'primary', cargo: 'na',
       military: 'circumstantial', census: 'primary', tax: 'primary', eccles: 'circumstantial',
-      court: 'primary', dna: 'missing', news: 'derivative',
+      court: 'primary', news: 'derivative',
     },
-    covLabels: { military: 'SEMINOLE-ERA', eccles: 'PRIMITIVE BAPTIST', dna: 'FL ANCHOR PENDING' },
+    covLabels: { military: 'SEMINOLE-ERA', eccles: 'PRIMITIVE BAPTIST' },
   },
 
   'james-green': {
@@ -1898,9 +1888,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'derivative', probate: 'missing', cargo: 'na',
       military: 'na', census: 'primary', tax: 'derivative', eccles: 'circumstantial',
-      court: 'missing', dna: 'missing', news: 'derivative',
+      court: 'missing', news: 'derivative',
     },
-    covLabels: { probate: 'NO WILL LOCATED', dna: 'PENDING' },
+    covLabels: { probate: 'NO WILL LOCATED' },
   },
 
   'ransom-2': {
@@ -1934,7 +1924,7 @@ const PEOPLE = {
     cov: {
       vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
       military: 'primary', census: 'primary', tax: 'derivative', eccles: 'derivative',
-      court: 'derivative', dna: 'missing', news: 'primary',
+      court: 'derivative', news: 'primary',
     },
     covLabels: { news: 'PENSION A00841' },
   },
@@ -1968,9 +1958,9 @@ const PEOPLE = {
     cov: {
       vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
       military: 'na', census: 'primary', tax: 'derivative', eccles: 'derivative',
-      court: 'missing', dna: 'missing', news: 'derivative',
+      court: 'missing', news: 'derivative',
     },
-    covLabels: { dna: 'PENDING' },
+    covLabels: {},
   },
 
   'carl-columbus': {
@@ -2001,9 +1991,9 @@ const PEOPLE = {
     cov: {
       vital: 'primary', land: 'derivative', probate: 'missing', cargo: 'na',
       military: 'missing', census: 'primary', tax: 'derivative', eccles: 'derivative',
-      court: 'missing', dna: 'missing', news: 'derivative',
+      court: 'missing', news: 'derivative',
     },
-    covLabels: { news: 'JAKE OBITUARY 2014', dna: 'PENDING' },
+    covLabels: { news: 'JAKE OBITUARY 2014' },
   },
 
   'robert-sr': {
@@ -2032,9 +2022,9 @@ const PEOPLE = {
     cov: {
       vital: 'derivative', land: 'circumstantial', probate: 'missing', cargo: 'na',
       military: 'missing', census: 'primary', tax: 'missing', eccles: 'missing',
-      court: 'missing', dna: 'missing', news: 'lore',
+      court: 'missing', news: 'lore',
     },
-    covLabels: { news: 'ORAL HISTORY', dna: 'PENDING — PRESENT-DAY ANCHOR' },
+    covLabels: { news: 'ORAL HISTORY' },
   },
 };
 
@@ -2062,7 +2052,7 @@ const _C = (name, gen, role, span, narrative, parentsTxt, childrenTxt, cites=[],
   cites,
   cov: Object.assign(
     { vital:'derivative', land:'missing', probate:'missing', cargo:'na', military:'missing',
-      census:'missing', tax:'missing', eccles:'missing', court:'missing', dna:'missing', news:'missing' },
+      census:'missing', tax:'missing', eccles:'missing', court:'missing', news:'missing' },
     extra.cov || {}
   ),
   covLabels: extra.covLabels || {},
@@ -2092,8 +2082,8 @@ Object.assign(PEOPLE, {
       ['??', 'FamilySearch index NRWF-3RD · "England Births and Christenings"', 'no register image, no folio, no mother named · 1970s-90s patron submission', 'disproven'],
       ['??', 'Alleged "Virginia Land Company stockholder"', 'No such company existed. Kingsbury\'s Records of the Virginia Company (4 vols., 1906–1935) does not list a John Cason.', 'disproven'],
     ],
-    cov: { vital:'disproven', land:'disproven', probate:'disproven', cargo:'na', military:'na', census:'na', tax:'disproven', eccles:'disproven', court:'disproven', dna:'missing', news:'na' },
-    covLabels: { vital:'NEVER LOCATED', land:'FABRICATED', probate:'FABRICATED', tax:'NONE', eccles:'NONE', court:'NONE', dna:'CAN\'T HELP' },
+    cov: { vital:'disproven', land:'disproven', probate:'disproven', cargo:'na', military:'na', census:'na', tax:'disproven', eccles:'disproven', court:'disproven', news:'na' },
+    covLabels: { vital:'NEVER LOCATED', land:'FABRICATED', probate:'FABRICATED', tax:'NONE', eccles:'NONE', court:'NONE' },
   },
 
   // ── Gen 2 siblings ────────────────────────────────────────────────────
@@ -2210,7 +2200,7 @@ Object.assign(PEOPLE, {
       spouse: 'Sarah Barrow Ormond (1739–1825)',
       death: 'c.1809/1810 · Screven or Jefferson Co. GA',
       birth: '1737, Beaufort/Pitt Co. NC',
-      cov: { vital:'primary', land:'primary', probate:'derivative', military:'primary', census:'primary', tax:'primary', court:'primary', dna:'missing', news:'derivative' },
+      cov: { vital:'primary', land:'primary', probate:'derivative', military:'primary', census:'primary', tax:'primary', court:'primary', news:'derivative' },
       covLabels: { military: 'DAR #A216752', court: 'GA ASSEMBLY 1808' }
     }
   ),
@@ -2437,7 +2427,6 @@ Object.assign(PEOPLE, {
   ['tax',     '$', 'Tax & civil'],
   ['eccles',  '✚', 'Ecclesiastical'],
   ['court',   '⚖', 'Court records'],
-  ['dna',     '∞', 'DNA & FAN'],
   ['news',    '◫', 'Newspapers'],
 ];
 

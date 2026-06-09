@@ -64,7 +64,6 @@ Between **William⁴ Cason** (b.~1691) and **Ransom Cason Sr.** (b.~1763) is one
 
 **Resolve by:**
 - Pitt County, NC estate files, tax lists, and deed books **1750–1800** — original images or microfilm, not abstracts.
-- Y-DNA testing across documented descendant lines of each of William⁴'s six sons. Match patterns will pin paternity.
 - The "James Jr. (c.1750) is Ransom's brother" claim on WikiTree — chase its source citation.
 
 #### Edge B — The English Origin
@@ -163,7 +162,7 @@ If you cannot find a primary record, do not invent a candidate. Return what you 
 
 ### ADDITIONAL CONTEXT FROM ME
 
-_[Paste anything that should anchor this run — a name you've heard from a relative, a photo, a county you want to check, an oral story, a Y-DNA test number.]_
+_[Paste anything that should anchor this run — a name you've heard from a relative, a photo, a county you want to check, an oral story.]_
 
 ---
 

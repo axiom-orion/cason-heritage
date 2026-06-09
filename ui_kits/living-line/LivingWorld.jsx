@@ -1053,6 +1053,182 @@ function ContestationCard({ personId, member, verified, quarantine, appeals, loa
     </GovCard>
   );
 }
+/* ---------- Audit trace — the typed policy gate, live in the page ---------- */
+const GATE_COLOR = { allow: 'var(--sea-green)', needs_approval: 'var(--gold)', block: 'var(--blood)' };
+const GATE_LABEL = { allow: 'ALLOW', needs_approval: 'NEEDS APPROVAL', block: 'BLOCK' };
+function evDetail(e) {
+  if (e.type === 'run_started') return e.task || '';
+  if (e.type === 'step_started') return e.role + ' →';
+  if (e.type === 'step_completed') return e.role + (e.summary ? ' — ' + e.summary : '');
+  if (e.type === 'action_proposed') return (e.action && e.action.kind) || '';
+  if (e.type === 'gate_decision') return (e.decision && e.decision.decision) || '';
+  if (e.type === 'executed') return e.result || '';
+  if (e.type === 'awaiting_approval') return e.reason || '';
+  if (e.type === 'halted') return e.reason || '';
+  if (e.type === 'error') return e.message || '';
+  return '';
+}
+function evColor(e) {
+  const blocked = e.type === 'halted' || e.type === 'error' || (e.type === 'gate_decision' && e.decision && e.decision.decision === 'block');
+  const review = e.type === 'awaiting_approval' || (e.type === 'gate_decision' && e.decision && e.decision.decision === 'needs_approval');
+  if (blocked) return 'var(--blood)';
+  if (review) return 'var(--rust)';
+  if (e.type === 'executed' || e.type === 'run_completed') return 'var(--sea-green)';
+  return 'var(--ink)';
+}
+function TraceEvents({ events }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 8 }}>
+      {events.map(function (e, i) {
+        return (
+          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontFamily: 'var(--font-sans)', fontSize: 11 }}>
+            <span style={{ width: 118, flexShrink: 0, color: 'var(--faded)', fontFamily: 'monospace', fontSize: 10 }}>{e.type}</span>
+            <span style={{ flex: 1, color: evColor(e), lineHeight: 1.45 }}>{evDetail(e)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function AuditTraceCard() {
+  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP;
+  const [pick, setPick] = useState(0);
+  const [raw, setRaw] = useState(false);
+  const [real, setReal] = useState(null); // the latest *actual* Keeper run, if one is published
+  const [realOpen, setRealOpen] = useState(false);
+  useEffect(function () {
+    let alive = true;
+    fetch('/research/proposals/latest.trace.ndjson', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.text() : null; })
+      .then(function (txt) {
+        if (!alive || !txt) return;
+        const events = txt.trim().split('\n').map(function (l) { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
+        if (!events.length) return;
+        const started = events.find(function (e) { return e.type === 'run_started'; }) || {};
+        const tally = { allow: 0, needs_approval: 0, block: 0 };
+        events.forEach(function (e) { if (e.type === 'gate_decision' && e.decision) tally[e.decision.decision] = (tally[e.decision.decision] || 0) + 1; });
+        setReal({ task: started.task || 'Keeper run', at: started.at || '', tally: tally, events: events, ndjson: txt });
+      })
+      .catch(function () { /* no run published yet — the scenarios stand */ });
+    return function () { alive = false; };
+  }, []);
+  const runs = useMemo(function () {
+    if (!GOV) return [];
+    const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
+    const SUP = window.CASON_SUPERSESSIONS;
+    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+    const modelProv = [{ sourceId: 'model:grok', snippet: 'a single derivative tree', score: 0.5 }];
+    const corroborated = { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'write_record' }], agreementRatio: 1.0, chosenKind: 'write_record' };
+    const scenarios = [
+      { name: 'Revive a ruled-out father', desc: "A model names Ransom's father as a branch the family eliminated.",
+        action: { kind: 'write_record', payload: { personId: 'ransom-sr', evidence: 'leading', text: "Ransom Cason Sr.'s father was Cannon Cason Sr. of Pitt County." }, justification: 'two models agree', provenance: modelProv, consensus: corroborated } },
+      { name: 'Repeat a quarantined myth', desc: 'A model repeats the disproven Digswell origin.',
+        action: { kind: 'write_record', payload: { personId: 'thomas-sr', evidence: 'possible', text: 'The Digswell 1608 baptism names his father.' }, justification: 'one source', provenance: modelProv } },
+      { name: 'Re-assert a corrected value', desc: 'A model revives the “Elizabeth Alcott” name the record has superseded.',
+        action: { kind: 'write_record', payload: { personId: 'elizabeth-keeling-leighton', evidence: 'possible', text: 'Her name was Elizabeth Alcott.' }, justification: 'an old derivative tree', provenance: modelProv } },
+      { name: 'A clean lead', desc: 'A single-source lead, honestly tiered — parked for a human merge.',
+        action: { kind: 'write_record', payload: { personId: 'james-green', evidence: 'possible', text: 'The Green middle name may trace to a Glynn Co. family.' }, justification: 'one derivative source', provenance: modelProv } },
+      { name: 'Affirm a graph edge', desc: 'A kinship already curated in the record — no model needed.',
+        action: { kind: 'affirm_graph', payload: { personId: 'ransom-sr', relation: 'parents' }, justification: 'parents(Ransom) resolve from the curated graph', provenance: [{ sourceId: 'graph:kinship', snippet: 'curated edge', score: 1.0 }] } },
+    ];
+    return scenarios.map(function (s) {
+      const decision = GOV.evaluatePolicy(s.action, policy);
+      const trace = GOV.Trace(s.name);
+      trace.runStarted();
+      trace.actionProposed('s1', s.action);
+      trace.gateDecision('s1', decision);
+      if (decision.decision === 'allow') trace.executed('s1', s.action.kind === 'affirm_graph' ? 'edge already curated — no write' : 'no record written');
+      else if (decision.decision === 'needs_approval') trace.awaitingApproval('s1', GOV.reasonOf(decision, 'review'));
+      else trace.halted('s1', GOV.reasonOf(decision));
+      trace.runCompleted();
+      return { s: s, decision: decision, ndjson: trace.toNdjson(), events: trace.events() };
+    });
+  }, []);
+
+  const posture = useMemo(function () { return GOV ? GOV.autonomyPosture(GOV.buildKeeperPolicy({})) : null; }, []);
+  if (!GOV || runs.length === 0) {
+    return <GovCard cap="Audit trace — the policy gate, live"><div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>The governance module isn’t loaded.</div></GovCard>;
+  }
+  const r = runs[pick] || runs[0];
+  const dc = GATE_COLOR[r.decision.decision] || 'var(--faded)';
+  return (
+    <GovCard cap="Audit trace — the policy gate, live in the page">
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        The same typed gate the Keeper runs, here in the browser: each proposed action is decided <strong>allow / needs-approval / block</strong> by named rules, and every step is one line of a replayable <strong>NDJSON trace</strong> — the wire format of the audit trail. Pick a scenario and watch it decide.
+      </div>
+      {posture && posture.supervised && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: 'var(--ink)', background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: '6px 10px', marginBottom: 11 }}>
+          <span>🔒</span><span>Autonomy: <strong>supervised</strong> — the top tier (autonomous write) is <strong>unoccupied by design</strong>. {posture.detail}.</span>
+        </div>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 11 }}>
+        {runs.map(function (run, i) {
+          const active = i === pick;
+          return <button key={i} onClick={function () { setPick(i); setRaw(false); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid ' + (active ? 'var(--deep-blue)' : 'rgba(139,69,19,0.25)'), background: active ? 'var(--deep-blue)' : 'transparent', color: active ? '#fff' : 'var(--faded)' }}>{run.s.name}</button>;
+        })}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', padding: '3px 10px', borderRadius: 7, color: '#fff', background: dc }}>{GATE_LABEL[r.decision.decision]}</span>
+        <span style={{ fontSize: 12.5, color: 'var(--ink)', fontStyle: 'italic' }}>{r.s.desc}</span>
+      </div>
+      {r.decision.violations.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 9 }}>
+          {r.decision.violations.map(function (v, i) {
+            const hard = (v.severity || 'block') === 'block';
+            return <div key={i} style={{ fontSize: 12, color: 'var(--ink)', borderLeft: '3px solid ' + (hard ? 'var(--blood)' : 'var(--gold)'), paddingLeft: 9 }}><code style={{ fontFamily: 'monospace', fontSize: 11.5, color: hard ? 'var(--blood)' : 'var(--rust)' }}>{v.rule}</code> — {v.detail}</div>;
+          })}
+        </div>
+      ) : <div style={{ fontSize: 12, color: 'var(--sea-green)', marginBottom: 9 }}>No violations — the action is permitted.</div>}
+      <TraceEvents events={r.events} />
+      <button onClick={function () { setRaw(function (x) { return !x; }); }} style={{ marginTop: 8, fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{raw ? 'Hide' : 'View'} raw NDJSON</button>
+      {raw && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{r.ndjson}</pre>}
+      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed rgba(139,69,19,0.2)' }}>
+        {real ? (
+          <div>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>Latest Keeper run{real.at ? ' · ' + new Date(real.at).toLocaleDateString() : ''}</div>
+            <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--ink)', marginBottom: 6 }}>
+              <span><strong style={{ color: 'var(--sea-green)' }}>{real.tally.allow}</strong> allow</span>
+              <span><strong style={{ color: 'var(--rust)' }}>{real.tally.needs_approval}</strong> needs-approval</span>
+              <span><strong style={{ color: 'var(--blood)' }}>{real.tally.block}</strong> block</span>
+            </div>
+            <button onClick={function () { setRealOpen(function (x) { return !x; }); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{realOpen ? 'Hide' : 'View'} the run ({real.events.length} events)</button>
+            {realOpen && <TraceEvents events={real.events} />}
+            {realOpen && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{real.ndjson}</pre>}
+          </div>
+        ) : (
+          <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--faded)' }}>No Keeper run published yet — the scenarios above show the same gate, live.</div>
+        )}
+      </div>
+    </GovCard>
+  );
+}
+/* ---------- Supersession ledger — what the record used to say, and why it changed ---------- */
+function SupersessionCard() {
+  const SUP = window.CASON_SUPERSESSIONS;
+  const recs = SUP ? SUP.all() : [];
+  if (!recs.length) return null;
+  return (
+    <GovCard cap={'What the record used to say — and why it changed (' + recs.length + ')'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Corrections aren’t erased — the old value is kept and marked <strong>superseded</strong>, so the record’s change-history stays auditable. The gate refuses to re-assert any of them.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {recs.map(function (r, i) {
+          return (
+            <div key={i} style={{ borderLeft: '3px solid var(--blood)', paddingLeft: 10 }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{nm(r.subject)} · {r.attribute}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+                <span style={{ textDecoration: 'line-through', color: 'var(--faded)' }}>{r.superseded}</span>{'  →  '}<strong>{r.current}</strong>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, color: 'var(--blood)', textTransform: 'uppercase', marginLeft: 6 }}>{r.status}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--faded)', marginTop: 2 }}>{r.reason}{r.basis && r.basis.length ? ' — ' + r.basis.join('; ') : ''}</div>
+            </div>
+          );
+        })}
+      </div>
+    </GovCard>
+  );
+}
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1172,6 +1348,10 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
           {audit.quarantine.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Nothing quarantined.</div>}
         </div>
       </GovCard>
+
+      <SupersessionCard />
+
+      <AuditTraceCard />
 
       <ContestationCard personId={personId} member={member} verified={verified} quarantine={audit.quarantine} appeals={appeals} loaded={appealsLoaded} reload={reloadAppeals} />
 

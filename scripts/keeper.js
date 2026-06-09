@@ -2,21 +2,33 @@
    The Keeper — autonomous research orchestrator (propose, never publish)
    ------------------------------------------------------------
    Runs under Node (GitHub Action cron or `npm run keeper`). It:
-     1. Loads the REAL data.js + memory-graph.js in a vm (the same
-        loader selftest.js uses) and pulls the open-line `gap` nodes —
-        the single source of truth for "what we don't yet know".
+     1. Loads the REAL data.js + memory-graph.js + kinship.js in a vm
+        (the same loader selftest.js uses) and pulls the open-line `gap`
+        nodes — the single source of truth for "what we don't yet know".
      2. Picks the top N open questions (authored family threads first,
         then the load-bearing Gen-5 link, then the rest).
-     3. Asks the deployed /api/consensus endpoint (Grok + Gemini +
-        Claude, >=2 = corroborated) each question, with the project's
-        anchor facts + DISPROVEN quarantine list as context.
-     4. Runs the bloodhound gate: a claim that repeats a quarantined
-        myth is caught (never proposed as fact); a corroborated lead is
-        tiered `leading`, a single-source lead `possible`, a conflict
-        `unsolved`. It NEVER produces `confirmed`/`secondary` — those
-        need a primary document, which an LLM is not.
-     5. Writes an honestly-tiered research dossier to
-        research/proposals/ for a human keeper to review and merge.
+     3. KINSHIP FIRST (ui_kits/living-line/kinship.js): for a relational
+        question ("which of my children carried the line on", or any
+        "<relation> of <Name>"), resolves it DETERMINISTICALLY from the
+        curated family graph instead of asking a model to guess kin — the
+        capability the sibling repo genealogy-graphrag proves. A curated
+        edge => tier `graph-resolved` (NO model call). An empty/open edge
+        => the graph's known kin is handed to the models as ground truth.
+     4. Asks the deployed /api/consensus endpoint (Grok + Gemini +
+        Claude, >=2 = corroborated) each REMAINING question, with the
+        anchor facts + DISPROVEN quarantine list + GRAPH KIN as context.
+     5. Runs the bloodhound gate: a claim that repeats a quarantined myth
+        OR revives a ruled-out ancestor as kin (`graph-conflict`) is caught
+        and held; a corroborated lead is tiered `leading`, a single-source
+        lead `possible`, a conflict `unsolved`. It NEVER produces
+        `confirmed`/`secondary` — those need a primary document.
+     6. Gates each item through the typed policy (ui_kits/living-line/
+        governance.js — the governed-agents evaluatePolicy contract):
+        allow / needs-approval / block, named rules with thresholds, and
+        records every step to an NDJSON trace (governed-agents TraceEvent
+        schema) — the family site's audit trail, same wire format as the demo.
+     7. Writes the honestly-tiered dossier + the .trace.ndjson audit trail
+        to research/proposals/ for a human keeper to review and merge.
 
    It does not touch data.js and it does not publish. The dossier is a
    proposal; merging the PR is the human approval gate.
@@ -39,6 +51,10 @@ const MAX = parseInt(flag('max', '3'), 10) || 3;
 const DRY = !!flag('dry-run', false);
 const OUT = path.join(ROOT, String(flag('out', 'research/proposals')));
 const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus';
+// the typed governance gate + NDJSON trace (governed-agents contract, ported).
+const GOV = require(path.join(LIVING, 'governance.js'));
+// the record's supersession ledger — values the gate refuses to re-assert.
+const SUP = require(path.join(LIVING, 'supersessions.js'));
 
 // quarantined myths — if a model asserts one, it is caught, never proposed.
 const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
@@ -54,9 +70,9 @@ function loadGraph() {
   const ctx = { console: console, localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} } };
   ctx.window = ctx;
   vm.createContext(ctx);
-  [path.join(LIVING, '..', 'family-tree-app', 'data.js'), path.join(LIVING, 'memory-graph.js'), path.join(LIVING, 'personas.js')]
+  [path.join(LIVING, '..', 'family-tree-app', 'data.js'), path.join(LIVING, 'memory-graph.js'), path.join(LIVING, 'personas.js'), path.join(LIVING, 'kinship.js')]
     .forEach(function (f) { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); });
-  return { DATA: ctx.CASON_DATA, MEM: ctx.CASON_MEMORY, PERS: ctx.CASON_PERSONAS };
+  return { DATA: ctx.CASON_DATA, MEM: ctx.CASON_MEMORY, PERS: ctx.CASON_PERSONAS, KIN: ctx.CASON_KINSHIP };
 }
 
 /* ---- 2. rank the open questions ---- */
@@ -77,7 +93,7 @@ function selectQuestions(g) {
 }
 
 /* ---- 3. ask the consensus endpoint ---- */
-async function research(q) {
+async function research(q, extraContext) {
   const question = 'For ' + q.name + (q.lifespan ? ' (' + q.lifespan + ')' : '') + ': ' + q.text +
     '\nWhat do the primary records say? Name the record type and tier the evidence.';
   const ctl = new AbortController();
@@ -85,7 +101,7 @@ async function research(q) {
   try {
     const r = await fetch(ENDPOINT, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ question: question, context: CONTEXT }), signal: ctl.signal,
+      body: JSON.stringify({ question: question, context: CONTEXT + (extraContext || '') }), signal: ctl.signal,
     });
     const j = await r.json();
     if (!r.ok || j.error) return { ok: false, error: j.error || ('HTTP ' + r.status) };
@@ -97,10 +113,14 @@ async function research(q) {
 /* ---- 4. bloodhound gate: catch myths, tier honestly ---- */
 // a consensus that AGREES nothing is proven is a clean negative, not a lead.
 const NEGATIVE = /no primary record|no such record|not located|no record (was )?(found|identified|located)|cannot confirm|unproven|unverified (working )?hypothes|clean negative|treated? as unverified|derives entirely from/i;
-function gate(res) {
+function gate(res, eliminated) {
   if (!res.ok) return { tier: 'unsolved', verdict: 'research unavailable (' + res.error + ')', quarantined: false };
   const c = res.consensus, blob = [c.answer, c.corroborated, c.disputed, c.unverified].filter(Boolean).join(' ');
   if (BANNED.test(blob)) return { tier: 'disproven', verdict: 'A model repeated a quarantined claim — caught and held, not proposed as fact.', quarantined: true };
+  // graph circuit-breaker: a model that revives a person the family has ruled
+  // out (`evidence: 'eliminated'`) as kin is caught against the kinship graph.
+  const revived = (eliminated || []).filter(function (e) { return e.pattern.test(blob); });
+  if (revived.length) return { tier: 'graph-conflict', verdict: 'A model named a ruled-out ancestor as kin — ' + revived.map(function (e) { return e.name; }).join(', ') + ' (evidence: eliminated in the family graph). Caught and held, not proposed.', quarantined: true };
   const okN = res.providers.filter(function (p) { return p.ok; }).length;
   const corro = (c.corroborated || '').trim().length > 0;
   const corroborated = (c.agreement === 'strong' || c.agreement === 'partial') && corro && okN >= 2;
@@ -110,6 +130,98 @@ function gate(res) {
   if (corroborated) return { tier: 'leading', verdict: 'Corroborated by >=2 independent models — a lead, not proof. Needs a primary record to confirm.', quarantined: false };
   if (okN >= 1 && (c.unverified || '').trim()) return { tier: 'possible', verdict: 'Single-source / unverified — recorded as a thread to chase, not as fact.', quarantined: false };
   return { tier: 'unsolved', verdict: 'No corroboration (conflict or insufficient) — the question stays open.', quarantined: false };
+}
+
+/* ---- 4b. kinship: resolve relational gaps from the graph, ground the rest ---- */
+// canonical derived gaps (memory-graph.js) map to a relation on the gap's owner.
+function relationOf(KIN, q) {
+  const t = String(q.text || '');
+  if (/which of my children|next link is not yet drawn/i.test(t)) return { relation: 'children', anchor: q.ownerId, mods: [], source: 'derived gap' };
+  if (/place in the line is not yet proven|record breaks here/i.test(t)) return { relation: 'parents', anchor: q.ownerId, mods: [], source: 'derived gap' };
+  const parsed = KIN && KIN.parse(t);                 // authored gaps phrased "<relation> of <Name>"
+  if (parsed) return { relation: parsed.relation, anchor: parsed.anchor, mods: parsed.modifiers, source: 'parsed question' };
+  return null;
+}
+function fmtKinList(list) {
+  return list && list.length
+    ? list.map(function (x) { return x.name + (x.evidence ? ' [' + x.evidence + ']' : ''); }).join('; ')
+    : '(open — not yet drawn in the graph)';
+}
+// the curated kin handed to the models as ground truth (so they ground, not guess).
+function groundingText(kin) {
+  if (!kin) return '';
+  return ' GRAPH KIN for ' + kin.self.name + ' (curated family graph — treat as ground truth, do NOT contradict): ' +
+    'parents: ' + fmtKinList(kin.parents) + ' · children: ' + fmtKinList(kin.children) +
+    ' · spouse: ' + fmtKinList(kin.spouses) + ' · siblings: ' + fmtKinList(kin.siblings) +
+    '. Where a relation is open above, name the primary record that would close it; do not invent a name.';
+}
+// a relation the graph answers deterministically — no model needed.
+function graphGate(rel, res) {
+  return {
+    tier: 'graph-resolved', quarantined: false,
+    verdict: 'Resolved from the family kinship graph (' + rel.source + ') — ' + res.relation + ' of ' +
+      res.anchorName + ' = ' + res.targets.map(function (t) { return t.name; }).join('; ') + '. No model needed.' +
+      (res.sexUnresolved ? ' (Sex is not recorded, so a gendered split was not applied — the full set is returned.)' : ''),
+  };
+}
+
+/* ---- 4c. governance: map a researched item to a typed action + policy decision ---- */
+function consensusBlob(r) {
+  if (!r.res || !r.res.ok) return '';
+  const c = r.res.consensus || {};
+  return [c.answer, c.corroborated, c.disputed, c.unverified].filter(Boolean).join(' ');
+}
+// provenance scores: a model is never a primary record (0.5); a curated graph edge is (1.0).
+function provenanceOf(r) {
+  if (r.res && r.res.graph) return [{ sourceId: 'graph:kinship', snippet: clip(r.gate.verdict, 160), score: 1.0 }];
+  if (!r.res || !r.res.ok) return [];
+  return (r.res.providers || []).filter(function (p) { return p.ok; })
+    .map(function (p) { return { sourceId: 'model:' + String(p.provider).toLowerCase(), snippet: clip(p.answer, 160), score: 0.5 }; });
+}
+function consensusOf(r) {
+  if (!r.res || !r.res.ok || r.res.graph) return undefined;
+  const c = r.res.consensus || {};
+  const ratio = c.agreement === 'strong' ? 1.0 : c.agreement === 'partial' ? 0.66 : 0.33;
+  const votes = (r.res.providers || []).map(function (p) { return { model: String(p.provider).toLowerCase(), kind: 'write_record', justification: clip(p.answer, 120), abstained: !p.ok }; });
+  return { votes: votes, agreementRatio: ratio, chosenKind: 'write_record' };
+}
+// the action the Keeper proposes for this item — the unit the gate governs.
+function proposedAction(q, r) {
+  const tier = r.gate.tier;
+  if (tier === 'graph-resolved') {
+    return { kind: 'affirm_graph', payload: { personId: q.ownerId, relation: r.graph.relation, targets: r.graph.targets.map(function (t) { return t.name; }).join('; ') }, justification: r.gate.verdict, provenance: provenanceOf(r) };
+  }
+  if (tier === 'unsolved') {
+    return { kind: 'leave_open', payload: { personId: q.ownerId, note: clip(q.text, 160) }, justification: r.gate.verdict, provenance: provenanceOf(r) };
+  }
+  // leading / possible / disproven / graph-conflict -> a proposed record; the gate
+  // independently re-derives block / needs_approval from the content + tier.
+  return {
+    kind: 'write_record',
+    payload: { personId: q.ownerId, evidence: tier, text: clip(consensusBlob(r) || q.text, 400) },
+    justification: r.gate.verdict, provenance: provenanceOf(r), consensus: consensusOf(r),
+  };
+}
+// emit the researcher -> reasoner -> gate -> (executed|awaiting|halted) events for one item.
+function traceItem(trace, step, r, action, decision) {
+  const sR = step + ':researcher', sP = step + ':reasoner', sX = step + ':executor';
+  const summary = (r.res && r.res.graph) ? ('kinship graph: ' + r.graph.relation + ' of ' + r.graph.anchorName)
+    : (r.res && r.res.ok) ? clip(consensusBlob(r), 200)
+      : ('research unavailable' + (r.res ? ': ' + clip(r.res.error, 120) : ''));
+  trace.stepStarted(sR, 'researcher');
+  trace.stepCompleted(sR, 'researcher', summary, action.provenance);
+  trace.stepStarted(sP, 'reasoner');
+  trace.stepCompleted(sP, 'reasoner', action.justification, action.provenance);
+  trace.actionProposed(sP, action);
+  trace.gateDecision(sP, decision);
+  if (decision.decision === 'allow') {
+    trace.stepStarted(sX, 'executor');
+    trace.executed(sX, action.kind === 'affirm_graph' ? 'edge already curated in data.js — no write' : 'left open — no record written');
+  } else if (decision.decision === 'needs_approval') {
+    trace.awaitingApproval(sP, GOV.reasonOf(decision, 'review') || 'awaiting human merge');
+  } else {
+    trace.halted(sP, GOV.reasonOf(decision) || 'blocked by policy');
+  }
 }
 
 /* ---- 5. dossier ---- */
@@ -126,17 +238,44 @@ function today() { return new Date().toISOString().slice(0, 10); }
 function dossier(runs) {
   const date = today();
   const corroborated = runs.filter(function (r) { return r.gate.tier === 'leading'; }).length;
+  const graphResolved = runs.filter(function (r) { return r.gate.tier === 'graph-resolved'; }).length;
   const caught = runs.filter(function (r) { return r.gate.quarantined; }).length;
+  const llmRun = runs.filter(function (r) { return r.res && r.res.ok && !r.res.graph; })[0];
+  const gate = {
+    allow: runs.filter(function (r) { return r.decision && r.decision.decision === 'allow'; }).length,
+    review: runs.filter(function (r) { return r.decision && r.decision.decision === 'needs_approval'; }).length,
+    block: runs.filter(function (r) { return r.decision && r.decision.decision === 'block'; }).length,
+  };
   let md = '# Keeper research dossier — ' + date + '\n\n';
   md += '> Autonomous research pass over the open lines. **Propose, not publish** — every item below is a *lead*, honestly tiered. ';
-  md += 'Model consensus is corroboration, never a primary source: nothing here is `confirmed`. Review, then merge to accept, or close to reject.\n\n';
-  md += '**' + runs.length + '** question(s) researched · **' + corroborated + '** corroborated lead(s) · **' + caught + '** quarantined myth(s) caught.\n\n';
-  md += 'Endpoint: `' + ENDPOINT + '` · models: ' + (runs[0] && runs[0].res.ok ? Object.values(runs[0].res.models).join(', ') : 'n/a') + '\n\n---\n';
+  md += 'Kinship is resolved from the curated family graph where the graph already knows it; model consensus is corroboration, never a primary source — nothing here is `confirmed`. Each item is gated by an explicit policy (allow / needs-approval / block) and recorded to the run trace. Review, then merge to accept, or close to reject.\n\n';
+  md += '**' + runs.length + '** question(s) · **' + graphResolved + '** graph-resolved · **' + corroborated + '** corroborated lead(s) · **' + caught + '** caught (myth / graph-conflict).\n\n';
+  md += '**Gate:** ' + gate.allow + ' allow · ' + gate.review + ' needs-approval · ' + gate.block + ' block.\n\n';
+  md += 'Endpoint: `' + ENDPOINT + '` · models: ' + (llmRun ? Object.values(llmRun.res.models).join(', ') : 'n/a') + ' · kinship: `ui_kits/living-line/kinship.js` · gate+trace: `ui_kits/living-line/governance.js` → `keeper-' + date + '.trace.ndjson` (NDJSON, governed-agents TraceEvent schema)\n\n---\n';
   runs.forEach(function (r, i) {
-    const q = r.q, c = r.res.ok ? r.res.consensus : {};
+    const q = r.q;
     md += '\n## ' + (i + 1) + '. ' + q.name + (q.lifespan ? ' — ' + q.lifespan : '') + '\n\n';
     md += '**Open line (`' + q.ownerId + '`):** ' + q.text + '\n\n';
     md += '**Bloodhound verdict:** `' + r.gate.tier + '` — ' + r.gate.verdict + '\n\n';
+    if (r.decision) md += '**Gate (policy):** `' + r.decision.decision + '`' + (r.decision.violations.length ? ' — ' + r.decision.violations.map(function (v) { return v.rule; }).join(', ') : ' (no violations)') + '\n\n';
+
+    if (r.res && r.res.graph) {
+      // graph-resolved: render the kinship trace; no model was called.
+      const gr = r.graph;
+      md += '**Resolved by the family kinship graph — no model called.**\n\n';
+      md += '- **' + gr.relation + ' of ' + gr.anchorName + ':** ' +
+        gr.targets.map(function (t) { return t.name + ' (`' + t.id + '`' + (t.evidence ? ', ' + t.evidence : '') + ')'; }).join('; ') + '\n';
+      if (gr.sexUnresolved) md += '- _Sex is not recorded in the data, so a gendered split (father/mother, …) was not applied; the full set is returned. Add `sex` in data.js to refine._\n';
+      md += '\n_This edge is already curated in `data.js` — it needs no AI corroboration. Any target above that is itself an open/placeholder node leaves that deeper question open._\n';
+      md += '\n---\n';
+      return;
+    }
+
+    const c = r.res.ok ? r.res.consensus : {};
+    if (r.kin) {
+      md += '**Graph kin given to the models (ground truth):** parents: ' + fmtKinList(r.kin.parents) +
+        ' · children: ' + fmtKinList(r.kin.children) + ' · spouse: ' + fmtKinList(r.kin.spouses) + '\n\n';
+    }
     if (r.res.ok) {
       md += '**Consensus:** agreement *' + (c.agreement || '?') + '*, confidence *' + (c.confidence || '?') + '*\n\n';
       if (c.corroborated) md += '- **Corroborated (>=2 models):** ' + clip(c.corroborated, 600) + '\n';
@@ -155,23 +294,63 @@ function dossier(runs) {
     md += '\n---\n';
   });
   md += '\n_Generated by the Keeper. It proposes; you decide. A clean negative is a finding — keep it._\n';
-  return { date: date, md: md, corroborated: corroborated, caught: caught };
+  return { date: date, md: md, corroborated: corroborated, caught: caught, graphResolved: graphResolved, gate: gate };
 }
 
 (async function main() {
   const g = loadGraph();
   const qs = selectQuestions(g);
   console.log('Keeper: ' + g.MEM.nodes.filter(function (n) { return n.kind === 'gap'; }).length + ' open lines; researching top ' + qs.length + '.');
-  qs.forEach(function (q) { console.log('  · [' + q.score + '] ' + q.name + ' — ' + clip(q.text, 80)); });
+  qs.forEach(function (q) {
+    let mark = '';
+    if (g.KIN) {
+      const rel = relationOf(g.KIN, q);
+      if (rel) { const r = g.KIN.resolveFor(rel.anchor, rel.relation, rel.mods); mark = r.fired ? ' [graph-resolved]' : ' [graph-grounded]'; }
+    }
+    console.log('  · [' + q.score + ']' + mark + ' ' + q.name + ' — ' + clip(q.text, 80));
+  });
   if (DRY) { console.log('\n--dry-run: no network, no files written.'); return; }
   if (!qs.length) { console.log('No open lines to research.'); return; }
 
+  const eliminated = g.KIN ? g.KIN.eliminatedKin() : [];
+  // the typed policy gate (named rules + thresholds) and the run's audit trace.
+  const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: eliminated, supersededValues: SUP.values(), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+  const trace = GOV.Trace('Keeper research pass — ' + today());
+  trace.runStarted();
+
   const runs = [];
-  for (const q of qs) { const res = await research(q); runs.push({ q: q, res: res, gate: gate(res) }); }
+  let qi = 0;
+  for (const q of qs) {
+    qi++;
+    const step = trace.runId + ':q' + qi;
+    const kin = g.KIN ? g.KIN.knownKin(q.ownerId) : null;
+    const rel = g.KIN ? relationOf(g.KIN, q) : null;
+    let run = null;
+    if (rel) {
+      const gr = g.KIN.resolveFor(rel.anchor, rel.relation, rel.mods);
+      if (gr.fired) run = { q: q, kin: kin, rel: rel, graph: gr, res: { ok: true, graph: true }, gate: graphGate(rel, gr) };
+    }
+    if (!run) {
+      const res = await research(q, groundingText(kin));  // graph-grounded model research
+      run = { q: q, kin: kin, rel: rel, res: res, gate: gate(res, eliminated) };
+    }
+    const action = proposedAction(q, run);
+    const decision = GOV.evaluatePolicy(action, policy);   // the same gate the demo runs
+    run.action = action; run.decision = decision;
+    traceItem(trace, step, run, action, decision);
+    runs.push(run);
+  }
+  trace.runCompleted();
 
   const d = dossier(runs);
   fs.mkdirSync(OUT, { recursive: true });
   const file = path.join(OUT, 'keeper-' + d.date + '.md');
+  const traceFile = path.join(OUT, 'keeper-' + d.date + '.trace.ndjson');
   fs.writeFileSync(file, d.md);
-  console.log('\nWrote ' + path.relative(ROOT, file) + ' — ' + d.corroborated + ' lead(s), ' + d.caught + ' myth(s) caught.');
+  fs.writeFileSync(traceFile, trace.toNdjson());
+  // a stable pointer the public glass-box (living-line Governance view) can fetch.
+  fs.writeFileSync(path.join(OUT, 'latest.trace.ndjson'), trace.toNdjson());
+  console.log('\nWrote ' + path.relative(ROOT, file) + ' + ' + path.relative(ROOT, traceFile) +
+    ' — ' + d.graphResolved + ' graph-resolved, ' + d.corroborated + ' lead(s), ' + d.caught + ' caught; gate ' +
+    d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block).');
 })().catch(function (e) { console.error('Keeper failed:', e); process.exit(1); });

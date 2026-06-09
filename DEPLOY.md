@@ -144,4 +144,3 @@ Set by `vercel.json`:
 - [ ] Vendor Inter + Geist Mono + Playfair Display + Source Serif/Sans locally (currently CDN from Google Fonts).
 - [ ] Add `og:image` to each entry HTML for link unfurls.
 - [ ] Configure custom domain in Vercel.
-- [ ] Confirm Y-DNA Big Y-700 results landing window (~Jul 2026) — re-run audit and dossiers.
