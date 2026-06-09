@@ -23,6 +23,8 @@
    bar made legible and tunable:
      • a record must cite a source                  (require-provenance, block)
      • never echo a quarantined myth                (no-quarantined-myth, block)
+     • never re-assert a SUPERSEDED value, from the
+       record's own correction ledger                (no-superseded-value, block)
      • never revive a ruled-out ancestor as kin     (no-eliminated-kin, block)
      • never link two patrilines a Y-DNA haplogroup
        exclusion keeps apart (Cason↔Causey)          (no-haplogroup-conflict, block)
@@ -138,6 +140,26 @@
     };
   }
 
+  // data-driven quarantine: refuse re-asserting any value the record has SUPERSEDED
+  // (from the supersession ledger). Generalizes the hardcoded myth regex and extends
+  // it to corrections not in that list (the 1608 baptism, the ~1629 crossing, …).
+  function makeNoSupersededValue(values) {
+    const list = (values || []).map(function (v) {
+      const re = (v.match && typeof v.match.test === 'function') ? v.match : new RegExp(String(v.match || v.label || ''), 'i');
+      return { label: v.label, current: v.current, re: re };
+    });
+    return {
+      name: 'no-superseded-value',
+      evaluate: function (a) {
+        const text = actionText(a);
+        const hit = list.filter(function (v) { return v.re.test(text); });
+        return hit.length
+          ? { rule: 'no-superseded-value', detail: 'asserts a value the record has superseded — ' + hit.map(function (h) { return '“' + h.label + '”' + (h.current ? ' (now: ' + h.current + ')' : ''); }).join('; ') }
+          : null;
+      },
+    };
+  }
+
   // near-objective safety (the GPS-grade constraint): a Y-DNA haplogroup is
   // inherited father-to-son, so two surnames in different haplogroups cannot
   // share a direct paternal line. A merge/link that crosses a documented
@@ -187,6 +209,7 @@
     return [
       requireProvenance,
       makeNoQuarantinedMyth(config.bannedPattern),
+      makeNoSupersededValue(config.supersededValues),
       makeNoEliminatedKin(config.eliminatedPatterns),
       makeNoHaplogroupConflict(config.dnaExclusions),
       makeNoOverclaimedRecord(config.primaryThreshold),
@@ -247,6 +270,7 @@
     // rules exposed for testing / reuse
     requireProvenance: requireProvenance,
     makeNoQuarantinedMyth: makeNoQuarantinedMyth,
+    makeNoSupersededValue: makeNoSupersededValue,
     makeNoEliminatedKin: makeNoEliminatedKin,
     makeNoHaplogroupConflict: makeNoHaplogroupConflict,
     makeNoOverclaimedRecord: makeNoOverclaimedRecord,

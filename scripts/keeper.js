@@ -55,6 +55,8 @@ const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/co
 const GOV = require(path.join(LIVING, 'governance.js'));
 // near-objective Y-DNA patriline exclusions (e.g. Cason↔Causey) for the gate.
 const DNA = require(path.join(LIVING, 'dna-exclusions.js'));
+// the record's supersession ledger — values the gate refuses to re-assert.
+const SUP = require(path.join(LIVING, 'supersessions.js'));
 
 // quarantined myths — if a model asserts one, it is caught, never proposed.
 const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
@@ -314,7 +316,7 @@ function dossier(runs) {
 
   const eliminated = g.KIN ? g.KIN.eliminatedKin() : [];
   // the typed policy gate (named rules + thresholds) and the run's audit trace.
-  const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: eliminated, dnaExclusions: DNA.exclusions, primaryThreshold: 1.0, consensusThreshold: 0.5 });
+  const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: eliminated, supersededValues: SUP.values(), dnaExclusions: DNA.exclusions, primaryThreshold: 1.0, consensusThreshold: 0.5 });
   const trace = GOV.Trace('Keeper research pass — ' + today());
   trace.runStarted();
 

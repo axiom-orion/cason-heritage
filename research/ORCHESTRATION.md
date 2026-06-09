@@ -192,9 +192,15 @@ This is the concrete work that turns four repos into one autonomous system. The 
    governed-agents, consumed by both) so "edit a threshold once" governs demo and site
    together.
 
-3. **Conductor → agent-memory-service for durable episodic→semantic memory.** When a
-   dossier is merged, write the event to the service so the next run's "current fact" is
-   provably non-stale (supersession), with the audit log the Bloodhound's honesty bar wants.
+3. **Supersession over the curated record (Seam 3).** ✅ *Delivered in-repo — the "B" call.*
+   The Keeper is stateless by design and `data.js` *is* the memory, so rather than stand up a
+   persistent agent store, the supersession discipline `agent-memory-service` proves is applied
+   to the **record's change-history**: `ui_kits/living-line/supersessions.js` is a queryable,
+   `data.js`-grounded ledger of every documented correction — keyed on `(subject, attribute)`,
+   the old value kept and marked, the current value standing. It backs a `no-superseded-value`
+   gate rule (refusing any re-assertion, and catching corrections the myth regex misses) and a
+   public "what the record used to say, and why it changed" pane. The ledger can only formalize
+   corrections already written into `data.js` — its self-test rejects anything ungrounded.
 
 Each seam is a network call behind a feature flag; none requires rewriting the in-browser
 graph, which stays the fast path for rendering the world.

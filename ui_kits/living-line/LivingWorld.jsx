@@ -1115,7 +1115,8 @@ function AuditTraceCard() {
   const runs = useMemo(function () {
     if (!GOV) return [];
     const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
-    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), dnaExclusions: (DNA ? DNA.exclusions : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+    const SUP = window.CASON_SUPERSESSIONS;
+    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), dnaExclusions: (DNA ? DNA.exclusions : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
     const modelProv = [{ sourceId: 'model:grok', snippet: 'a single derivative tree', score: 0.5 }];
     const corroborated = { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'write_record' }], agreementRatio: 1.0, chosenKind: 'write_record' };
     const scenarios = [
@@ -1125,6 +1126,8 @@ function AuditTraceCard() {
         action: { kind: 'write_record', payload: { personId: 'ransom-sr', evidence: 'leading', text: "Ransom Cason Sr.'s father was Cannon Cason Sr. of Pitt County." }, justification: 'two models agree', provenance: modelProv, consensus: corroborated } },
       { name: 'Repeat a quarantined myth', desc: 'A model repeats the disproven Digswell origin.',
         action: { kind: 'write_record', payload: { personId: 'thomas-sr', evidence: 'possible', text: 'The Digswell 1608 baptism names his father.' }, justification: 'one source', provenance: modelProv } },
+      { name: 'Re-assert a corrected value', desc: 'A model revives the “Elizabeth Alcott” name the record has superseded.',
+        action: { kind: 'write_record', payload: { personId: 'elizabeth-keeling-leighton', evidence: 'possible', text: 'Her name was Elizabeth Alcott.' }, justification: 'an old derivative tree', provenance: modelProv } },
       { name: 'A clean lead', desc: 'A single-source lead, honestly tiered — parked for a human merge.',
         action: { kind: 'write_record', payload: { personId: 'james-green', evidence: 'possible', text: 'The Green middle name may trace to a Glynn Co. family.' }, justification: 'one derivative source', provenance: modelProv } },
       { name: 'Affirm a graph edge', desc: 'A kinship already curated in the record — no model needed.',
@@ -1197,6 +1200,33 @@ function AuditTraceCard() {
         ) : (
           <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--faded)' }}>No Keeper run published yet — the scenarios above show the same gate, live.</div>
         )}
+      </div>
+    </GovCard>
+  );
+}
+/* ---------- Supersession ledger — what the record used to say, and why it changed ---------- */
+function SupersessionCard() {
+  const SUP = window.CASON_SUPERSESSIONS;
+  const recs = SUP ? SUP.all() : [];
+  if (!recs.length) return null;
+  return (
+    <GovCard cap={'What the record used to say — and why it changed (' + recs.length + ')'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Corrections aren’t erased — the old value is kept and marked <strong>superseded</strong>, so the record’s change-history stays auditable. The gate refuses to re-assert any of them.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {recs.map(function (r, i) {
+          return (
+            <div key={i} style={{ borderLeft: '3px solid var(--blood)', paddingLeft: 10 }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{nm(r.subject)} · {r.attribute}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+                <span style={{ textDecoration: 'line-through', color: 'var(--faded)' }}>{r.superseded}</span>{'  →  '}<strong>{r.current}</strong>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, color: 'var(--blood)', textTransform: 'uppercase', marginLeft: 6 }}>{r.status}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--faded)', marginTop: 2 }}>{r.reason}{r.basis && r.basis.length ? ' — ' + r.basis.join('; ') : ''}</div>
+            </div>
+          );
+        })}
       </div>
     </GovCard>
   );
@@ -1320,6 +1350,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
           {audit.quarantine.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Nothing quarantined.</div>}
         </div>
       </GovCard>
+
+      <SupersessionCard />
 
       <AuditTraceCard />
 

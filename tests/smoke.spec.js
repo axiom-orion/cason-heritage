@@ -179,6 +179,8 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText(/the policy gate, live/i)).toBeVisible();       // the typed gate, run in the page (glass box)
   await expect(page.getByText('no-haplogroup-conflict')).toBeVisible();      // the Cason↔Causey refusal, decided on screen
   await expect(page.getByText('gate_decision').first()).toBeVisible();        // the per-event trace renders the gate step
+  await expect(page.getByText(/What the record used to say/)).toBeVisible();   // the supersession ledger (change-history)
+  await expect(page.getByText('Elizabeth Alcott').first()).toBeVisible();      // a superseded value, kept and marked
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
 

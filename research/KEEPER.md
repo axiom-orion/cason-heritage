@@ -89,7 +89,11 @@ contract). Each researched item becomes a typed `ProposedAction` and is decided
 conditionals:
 
 - `require-provenance` — a proposed record must cite a source (**block**).
-- `no-quarantined-myth` — content repeating a disproven claim (**block**).
+- `no-quarantined-myth` — content repeating a disproven claim, from the hardcoded
+  myth regex (**block**).
+- `no-superseded-value` — content re-asserting any value the record has **superseded**
+  (the `supersessions.js` ledger), e.g. *Elizabeth Alcott* or the *~1629 crossing*
+  (**block**) — data-driven, and it catches corrections the myth regex misses.
 - `no-eliminated-kin` — reviving a ruled-out (`evidence:'eliminated'`) ancestor as
   kin (**block**) — the Seam-1 circuit-breaker, now a named policy rule.
 - `no-haplogroup-conflict` — linking two patrilines a Y-DNA haplogroup exclusion

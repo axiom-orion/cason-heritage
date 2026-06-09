@@ -20,11 +20,12 @@ const dir = __dirname;
 const ctx = { console: console, localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} } };
 ctx.window = ctx;
 vm.createContext(ctx);
-[path.join(dir, '..', 'family-tree-app', 'data.js'), path.join(dir, 'kinship.js'), path.join(dir, 'governance.js')]
+[path.join(dir, '..', 'family-tree-app', 'data.js'), path.join(dir, 'kinship.js'), path.join(dir, 'supersessions.js'), path.join(dir, 'governance.js')]
   .forEach(function (f) { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); });
 
 const GOV = ctx.CASON_GOVERNANCE;
 const KIN = ctx.CASON_KINSHIP;
+const SUP = ctx.CASON_SUPERSESSIONS;
 let pass = 0, fail = 0;
 function ok(name, cond) { if (cond) { pass++; console.log('  ✓ ' + name); } else { fail++; console.log('  ✗ ' + name); } }
 
@@ -33,7 +34,7 @@ if (!GOV || !KIN) { console.log('  ✗ modules did not initialize'); process.exi
 
 const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
 const eliminated = KIN.eliminatedKin();
-const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: eliminated, primaryThreshold: 1.0, consensusThreshold: 0.5 });
+const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: eliminated, supersededValues: SUP.values(), primaryThreshold: 1.0, consensusThreshold: 0.5 });
 
 function modelProv(score) { return [{ sourceId: 'model:grok', snippet: 'a lead', score: score == null ? 0.5 : score }]; }
 
@@ -43,6 +44,14 @@ ok("a clean corroborated lead → needs_approval (human merge gate)", GOV.evalua
 
 const myth = { kind: 'write_record', payload: { personId: 'thomas-sr', evidence: 'possible', text: 'The Digswell 1608 baptism names his father.' }, justification: 'one source', provenance: modelProv() };
 ok("a quarantined myth (Digswell) → block", GOV.evaluatePolicy(myth, policy).decision === 'block');
+
+/* 1b. the supersession ledger backs the gate — and EXTENDS it beyond the myth regex */
+const superseded = { kind: 'write_record', payload: { personId: 'elizabeth-keeling-leighton', evidence: 'possible', text: 'Her name was Elizabeth Alcott.' }, justification: 'an old tree', provenance: modelProv() };
+const supDecision = GOV.evaluatePolicy(superseded, policy);
+ok("re-asserting a superseded value (Elizabeth Alcott) → block", supDecision.decision === 'block');
+ok("...the violation names the no-superseded-value rule", supDecision.violations.some(function (v) { return v.rule === 'no-superseded-value'; }));
+// the crossing year is in the LEDGER but NOT in the hardcoded myth regex — proves new coverage
+ok("...and it catches corrections the myth regex misses (the ~1629 crossing)", BANNED.test('the ~1629 crossing') === false && GOV.evaluatePolicy({ kind: 'write_record', payload: { personId: 'thomas-sr', evidence: 'possible', text: 'He made the ~1629 crossing to Virginia.' }, justification: 'x', provenance: modelProv() }, policy).violations.some(function (v) { return v.rule === 'no-superseded-value'; }));
 
 const revival = { kind: 'write_record', payload: { personId: 'ransom-sr', evidence: 'leading', text: 'The father was Cannon Cason Sr. of Pitt County.' }, justification: 'two models', provenance: modelProv(), consensus: { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'write_record' }], agreementRatio: 1.0, chosenKind: 'write_record' } };
 const revivalDecision = GOV.evaluatePolicy(revival, policy);
