@@ -1,0 +1,62 @@
+name: Drift audit
+
+# The system watches itself over time. On a schedule it re-derives the governed
+# state, re-runs the load-bearing invariants, and re-computes a content-addressed
+# attestation. An invariant FAILURE is a regression (the run exits non-zero); a
+# digest change is the record evolving. Either way it opens a PR with the report
+# for a human — propose, never publish; nothing is auto-applied.
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'        # Mondays 14:00 UTC — just after the Keeper's pass
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: drift-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Audit the governed state for drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run the drift auditor
+        id: audit
+        run: |
+          set +e
+          node scripts/drift-audit.js
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Open an alert PR on drift or regression
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          changed="$(git status --porcelain research/attestation.json research/drift)"
+          if [ -z "$changed" ] && [ "${{ steps.audit.outputs.code }}" = "0" ]; then
+            echo "No drift, no regression — the attestation is unchanged. Nothing to report."
+            exit 0
+          fi
+          date=$(date -u +%Y-%m-%d)
+          branch="drift/audit-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/attestation.json research/drift
+          git commit -m "Drift audit $date"
+          git push -u origin "$branch"
+          flag=""
+          if [ "${{ steps.audit.outputs.code }}" != "0" ]; then flag=" — ⚠ INVARIANT REGRESSION"; fi
+          gh pr create \
+            --title "Drift audit: $date$flag" \
+            --body $'The system audited its own governed state.\n\nAn **invariant failure** is a regression that must be fixed (the run exited non-zero — see the report under `research/drift/`). A **digest change** with all invariants green is the record simply evolving — the refreshed `research/attestation.json` is the new baseline; review the drift and merge to accept it.\n\nSee `research/DRIFT.md` for how the auditor works.' \
+            --base main --head "$branch"

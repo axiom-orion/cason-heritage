@@ -9,11 +9,13 @@
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "keeper": "node scripts/keeper.js",
+    "drift-audit": "node scripts/drift-audit.js",
     "selftest": "node ui_kits/living-line/selftest.js",
     "selftest:kinship": "node ui_kits/living-line/kinship.selftest.js",
     "selftest:governance": "node ui_kits/living-line/governance.selftest.js",
     "selftest:supersessions": "node ui_kits/living-line/supersessions.selftest.js",
-    "selftest:memory": "node ui_kits/living-line/memory-client.selftest.js"
+    "selftest:memory": "node ui_kits/living-line/memory-client.selftest.js",
+    "selftest:drift": "node scripts/drift-audit.selftest.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
