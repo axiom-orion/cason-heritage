@@ -1056,11 +1056,46 @@ function ContestationCard({ personId, member, verified, quarantine, appeals, loa
 /* ---------- Audit trace — the typed policy gate, live in the page ---------- */
 const GATE_COLOR = { allow: 'var(--sea-green)', needs_approval: 'var(--gold)', block: 'var(--blood)' };
 const GATE_LABEL = { allow: 'ALLOW', needs_approval: 'NEEDS APPROVAL', block: 'BLOCK' };
+function evDetail(e) {
+  if (e.type === 'run_started') return e.task || '';
+  if (e.type === 'step_started') return e.role + ' →';
+  if (e.type === 'step_completed') return e.role + (e.summary ? ' — ' + e.summary : '');
+  if (e.type === 'action_proposed') return (e.action && e.action.kind) || '';
+  if (e.type === 'gate_decision') return (e.decision && e.decision.decision) || '';
+  if (e.type === 'executed') return e.result || '';
+  if (e.type === 'awaiting_approval') return e.reason || '';
+  if (e.type === 'halted') return e.reason || '';
+  if (e.type === 'error') return e.message || '';
+  return '';
+}
+function evColor(e) {
+  const blocked = e.type === 'halted' || e.type === 'error' || (e.type === 'gate_decision' && e.decision && e.decision.decision === 'block');
+  const review = e.type === 'awaiting_approval' || (e.type === 'gate_decision' && e.decision && e.decision.decision === 'needs_approval');
+  if (blocked) return 'var(--blood)';
+  if (review) return 'var(--rust)';
+  if (e.type === 'executed' || e.type === 'run_completed') return 'var(--sea-green)';
+  return 'var(--ink)';
+}
+function TraceEvents({ events }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 8 }}>
+      {events.map(function (e, i) {
+        return (
+          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontFamily: 'var(--font-sans)', fontSize: 11 }}>
+            <span style={{ width: 118, flexShrink: 0, color: 'var(--faded)', fontFamily: 'monospace', fontSize: 10 }}>{e.type}</span>
+            <span style={{ flex: 1, color: evColor(e), lineHeight: 1.45 }}>{evDetail(e)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 function AuditTraceCard() {
   const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, DNA = window.CASON_DNA_EXCLUSIONS;
   const [pick, setPick] = useState(0);
   const [raw, setRaw] = useState(false);
   const [real, setReal] = useState(null); // the latest *actual* Keeper run, if one is published
+  const [realOpen, setRealOpen] = useState(false);
   useEffect(function () {
     let alive = true;
     fetch('/research/proposals/latest.trace.ndjson', { cache: 'no-store' })
@@ -1072,7 +1107,7 @@ function AuditTraceCard() {
         const started = events.find(function (e) { return e.type === 'run_started'; }) || {};
         const tally = { allow: 0, needs_approval: 0, block: 0 };
         events.forEach(function (e) { if (e.type === 'gate_decision' && e.decision) tally[e.decision.decision] = (tally[e.decision.decision] || 0) + 1; });
-        setReal({ task: started.task || 'Keeper run', at: started.at || '', tally: tally });
+        setReal({ task: started.task || 'Keeper run', at: started.at || '', tally: tally, events: events, ndjson: txt });
       })
       .catch(function () { /* no run published yet — the scenarios stand */ });
     return function () { alive = false; };
@@ -1105,7 +1140,7 @@ function AuditTraceCard() {
       else if (decision.decision === 'needs_approval') trace.awaitingApproval('s1', GOV.reasonOf(decision, 'review'));
       else trace.halted('s1', GOV.reasonOf(decision));
       trace.runCompleted();
-      return { s: s, decision: decision, ndjson: trace.toNdjson() };
+      return { s: s, decision: decision, ndjson: trace.toNdjson(), events: trace.events() };
     });
   }, []);
 
@@ -1143,17 +1178,21 @@ function AuditTraceCard() {
           })}
         </div>
       ) : <div style={{ fontSize: 12, color: 'var(--sea-green)', marginBottom: 9 }}>No violations — the action is permitted.</div>}
-      <button onClick={function () { setRaw(function (x) { return !x; }); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{raw ? 'Hide' : 'View'} raw trace (NDJSON)</button>
+      <TraceEvents events={r.events} />
+      <button onClick={function () { setRaw(function (x) { return !x; }); }} style={{ marginTop: 8, fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{raw ? 'Hide' : 'View'} raw NDJSON</button>
       {raw && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{r.ndjson}</pre>}
       <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed rgba(139,69,19,0.2)' }}>
         {real ? (
           <div>
             <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>Latest Keeper run{real.at ? ' · ' + new Date(real.at).toLocaleDateString() : ''}</div>
-            <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--ink)' }}>
+            <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--ink)', marginBottom: 6 }}>
               <span><strong style={{ color: 'var(--sea-green)' }}>{real.tally.allow}</strong> allow</span>
               <span><strong style={{ color: 'var(--rust)' }}>{real.tally.needs_approval}</strong> needs-approval</span>
               <span><strong style={{ color: 'var(--blood)' }}>{real.tally.block}</strong> block</span>
             </div>
+            <button onClick={function () { setRealOpen(function (x) { return !x; }); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{realOpen ? 'Hide' : 'View'} the run ({real.events.length} events)</button>
+            {realOpen && <TraceEvents events={real.events} />}
+            {realOpen && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{real.ndjson}</pre>}
           </div>
         ) : (
           <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--faded)' }}>No Keeper run published yet — the scenarios above show the same gate, live.</div>
