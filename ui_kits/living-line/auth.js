@@ -132,6 +132,36 @@
     }).then(function (r) { if (r.error) throw r.error; return r.data; });
   }
 
+  // ---- In-app approval queue: agent/member proposals to the record ----
+  // Public to read (transparency); a verified member may file a proposal (as
+  // themselves) or decide one. Approving promotes it into a contribution.
+  function loadProposals() {
+    if (!enabled) return Promise.resolve([]);
+    return loadSb().then(function () {
+      return sb.from('cason_proposals').select('id,person_id,kind,summary,evidence,source,justification,origin,status,final_evidence,submitter_name,reviewer_name,decision_note,created_at,decided_at').order('created_at', { ascending: false });
+    }).then(function (r) { return r.data || []; }).catch(function () { return []; });
+  }
+  function submitProposal(rec) {
+    rec = rec || {};
+    if (!(enabled && state.verified)) return Promise.reject(new Error('Sign in as a verified family member to propose to the record.'));
+    return loadSb().then(function () {
+      return sb.from('cason_proposals').insert({
+        person_id: rec.personId || null, kind: rec.kind || 'write_record', summary: rec.summary,
+        evidence: rec.evidence || 'possible', source: rec.source || null, justification: rec.justification || null,
+        origin: rec.origin || 'consensus', submitter_email: state.email, submitter_name: state.name,
+      }).select().single();
+    }).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+  function decideProposal(id, status, note, finalTier) {
+    if (!(enabled && state.verified)) return Promise.reject(new Error('Sign in as a verified family member to decide a proposal.'));
+    return loadSb().then(function () {
+      return sb.from('cason_proposals').update({
+        status: status, decision_note: note || null, reviewer_name: state.name,
+        final_evidence: finalTier || null, decided_at: status === 'pending' ? null : new Date().toISOString(),
+      }).eq('id', id).select().single();
+    }).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+
   if (enabled) loadSb().catch(function () {});
 
   root.CASON_AUTH = {
@@ -143,5 +173,6 @@
     addContribution: addContribution, loadContributions: loadContributions,
     loadArtifacts: loadArtifacts, uploadArtifact: uploadArtifact, artifactUrl: artifactUrl,
     loadAppeals: loadAppeals, fileAppeal: fileAppeal, resolveAppeal: resolveAppeal,
+    loadProposals: loadProposals, submitProposal: submitProposal, decideProposal: decideProposal,
   };
 })(typeof window !== 'undefined' ? window : this);
