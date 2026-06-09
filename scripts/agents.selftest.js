@@ -19,18 +19,18 @@ ctx.window = ctx;
 vm.createContext(ctx);
 [path.join(LIVING, '..', 'family-tree-app', 'data.js'), path.join(LIVING, 'memory-graph.js'), path.join(LIVING, 'personas.js'),
  path.join(LIVING, 'kinship.js'), path.join(LIVING, 'supersessions.js'), path.join(LIVING, 'governance.js'),
- path.join(LIVING, 'journey.js'), path.join(LIVING, 'reflection.js'), path.join(LIVING, 'ingestion.js'), path.join(LIVING, 'curator.js'), path.join(LIVING, 'agents.js')]
+ path.join(LIVING, 'journey.js'), path.join(LIVING, 'reflection.js'), path.join(LIVING, 'ingestion.js'), path.join(LIVING, 'curator.js'), path.join(LIVING, 'almanac.js'), path.join(LIVING, 'agents.js')]
   .forEach(function (f) { vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }); });
 
 const DATA = ctx.CASON_DATA, MEM = ctx.CASON_MEMORY, PERS = ctx.CASON_PERSONAS;
-const JOURNEY = ctx.CASON_JOURNEY, REFLECTION = ctx.CASON_REFLECTION, INGESTION = ctx.CASON_INGESTION, CURATOR = ctx.CASON_CURATOR, AGENTS = ctx.CASON_AGENTS;
+const JOURNEY = ctx.CASON_JOURNEY, REFLECTION = ctx.CASON_REFLECTION, INGESTION = ctx.CASON_INGESTION, CURATOR = ctx.CASON_CURATOR, ALMANAC = ctx.CASON_ALMANAC, AGENTS = ctx.CASON_AGENTS;
 const KIN = ctx.CASON_KINSHIP, GOV = ctx.CASON_GOVERNANCE, SUP = ctx.CASON_SUPERSESSIONS;
 const deps = { data: DATA, MEM: MEM, PERS: PERS, KIN: KIN, GOV: GOV, SUP: SUP };
 
 let pass = 0, fail = 0;
 function ok(name, cond) { if (cond) { pass++; console.log('  ✓ ' + name); } else { fail++; console.log('  ✗ ' + name); } }
 console.log('Agent roster self-test\n');
-if (!JOURNEY || !REFLECTION || !INGESTION || !CURATOR || !AGENTS) { console.log('  ✗ modules did not initialize'); process.exit(1); }
+if (!JOURNEY || !REFLECTION || !INGESTION || !CURATOR || !ALMANAC || !AGENTS) { console.log('  ✗ modules did not initialize'); process.exit(1); }
 
 /* ---- Narrative Journey ---- */
 const recs = JOURNEY.recommend({ visited: ['homestead'], personas: ['thomas-sr'], lastPersonId: 'thomas-sr' }, deps);
@@ -55,6 +55,16 @@ const firstEdit = cur.edits[0].person;
 const learned = CURATOR.suggest(new Date('2026-10-15'), Object.assign({}, deps, { applied: { ['edit:' + firstEdit]: true } }));
 ok('curator: learns — skips an edit it was told is applied', !learned.edits.some(function (e) { return e.person === firstEdit; }));
 
+/* ---- Almanac — the family calendar, honoring the main line ---- */
+ok('almanac: parses "D Month YYYY" and "Month D, YYYY"', ALMANAC.extractDates('m. 7 July 1635 and died August 21, 1661.').length === 2);
+const cal = ALMANAC.build({ data: DATA });
+ok('almanac: builds a calendar with day-precise and year-only events', ALMANAC.stats(cal).dayPrecise > 0 && ALMANAC.stats(cal).mainLine > 0);
+ok('almanac: finds Ransom Sr.\'s passing on 12 November 1853', cal.some(function (e) { return e.person === 'ransom-sr' && e.kind === 'died' && e.month === 11 && e.day === 12 && e.year === 1853; }));
+ok('almanac: honor(Nov 12) surfaces it as today\'s anniversary', ALMANAC.honor(cal, new Date('2026-11-12')).today.some(function (e) { return e.person === 'ransom-sr'; }));
+ok('almanac: the honor roster is main-line births & passings only', ALMANAC.mainLineDates(cal).every(function (e) { return e.direct && (e.kind === 'born' || e.kind === 'died'); }));
+ok('almanac: public-only — no living-tagged date in the honor roster', ALMANAC.mainLineDates(cal).every(function (e) { return !e.living; }));
+ok('almanac: every event flags its precision (day vs year)', cal.every(function (e) { return e.precision === 'day' || e.precision === 'year'; }));
+
 /* ---- Ingestion (+ gatekeeper) — governed by the SAME gate ---- */
 const myth = INGESTION.intake({ text: 'Thomas was baptized at Digswell in 1608, son of John Cason.', personId: 'thomas-sr', submitter: 'a cousin' }, deps);
 ok('ingestion: a contribution reasserting a disproven myth is REFUSED', myth.route === 'refuse' && myth.decision.decision === 'block');
@@ -75,7 +85,7 @@ ok('registry: every layer is from the vocabulary', AGENTS.agents.every(function 
 ok('registry: every `live` agent names a module that EXISTS on disk', AGENTS.agents.filter(function (a) { return a.status === 'live'; }).every(function (a) {
   return (a.modules || []).length > 0 && a.modules.every(function (m) { return fs.existsSync(path.join(ROOT, m)); });
 }));
-ok('registry: the newly-built agents are registered live', ['ingestion', 'journey', 'reflection', 'curator'].every(function (id) { const a = AGENTS.byId(id); return a && a.status === 'live'; }));
+ok('registry: the newly-built agents are registered live', ['ingestion', 'journey', 'reflection', 'curator', 'almanac'].every(function (id) { const a = AGENTS.byId(id); return a && a.status === 'live'; }));
 ok('registry: every agent declares system + abilities + hooks + autonomy', AGENTS.agents.every(function (a) { return a.system && (a.abilities || []).length && (a.hooks || []).length && a.autonomy; }));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed.');
