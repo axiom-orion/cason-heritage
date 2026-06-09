@@ -381,6 +381,16 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
     if (onSaved) onSaved();
   }
 
+  // route a corroborated finding to the in-app review queue (a keeper approves it under Governance)
+  function proposeConsensus(data) {
+    if (!data || !data.consensus || !(window.CASON_AUTH && window.CASON_AUTH.submitProposal)) return;
+    const c = data.consensus;
+    const ev = c.confidence === 'high' ? 'leading' : 'possible'; // model consensus caps at 'leading'
+    window.CASON_AUTH.submitProposal({ personId: personId, summary: c.answer, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', justification: data.question, origin: 'consensus' })
+      .then(function () { setMsgs(function (m) { return m.concat([{ role: 'persona', text: 'Proposed to the review queue — a keeper can approve it under Governance → Review queue.', mode: 'note' }]); }); })
+      .catch(function (e) { setMsgs(function (m) { return m.concat([{ role: 'persona', text: 'Could not propose: ' + (e && e.message || e), mode: 'error' }]); }); });
+  }
+
   function saveFinding() {
     if (!rdata || !rdata.consensus) return;
     const c = rdata.consensus;
@@ -422,6 +432,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--deep-blue)', marginBottom: 4 }}>⚖ Cross-check · Grok · Gemini · Claude</div>
                   <ConsensusView data={m.data} />
                   {m.data.consensus && m.data.consensus.confidence !== 'low' && <button onClick={function () { saveConsensus(m.data); }} style={{ ...ctlBtn(false), marginTop: 6 }}>Save corroborated finding to {nm(personId).split(' ')[0]}</button>}
+                  {m.data.consensus && m.data.consensus.confidence !== 'low' && member && <button onClick={function () { proposeConsensus(m.data); }} title="Send this to the in-app review queue for a keeper to approve under the policy gate" style={{ ...ctlBtn(false), marginTop: 6, marginLeft: 6 }}>Propose for review</button>}
                 </div>
               );
             }
@@ -1295,6 +1306,118 @@ function CuratorCard() {
     </GovCard>
   );
 }
+/* ---------- In-app approval queue — agent proposals decided at the policy gate ---------- */
+const PROP_TIERS = ['possible', 'leading', 'unsolved'];
+function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
+  const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
+  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, SUP = window.CASON_SUPERSESSIONS;
+  proposals = proposals || [];
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [notes, setNotes] = useState({});
+  const [tiers, setTiers] = useState({});
+
+  const policy = useMemo(function () {
+    if (!GOV) return null;
+    const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
+    return GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+  }, []);
+  function decisionFor(p, tier) {
+    if (!GOV || !policy) return null;
+    const action = { kind: p.kind || 'write_record', payload: { personId: p.person_id, evidence: tier || p.evidence, text: p.summary }, justification: p.justification || 'proposal', provenance: p.source ? [{ sourceId: 'src', snippet: p.source, score: /consensus|model/i.test(p.source) ? 0.5 : 0.8 }] : [] };
+    return GOV.evaluatePolicy(action, policy);
+  }
+  function approve(p) {
+    const tier = tiers[p.id] || (PROP_TIERS.indexOf(p.evidence) !== -1 ? p.evidence : 'possible');
+    const d = decisionFor(p, tier);
+    if (d && d.decision === 'block') { setMsg('The policy gate blocks this proposal — it cannot be approved into the record.'); return; }
+    setBusy(true); setMsg('');
+    const rec = { personId: p.person_id, text: p.summary, evidence: tier, source: (p.source || 'proposal') + ' · approved by ' + (member || 'a keeper'), when: Date.now() };
+    if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) { try { window.CASON_MEMORY.addUserMemory(rec); } catch (e) {} }
+    (window.CASON_AUTH.addContribution ? window.CASON_AUTH.addContribution(rec) : Promise.resolve())
+      .then(function () { return window.CASON_AUTH.decideProposal(p.id, 'approved', notes[p.id] || '', tier); })
+      .then(function () { reload && reload(); })
+      .catch(function (e) { setMsg('Could not approve: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+  function reject(p) {
+    setBusy(true); setMsg('');
+    window.CASON_AUTH.decideProposal(p.id, 'rejected', notes[p.id] || '')
+      .then(function () { reload && reload(); })
+      .catch(function (e) { setMsg('Could not reject: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+  function noteFor(id, v) { setNotes(function (n) { return Object.assign({}, n, { [id]: v }); }); }
+
+  const pending = proposals.filter(function (p) { return p.status === 'pending'; });
+  const decided = proposals.filter(function (p) { return p.status !== 'pending'; });
+  const inp = { fontFamily: 'var(--font-serif)', fontSize: 11.5, padding: '4px 8px', border: '1px solid rgba(139,69,19,0.25)', borderRadius: 7, background: '#fff', color: 'var(--ink)' };
+  const mini = function (bg, on) { return { fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, padding: '4px 10px', borderRadius: 7, border: 'none', color: '#fff', background: bg, cursor: (busy || !on) ? 'default' : 'pointer', opacity: (busy || !on) ? 0.45 : 1 }; };
+
+  return (
+    <GovCard cap={'Review queue — agent proposals, decided at the gate (' + pending.length + ' pending)'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Where the agents' findings come to be <strong>approved in the app</strong>, not on GitHub. Each proposal is run through the same typed policy gate the Keeper uses — <strong>allow / needs-approval / block</strong> — and a verified member promotes it into the record (a flagged, attributed contribution) or rejects it. <strong>The gate can refuse</strong>: a proposal that repeats a quarantined myth, revives a ruled-out ancestor, or over-claims a tier <em>cannot</em> be approved.
+      </div>
+      {!enabled && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Connect the family backend to open the review queue.</div>}
+      {msg && <div style={{ fontSize: 11.5, color: /Could not|blocks/.test(msg) ? 'var(--blood)' : 'var(--sea-green)', marginBottom: 8 }}>{msg}</div>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {pending.map(function (p) {
+          const tier = tiers[p.id] || (PROP_TIERS.indexOf(p.evidence) !== -1 ? p.evidence : 'possible');
+          const d = decisionFor(p, tier);
+          const dc = d ? (GATE_COLOR[d.decision] || 'var(--faded)') : 'var(--faded)';
+          const blocked = d && d.decision === 'block';
+          return (
+            <div key={p.id} style={{ borderLeft: '3px solid ' + dc, paddingLeft: 10 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 3 }}>
+                {d && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, color: '#fff', background: dc }}>{d.decision.replace('_', ' ')}</span>}
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{p.origin}</span>
+                {p.person_id && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{nm(p.person_id)}</span>}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5, margin: '3px 0' }}>{p.summary}</div>
+              {p.source && <div style={{ fontSize: 11.5, color: 'var(--faded)' }}><strong>Source:</strong> {p.source}</div>}
+              {d && d.violations && d.violations.length > 0 && (
+                <div style={{ fontSize: 11, color: 'var(--blood)', marginTop: 3 }}>
+                  {d.violations.map(function (v, i) { return <div key={i}>⛔ {v.rule}: {v.detail}</div>; })}
+                </div>
+              )}
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 2 }}>proposed by {p.submitter_name || 'a member'}{p.created_at ? ' · ' + new Date(p.created_at).toLocaleDateString() : ''}</div>
+              {verified && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>tier</span>
+                  <select value={tier} onChange={function (e) { const v = e.target.value; setTiers(function (t) { return Object.assign({}, t, { [p.id]: v }); }); }} style={inp}>
+                    {PROP_TIERS.map(function (t) { return <option key={t} value={t}>{t}</option>; })}
+                  </select>
+                  <input value={notes[p.id] || ''} onChange={function (e) { noteFor(p.id, e.target.value); }} placeholder="decision note…" style={Object.assign({}, inp, { width: 160 })} />
+                  <button onClick={function () { approve(p); }} disabled={busy || blocked} title={blocked ? 'The policy gate blocks this proposal' : 'Approve → promote into the record as a flagged contribution'} style={mini('var(--sea-green)', !blocked)}>Approve</button>
+                  <button onClick={function () { reject(p); }} disabled={busy} style={mini('var(--blood)', true)}>Reject</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {loaded && pending.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>No proposals awaiting review. Run the ⚖ All-3 cross-check on an open line, then “Propose for review”.</div>}
+      </div>
+
+      {decided.length > 0 && (
+        <div style={{ marginTop: 12, paddingTop: 9, borderTop: '1px dashed rgba(139,69,19,0.2)' }}>
+          <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>Decided ({decided.length})</div>
+          {decided.slice(0, 6).map(function (p) {
+            return (
+              <div key={p.id} style={{ fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.45, marginBottom: 4 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, color: p.status === 'approved' ? 'var(--sea-green)' : 'var(--blood)', textTransform: 'uppercase' }}>{p.status}</span>
+                {p.final_evidence ? ' · ' + p.final_evidence : ''}{p.reviewer_name ? ' · ' + p.reviewer_name : ''} — {p.summary.length > 90 ? p.summary.slice(0, 90) + '…' : p.summary}
+                {p.decision_note ? <span style={{ fontStyle: 'italic', color: 'var(--faded)' }}> ({p.decision_note})</span> : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </GovCard>
+  );
+}
+
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1353,6 +1476,14 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
     window.CASON_AUTH.loadAppeals().then(function (rows) { setAppeals(rows || []); setAppealsLoaded(true); }).catch(function () { setAppealsLoaded(true); });
   }
   useEffect(function () { reloadAppeals(); }, []);
+  // the in-app approval queue
+  const [proposals, setProposals] = useState([]);
+  const [proposalsLoaded, setProposalsLoaded] = useState(false);
+  function reloadProposals() {
+    if (!(window.CASON_AUTH && window.CASON_AUTH.enabled)) { setProposalsLoaded(true); return; }
+    window.CASON_AUTH.loadProposals().then(function (rows) { setProposals(rows || []); setProposalsLoaded(true); }).catch(function () { setProposalsLoaded(true); });
+  }
+  useEffect(function () { reloadProposals(); }, []);
   return (
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
@@ -1361,6 +1492,8 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
       <AgentsCard />
 
       <CuratorCard />
+
+      <ReviewQueueCard member={member} verified={verified} proposals={proposals} loaded={proposalsLoaded} reload={reloadProposals} />
 
       <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
         <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>
