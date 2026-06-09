@@ -170,10 +170,16 @@ This is the concrete work that turns four repos into one autonomous system. The 
 
 **Three seams, in priority order:**
 
-1. **Conductor → genealogy-graphrag for relational truth.** Today the Keeper asks an LLM
-   "who was X's grandfather?"; that repo *proves* relational recall goes 0.000→1.000 when a
-   kinship graph answers it. Route relational gaps through `pipeline.py` and attach its
-   citations to the dossier. *Highest correctness win.*
+1. **Conductor → relational truth from the kinship graph.** ✅ *Delivered in-repo
+   (Phase 1).* The Keeper no longer asks an LLM to guess kinship: `ui_kits/living-line/
+   kinship.js` ports genealogy-graphrag's `RelationResolver` (the layer that takes
+   relational recall 0.000→1.000) to run over the curated Cason edges, in the Keeper's own
+   no-build runtime. It now (a) **grounds** every research call with the subject's curated
+   kin as ground truth, and (b) catches a model that **revives a ruled-out ancestor**
+   (`graph-conflict`), with a `graph-resolved` fast path for questions the graph already
+   answers. *Future upgrade:* when genealogy-graphrag runs as a service over an export of
+   the Cason graph, swap the in-repo resolver for a call to its `pipeline.py` to inherit
+   bibliographic citations directly — the Keeper seam stays the same.
 
 2. **Conductor → governed-agents gate for every proposed dossier entry.** Replace the
    bespoke JS tiering with a call to `evaluatePolicy()` so the *same* typed, replayable gate
@@ -207,8 +213,10 @@ Beyond federation, four loops are real GAPs worth building:
 ## 6. Phased rollout (grounded in current code)
 
 **Phase 1 — Federate (highest correctness, lowest new surface).**
-Seam 1 (genealogy-graphrag for relational gaps) → Seam 2 (shared `evaluatePolicy` gate +
-NDJSON trace). The Keeper already orchestrates; it just calls out instead of guessing.
+Seam 1 (relational truth from the kinship graph) is **landed in-repo** — the Keeper grounds
+on, and graph-verifies against, the curated kinship edges instead of guessing
+(`ui_kits/living-line/kinship.js`). Next: Seam 2 (shared `evaluatePolicy` gate + NDJSON
+trace). The Keeper already orchestrates; it just calls out instead of guessing.
 
 **Phase 2 — Make memory provable.**
 Seam 3 (agent-memory-service on dossier merge) + the drift auditor (agent 7). Now the
