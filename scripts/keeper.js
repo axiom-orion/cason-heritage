@@ -348,6 +348,8 @@ function dossier(runs) {
   const traceFile = path.join(OUT, 'keeper-' + d.date + '.trace.ndjson');
   fs.writeFileSync(file, d.md);
   fs.writeFileSync(traceFile, trace.toNdjson());
+  // a stable pointer the public glass-box (living-line Governance view) can fetch.
+  fs.writeFileSync(path.join(OUT, 'latest.trace.ndjson'), trace.toNdjson());
   console.log('\nWrote ' + path.relative(ROOT, file) + ' + ' + path.relative(ROOT, traceFile) +
     ' — ' + d.graphResolved + ' graph-resolved, ' + d.corroborated + ' lead(s), ' + d.caught + ' caught; gate ' +
     d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block).');

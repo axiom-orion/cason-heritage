@@ -1060,6 +1060,23 @@ function AuditTraceCard() {
   const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, DNA = window.CASON_DNA_EXCLUSIONS;
   const [pick, setPick] = useState(0);
   const [raw, setRaw] = useState(false);
+  const [real, setReal] = useState(null); // the latest *actual* Keeper run, if one is published
+  useEffect(function () {
+    let alive = true;
+    fetch('/research/proposals/latest.trace.ndjson', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.text() : null; })
+      .then(function (txt) {
+        if (!alive || !txt) return;
+        const events = txt.trim().split('\n').map(function (l) { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
+        if (!events.length) return;
+        const started = events.find(function (e) { return e.type === 'run_started'; }) || {};
+        const tally = { allow: 0, needs_approval: 0, block: 0 };
+        events.forEach(function (e) { if (e.type === 'gate_decision' && e.decision) tally[e.decision.decision] = (tally[e.decision.decision] || 0) + 1; });
+        setReal({ task: started.task || 'Keeper run', at: started.at || '', tally: tally });
+      })
+      .catch(function () { /* no run published yet — the scenarios stand */ });
+    return function () { alive = false; };
+  }, []);
   const runs = useMemo(function () {
     if (!GOV) return [];
     const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
@@ -1122,6 +1139,20 @@ function AuditTraceCard() {
       ) : <div style={{ fontSize: 12, color: 'var(--sea-green)', marginBottom: 9 }}>No violations — the action is permitted.</div>}
       <button onClick={function () { setRaw(function (x) { return !x; }); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--deep-blue)' }}>{raw ? 'Hide' : 'View'} raw trace (NDJSON)</button>
       {raw && <pre style={{ marginTop: 8, background: 'rgba(45,74,90,0.06)', border: '1px solid rgba(45,74,90,0.12)', borderRadius: 8, padding: 10, fontFamily: 'monospace', fontSize: 10.5, lineHeight: 1.5, color: 'var(--deep-blue)', overflowX: 'auto', whiteSpace: 'pre' }}>{r.ndjson}</pre>}
+      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed rgba(139,69,19,0.2)' }}>
+        {real ? (
+          <div>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>Latest Keeper run{real.at ? ' · ' + new Date(real.at).toLocaleDateString() : ''}</div>
+            <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--ink)' }}>
+              <span><strong style={{ color: 'var(--sea-green)' }}>{real.tally.allow}</strong> allow</span>
+              <span><strong style={{ color: 'var(--rust)' }}>{real.tally.needs_approval}</strong> needs-approval</span>
+              <span><strong style={{ color: 'var(--blood)' }}>{real.tally.block}</strong> block</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--faded)' }}>No Keeper run published yet — the scenarios above show the same gate, live.</div>
+        )}
+      </div>
     </GovCard>
   );
 }
