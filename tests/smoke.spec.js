@@ -181,6 +181,8 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText('gate_decision').first()).toBeVisible();        // the per-event trace renders the gate step
   await expect(page.getByText(/What the record used to say/)).toBeVisible();   // the supersession ledger (change-history)
   await expect(page.getByText('Elizabeth Alcott').first()).toBeVisible();      // a superseded value, kept and marked
+  await expect(page.getByText(/The agent roster/)).toBeVisible();              // the self-described agent registry
+  await expect(page.getByText('Governance Conductor').first()).toBeVisible();  // an agent in the roster
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
 
