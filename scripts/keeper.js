@@ -55,6 +55,8 @@ const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/co
 const GOV = require(path.join(LIVING, 'governance.js'));
 // the record's supersession ledger — values the gate refuses to re-assert.
 const SUP = require(path.join(LIVING, 'supersessions.js'));
+// durable cross-run memory via agent-memory-service (env-gated; no-op when unset).
+const MEM = require(path.join(LIVING, 'memory-client.js'));
 
 // quarantined myths — if a model asserts one, it is caught, never proposed.
 const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
@@ -165,6 +167,28 @@ function graphGate(rel, res) {
   };
 }
 
+/* ---- 4b2. durable memory: recall prior runs, persist this run's findings ---- */
+function dayNum() { return Math.floor(Date.now() / 86400000); } // stable, monotonic across runs
+function fnv(s) { let h = 0x811c9dc5; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0; } return h.toString(16).padStart(8, '0'); }
+// same gap across runs -> same (subject, attribute) so a newer finding supersedes the older.
+function attrFor(q) { return 'gap:' + fnv(q.ownerId + '|' + q.text); }
+function priorMemoryText(recs) {
+  if (!recs || !recs.length) return '';
+  return ' PRIOR KEEPER MEMORY (from earlier runs — for continuity; some may be marked superseded): ' +
+    recs.slice(0, 3).map(function (r) { return clip(r.content, 160) + (r.superseded ? ' [superseded]' : ''); }).join(' · ') + '.';
+}
+// a researched item -> an episodic memory record for agent-memory-service.
+function memoryRecord(r, i, day) {
+  const tier = r.gate.tier;
+  return {
+    id: 'keeper-' + today() + '-' + r.q.ownerId + '-' + i,
+    text: r.q.name + ' — ' + tier + ': ' + clip(r.gate.verdict, 220),
+    ts_day: day, subject: r.q.ownerId, attribute: attrFor(r.q), value: tier,
+    importance: tier === 'leading' ? 0.7 : tier === 'possible' ? 0.5 : 0.4,
+    provenance: 'keeper ' + today(),
+  };
+}
+
 /* ---- 4c. governance: map a researched item to a typed action + policy decision ---- */
 function consensusBlob(r) {
   if (!r.res || !r.res.ok) return '';
@@ -235,7 +259,7 @@ function snippet(q, tier) {
 function clip(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; }
 function today() { return new Date().toISOString().slice(0, 10); }
 
-function dossier(runs) {
+function dossier(runs, memNote) {
   const date = today();
   const corroborated = runs.filter(function (r) { return r.gate.tier === 'leading'; }).length;
   const graphResolved = runs.filter(function (r) { return r.gate.tier === 'graph-resolved'; }).length;
@@ -251,13 +275,14 @@ function dossier(runs) {
   md += 'Kinship is resolved from the curated family graph where the graph already knows it; model consensus is corroboration, never a primary source — nothing here is `confirmed`. Each item is gated by an explicit policy (allow / needs-approval / block) and recorded to the run trace. Review, then merge to accept, or close to reject.\n\n';
   md += '**' + runs.length + '** question(s) · **' + graphResolved + '** graph-resolved · **' + corroborated + '** corroborated lead(s) · **' + caught + '** caught (myth / graph-conflict).\n\n';
   md += '**Gate:** ' + gate.allow + ' allow · ' + gate.review + ' needs-approval · ' + gate.block + ' block.\n\n';
-  md += 'Endpoint: `' + ENDPOINT + '` · models: ' + (llmRun ? Object.values(llmRun.res.models).join(', ') : 'n/a') + ' · kinship: `ui_kits/living-line/kinship.js` · gate+trace: `ui_kits/living-line/governance.js` → `keeper-' + date + '.trace.ndjson` (NDJSON, governed-agents TraceEvent schema)\n\n---\n';
+  md += 'Endpoint: `' + ENDPOINT + '` · models: ' + (llmRun ? Object.values(llmRun.res.models).join(', ') : 'n/a') + ' · kinship: `ui_kits/living-line/kinship.js` · gate+trace: `ui_kits/living-line/governance.js` → `keeper-' + date + '.trace.ndjson` (NDJSON, governed-agents TraceEvent schema) · durable memory (agent-memory-service): ' + (memNote || 'off') + '\n\n---\n';
   runs.forEach(function (r, i) {
     const q = r.q;
     md += '\n## ' + (i + 1) + '. ' + q.name + (q.lifespan ? ' — ' + q.lifespan : '') + '\n\n';
     md += '**Open line (`' + q.ownerId + '`):** ' + q.text + '\n\n';
     md += '**Bloodhound verdict:** `' + r.gate.tier + '` — ' + r.gate.verdict + '\n\n';
     if (r.decision) md += '**Gate (policy):** `' + r.decision.decision + '`' + (r.decision.violations.length ? ' — ' + r.decision.violations.map(function (v) { return v.rule; }).join(', ') : ' (no violations)') + '\n\n';
+    if (r.prior && r.prior.length) md += '**Prior memory (earlier runs):** ' + r.prior.slice(0, 3).map(function (m) { return clip(m.content, 120) + (m.superseded ? ' _(superseded)_' : ''); }).join(' · ') + '\n\n';
 
     if (r.res && r.res.graph) {
       // graph-resolved: render the kinship trace; no model was called.
@@ -318,6 +343,8 @@ function dossier(runs) {
   const trace = GOV.Trace('Keeper research pass — ' + today());
   trace.runStarted();
 
+  const memOn = MEM.enabled();
+  let priorRecalled = 0;
   const runs = [];
   let qi = 0;
   for (const q of qs) {
@@ -325,15 +352,19 @@ function dossier(runs) {
     const step = trace.runId + ':q' + qi;
     const kin = g.KIN ? g.KIN.knownKin(q.ownerId) : null;
     const rel = g.KIN ? relationOf(g.KIN, q) : null;
+    // durable memory: recall what earlier runs found about this line (continuity).
+    const prior = memOn ? await MEM.recall(q.name + ': ' + q.text, 3) : [];
+    priorRecalled += prior.length;
     let run = null;
     if (rel) {
       const gr = g.KIN.resolveFor(rel.anchor, rel.relation, rel.mods);
       if (gr.fired) run = { q: q, kin: kin, rel: rel, graph: gr, res: { ok: true, graph: true }, gate: graphGate(rel, gr) };
     }
     if (!run) {
-      const res = await research(q, groundingText(kin));  // graph-grounded model research
+      const res = await research(q, groundingText(kin) + priorMemoryText(prior));  // graph-grounded + memory-grounded
       run = { q: q, kin: kin, rel: rel, res: res, gate: gate(res, eliminated) };
     }
+    run.prior = prior;
     const action = proposedAction(q, run);
     const decision = GOV.evaluatePolicy(action, policy);   // the same gate the demo runs
     run.action = action; run.decision = decision;
@@ -342,7 +373,17 @@ function dossier(runs) {
   }
   trace.runCompleted();
 
-  const d = dossier(runs);
+  // persist this run's findings so the next run remembers them (episodic -> semantic, supersede stale).
+  let memNote = memOn ? 'configured' : 'off';
+  if (memOn) {
+    const day = dayNum();
+    const recs = runs.filter(function (r) { return r.gate.tier !== 'graph-resolved'; }).map(function (r, i) { return memoryRecord(r, i, day); });
+    const ingested = await MEM.ingest(recs);
+    if (ingested) await MEM.consolidate(day);
+    memNote = ingested ? ('ingested ' + recs.length + ' finding(s) + consolidated; ' + priorRecalled + ' prior recalled') : 'service unreachable — skipped';
+  }
+
+  const d = dossier(runs, memNote);
   fs.mkdirSync(OUT, { recursive: true });
   const file = path.join(OUT, 'keeper-' + d.date + '.md');
   const traceFile = path.join(OUT, 'keeper-' + d.date + '.trace.ndjson');
@@ -352,5 +393,5 @@ function dossier(runs) {
   fs.writeFileSync(path.join(OUT, 'latest.trace.ndjson'), trace.toNdjson());
   console.log('\nWrote ' + path.relative(ROOT, file) + ' + ' + path.relative(ROOT, traceFile) +
     ' — ' + d.graphResolved + ' graph-resolved, ' + d.corroborated + ' lead(s), ' + d.caught + ' caught; gate ' +
-    d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block).');
+    d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block); memory ' + memNote + '.');
 })().catch(function (e) { console.error('Keeper failed:', e); process.exit(1); });
