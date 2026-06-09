@@ -27,7 +27,7 @@ disproves, and shows its work.
 
 ## The agent system
 
-Eleven agents across four layers, each a **real, no-build module** — governed, traced,
+Twelve agents across four layers, each a **real, no-build module** — governed, traced,
 self-tested, and self-described in a registry (`ui_kits/living-line/agents.js`). Every
 agent's *system* (how it works) and *ability* is machine-checkable: `npm run
 selftest:agents` asserts that each `live` agent names a module that exists on disk.
@@ -45,6 +45,7 @@ selftest:agents` asserts that each `live` agent names a module that exists on di
 | Governance | **Reflection & Self-Improvement** | Reads the graph → a ranked "what to work on" report (the load-bearing Gen-5 slot first). Advises; never writes. |
 | Governance | **Recovery & Resilience** | *Cross-cutting:* every external call degrades gracefully — an outage degrades a run, never crashes or fabricates. |
 | Interaction | **Narrative Journey** | Recommends the next persona / open line / section and surfaces a memory through the horizon-bounded subgraph; public-only. |
+| Interaction | **Curator** (editor-in-residence) | Learns from the record + the calendar → proposes **edits** (no-narrative / no-source / reconstruction-only), **seasonal** features (the season's chapter + this-year milestone anniversaries), and **additions** (a Gen-5 callout, an open line to surface, an under-told spotlight). Proposes; a human applies. |
 
 ### How the governed loop works
 

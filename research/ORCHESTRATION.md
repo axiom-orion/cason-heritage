@@ -52,7 +52,9 @@ Each row: the aspirational agent, the module that **is** it today, and its hones
 > a module that exists on disk (no aspirational entries). The three formerly-GAP agents are now
 > built and live: **Ingestion & Provenance** (+ Gatekeeper) `ingestion.js` — the governed front
 > door that runs every contribution through the same gate; **Narrative Journey** `journey.js`;
-> **Reflection & Self-Improvement** `reflection.js`. **Recovery & Resilience** is honestly marked
+> **Reflection & Self-Improvement** `reflection.js`; and the **Curator** (editor-in-residence)
+> `curator.js` — which learns from the record + the calendar and proposes edits, seasonal
+> features, and additions, surfaced live in the Governance view. **Recovery & Resilience** is honestly marked
 > *cross-cutting* (graceful degradation realized across modules, not one file). The roster is
 > visible in the living-line **Governance** view.
 
