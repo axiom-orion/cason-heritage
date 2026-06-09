@@ -171,8 +171,18 @@ repository variable `KEEPER_CONSENSUS_URL`.
    reject. Either way the thread is documented; the next run won't re-pile while
    one is open.
 
-## Seasonal refresh (next)
+## Seasonal refresh
 
-The same pipeline, run quarterly, also powers content freshness: a "new to the
-record this season" digest, a featured-persona rotation, and a re-attestation of
-the `gov:<digest>` integrity stamp. That builds on this orchestrator.
+Content freshness, two layers — both deterministic, no tokens:
+
+- **Live (client-side):** `ui_kits/living-line/season.js` re-themes the homestead
+  with the real calendar season and rotates what it features — a persona, a
+  documented fact to remember, the open line the family is chasing, and where the
+  digging goes this season. It is derived from the record and seeded by
+  year+season, so it is stable within a load and **never invents a fact**; living
+  descendants are excluded from the public feature. The page changes with the
+  season on its own — no run required.
+- **Quarterly digest (`.github/workflows/season.yml`):** captures that rotation as
+  a durable note in the record and re-attests the `gov:<digest>` integrity stamp,
+  opening a PR (1st of Jan/Apr/Jul/Oct, or manual). `npm run season` runs it
+  locally. It only summarizes what is already documented.

@@ -1419,6 +1419,50 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
   );
 }
 
+/* ---------- Seasonal refresh — the homestead re-themes & re-features with the calendar ---------- */
+function SeasonCard({ onSelect, onResearch }) {
+  const s = useMemo(function () { return window.CASON_SEASON ? window.CASON_SEASON.current() : null; }, []);
+  if (!s) return null;
+  const pill = { fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fff', background: s.accent, padding: '3px 9px', borderRadius: 20 };
+  const link = { cursor: 'pointer', color: s.accent, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2 };
+  return (
+    <div style={{ margin: '14px 22px 0', border: '1px solid ' + s.accent + '33', borderLeft: '4px solid ' + s.accent, borderRadius: 11, background: 'linear-gradient(180deg, ' + s.accent + '0d, transparent)', padding: '13px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap', marginBottom: 6 }}>
+        <span style={{ fontSize: 18 }}>{s.emoji}</span>
+        <span style={pill}>{s.label} at the homestead</span>
+        <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--ink)' }}>{s.theme}</span>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 18px', fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.6 }}>
+        {s.featured && (
+          <div><strong>Featured this season:</strong>{' '}
+            <span style={link} onClick={function () { onSelect && onSelect(s.featured.id); }}>{s.featured.name}</span>
+            {s.featured.line ? <span style={{ color: 'var(--faded)' }}> — {s.featured.line}</span> : null}
+          </div>
+        )}
+        {s.question && (
+          <div><strong>The line is chasing:</strong>{' '}
+            <span style={link} onClick={function () { onResearch && onResearch(s.question.ownerId, s.question.text); }} title="Research this open line with the consensus models">{s.question.name}</span>
+            <span style={{ color: 'var(--faded)' }}> — {s.question.text.length > 120 ? s.question.text.slice(0, 120) + '…' : s.question.text}</span>
+          </div>
+        )}
+      </div>
+      {s.highlight && (
+        <div style={{ marginTop: 7, fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55, borderTop: '1px dashed ' + s.accent + '33', paddingTop: 7 }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: s.accent }}>A record to remember{s.highlight.owner ? ' · ' + s.highlight.owner : ''}</span><br />
+          {s.highlight.text}
+        </div>
+      )}
+      <div style={{ marginTop: 8, display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'baseline', fontSize: 11, color: 'var(--faded)' }}>
+        <span>🔎 Where we’re digging: {s.archivalFocus}</span>
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'baseline' }}>
+          <span>{s.stats.people} people · {s.stats.sources} sources · {s.stats.openLines} open lines</span>
+          <code style={{ fontFamily: 'monospace', fontSize: 10.5, color: s.accent }}>{s.attest}</code>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
@@ -1645,6 +1689,7 @@ function LivingWorld() {
 
           {view === 'homestead' && (
             <div>
+              <SeasonCard onSelect={selectPerson} onResearch={researchLine} />
               {threeD && (
                 <div style={{ padding: '14px 22px 0' }}>
                   <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>

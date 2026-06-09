@@ -21,6 +21,8 @@ test('The Living World renders, navigates all views, zero console errors', async
   await expect(page.getByText('The Living Line', { exact: false }).first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText('Watch them live')).toBeVisible();
   await expect(page.getByText(/At this homestead/)).toBeVisible();
+  // the seasonal refresh re-themes the homestead and features a persona/open line
+  await expect(page.getByText(/Featured this season/)).toBeVisible();
 
   // A persona is selected by default; its memory tiers should render.
   await expect(page.getByText(/Knows generations/).first()).toBeVisible();
