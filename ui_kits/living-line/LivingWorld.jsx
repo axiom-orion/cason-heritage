@@ -1091,7 +1091,7 @@ function TraceEvents({ events }) {
   );
 }
 function AuditTraceCard() {
-  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, DNA = window.CASON_DNA_EXCLUSIONS;
+  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP;
   const [pick, setPick] = useState(0);
   const [raw, setRaw] = useState(false);
   const [real, setReal] = useState(null); // the latest *actual* Keeper run, if one is published
@@ -1116,12 +1116,10 @@ function AuditTraceCard() {
     if (!GOV) return [];
     const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
     const SUP = window.CASON_SUPERSESSIONS;
-    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), dnaExclusions: (DNA ? DNA.exclusions : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+    const policy = GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
     const modelProv = [{ sourceId: 'model:grok', snippet: 'a single derivative tree', score: 0.5 }];
     const corroborated = { votes: [{ model: 'grok', kind: 'write_record' }, { model: 'gemini', kind: 'write_record' }], agreementRatio: 1.0, chosenKind: 'write_record' };
     const scenarios = [
-      { name: 'Cason ↔ Causey merge', desc: 'A derivative tree merges the Causey line into the Cason patriline — a Y-DNA exclusion.',
-        action: { kind: 'merge_persons', payload: { surnames: ['Cason', 'Causey'], claim: 'patriline', text: 'Merge the Causey line into the Cason patriline as one male line.' }, justification: 'an online tree shows them as one family', provenance: [{ sourceId: 'tree:wikitree', snippet: 'merged tree', score: 0.4 }] } },
       { name: 'Revive a ruled-out father', desc: "A model names Ransom's father as a branch the family eliminated.",
         action: { kind: 'write_record', payload: { personId: 'ransom-sr', evidence: 'leading', text: "Ransom Cason Sr.'s father was Cannon Cason Sr. of Pitt County." }, justification: 'two models agree', provenance: modelProv, consensus: corroborated } },
       { name: 'Repeat a quarantined myth', desc: 'A model repeats the disproven Digswell origin.',

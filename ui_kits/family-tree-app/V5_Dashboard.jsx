@@ -22,7 +22,6 @@ const DOSSIER_CATEGORIES = [
   { id: 'tax',      glyph: '$', name: 'Tax & Civil Lists',    desc: 'Tithables, property tax, poll lists' },
   { id: 'eccles',   glyph: '✚', name: 'Ecclesiastical',       desc: 'Parish, vestry books, Baptist minutes' },
   { id: 'court',    glyph: '⚖', name: 'Court Records',        desc: 'Order books, chancery suits, bonds' },
-  { id: 'dna',      glyph: '∞', name: 'DNA & FAN Cluster',    desc: 'Y-DNA, autosomal, friends/associates/neighbors' },
   { id: 'news',     glyph: '◫', name: 'Newspapers & Print',   desc: 'Obituaries, notices, runaway ads' },
 ];
 
@@ -40,7 +39,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'derivative', text: 'Implicit in tithables system; not directly enumerated in surviving fragments.' },
     eccles:   { tier: 'disputed',   text: 'Derivative claim of "Church Warden, Lynnhaven Parish" — not located in primary vestry books. DISCARD.' },
     court:    { tier: 'primary',    text: 'Lower Norfolk Order Books 1640–1651: executor for Ralph Clarke (1640), inventory of Wm. Layton orphans (1645), inventory of James Clarke (1645), purchases from John Moye estate (1646).' },
-    dna:      { tier: 'pending',    text: 'Y-DNA project: requires confirmed male-line descendants to anchor haplogroup.' },
     news:     { tier: 'missing',    text: 'Pre-newspaper era for Lower Norfolk Co.' },
   },
   'james-orphan': {
@@ -53,7 +51,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'primary',    text: 'Quit-rent compliance through 1704 rolls.' },
     eccles:   { tier: 'missing',    text: 'Lynnhaven Parish vestry books partial.' },
     court:    { tier: 'derivative', text: 'Lower Norfolk / Princess Anne court records reference his guardianship as orphan c.1665–1670.' },
-    dna:      { tier: 'pending',    text: 'Funnel point — all surviving Cason DNA descends through his sons.' },
     news:     { tier: 'na',         text: 'Pre-newspaper.' },
   },
   'william-1695': {
@@ -66,7 +63,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'primary',    text: 'Pitt Co. NC tax lists 1740–1760.' },
     eccles:   { tier: 'circumstantial', text: 'Transition from VA Anglican to NC frontier Baptist (typical for the family\'s arc).' },
     court:    { tier: 'derivative', text: 'Pitt Co. court order books referenced in derivative compilations.' },
-    dna:      { tier: 'pending',    text: 'Critical node for resolving Gen 5 hole.' },
     news:     { tier: 'na',         text: 'Pre-newspaper.' },
   },
   'james-1727': {
@@ -79,7 +75,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'missing',    text: 'NOT FOUND in Pitt Co. tax lists 1750–1775 (negative result, targeted search).' },
     eccles:   { tier: 'missing',    text: '—' },
     court:    { tier: 'missing',    text: 'No deeds, suits, or bonds located.' },
-    dna:      { tier: 'pending',    text: 'CRITICAL — Y-DNA triangulation across William\u2074\'s six sons\' lines is the resolution path.' },
     news:     { tier: 'na',         text: 'Pre-newspaper.' },
   },
   'ransom-sr': {
@@ -92,7 +87,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'primary',    text: '1794 Glynn Co. GA tax digest.' },
     eccles:   { tier: 'circumstantial', text: 'Primitive Baptist tradition in surrounding settlements.' },
     court:    { tier: 'primary',    text: '1822 power of attorney to son William (Munro Co. GA); Cherokee Lottery land sales (Houston Co.).' },
-    dna:      { tier: 'pending',    text: 'Anchor for the Florida spine.' },
     news:     { tier: 'derivative', text: 'FL Pioneer Cert. #2015S0027 (FSGS) — recognition, not contemporary press.' },
   },
   'ransom-2': {
@@ -105,7 +99,6 @@ const PERSON_DOSSIERS = {
     tax:      { tier: 'pending',    text: 'FL state tax rolls accessible.' },
     eccles:   { tier: 'derivative', text: 'Local Baptist church records — partial.' },
     court:    { tier: 'pending',    text: 'Alachua Co. order books not yet examined for postwar matters.' },
-    dna:      { tier: 'pending',    text: '—' },
     news:     { tier: 'primary',    text: 'Confederate Veterans Pension Application A00841, Florida Memory.' },
   },
 };
@@ -522,7 +515,6 @@ const BrickWallsPane = () => {
       state: '72-year span between William\u2074 Cason (~1691) and Ransom Cason Sr. (~1763) across one nominal link. Implausible as one generation. The slot is unfilled. Leading candidate: William\u2074\'s son James (c.1727, no land records).',
       actions: [
         { rec: 'Pitt County, NC estate files, tax lists, deed books 1750–1800', repo: 'NC State Archives (NCDAH) — original microfilm, not abstracts' },
-        { rec: 'Y-DNA testing across documented descendant lines of each of William\u2074\'s six sons', repo: 'FamilyTreeDNA Cason Surname Project' },
         { rec: 'Source citation for the "James Jr. (c.1750) is Ransom\'s brother" claim on WikiTree', repo: 'WikiTree Cason-543 — chase the citation back to a primary' },
       ],
     },

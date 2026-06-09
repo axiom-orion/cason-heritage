@@ -187,7 +187,6 @@ const VaultView = () => {
                 fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--ink)',
                 margin: 0, paddingLeft: 18, lineHeight: 1.6,
               }}>
-                <li>Y-DNA test from a known male-line descendant</li>
                 <li>Pitt County land or tax records 1750–1790 naming a James Cason</li>
                 <li>Bible records or family letters linking father to son</li>
                 <li>Will or probate document naming Ransom as heir</li>
