@@ -78,6 +78,36 @@ person and the split sharpens automatically. Validate with
   subject to the horizon, quarantine, and meta-governance invariants the build
   enforces.
 
+### The gate is typed, and every run leaves an audit trail
+
+The bloodhound verdict is the Keeper's *domain reasoning*; the **policy gate** is the
+*formal governance decision* on top of it, ported from the sibling repo
+[`governed-agents`](https://github.com/axiom-orion/governed-agents)
+(`ui_kits/living-line/governance.js` mirrors its `evaluatePolicy` + `TraceEvent`
+contract). Each researched item becomes a typed `ProposedAction` and is decided
+**allow / needs-approval / block** by named rules with thresholds — not inline
+conditionals:
+
+- `require-provenance` — a proposed record must cite a source (**block**).
+- `no-quarantined-myth` — content repeating a disproven claim (**block**).
+- `no-eliminated-kin` — reviving a ruled-out (`evidence:'eliminated'`) ancestor as
+  kin (**block**) — the Seam-1 circuit-breaker, now a named policy rule.
+- `no-overclaimed-record` — a `confirmed`/`secondary` claim needs a source scoring
+  `>= primaryThreshold`; model consensus never reaches it (**block**).
+- `require-model-consensus` — a split model vote routes to a human (**review**).
+- `lead-needs-human-merge` — every clean lead parks for the human merge gate
+  (**review**) — *propose, never publish*, expressed as policy.
+
+Because the rules key off **named thresholds**, the family site inherits the demo's
+signature property: lower `primaryThreshold` and a `block` flips to `needs_approval` —
+a real change in the gate, not a cosmetic one. Every run also writes
+`keeper-<date>.trace.ndjson` beside the dossier: one `TraceEvent` per line
+(`run_started → step_started/completed → action_proposed → gate_decision →
+executed | awaiting_approval | halted → run_completed`), the **same wire format**
+the governed-agents demo streams — a replayable, inspectable audit trail (and the
+substrate for a future public "glass-box" pane). Validate with
+`npm run selftest:governance`.
+
 ## Running it
 
 ```bash

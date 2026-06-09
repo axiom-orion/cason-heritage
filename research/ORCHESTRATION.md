@@ -181,9 +181,16 @@ This is the concrete work that turns four repos into one autonomous system. The 
    the Cason graph, swap the in-repo resolver for a call to its `pipeline.py` to inherit
    bibliographic citations directly — the Keeper seam stays the same.
 
-2. **Conductor → governed-agents gate for every proposed dossier entry.** Replace the
-   bespoke JS tiering with a call to `evaluatePolicy()` so the *same* typed, replayable gate
-   governs both the demo and the family site — and emits the NDJSON `TraceEvent` stream.
+2. **Conductor → governed-agents gate for every proposed dossier entry.** ✅ *Delivered
+   in-repo (Phase 1).* `ui_kits/living-line/governance.js` ports governed-agents'
+   `evaluatePolicy` + `TraceEvent` contract: every researched item is decided
+   **allow / needs-approval / block** by named rules with thresholds (provenance,
+   quarantine, eliminated-kin, overclaim, model-consensus, human-merge), and each run writes
+   `keeper-<date>.trace.ndjson` — one `TraceEvent` per line, the *same* wire format the demo
+   streams. The family site now decides with the same typed gate and leaves the same
+   replayable audit trail. *Future upgrade:* a shared policy artifact (canonical in
+   governed-agents, consumed by both) so "edit a threshold once" governs demo and site
+   together.
 
 3. **Conductor → agent-memory-service for durable episodic→semantic memory.** When a
    dossier is merged, write the event to the service so the next run's "current fact" is
@@ -213,10 +220,12 @@ Beyond federation, four loops are real GAPs worth building:
 ## 6. Phased rollout (grounded in current code)
 
 **Phase 1 — Federate (highest correctness, lowest new surface).**
-Seam 1 (relational truth from the kinship graph) is **landed in-repo** — the Keeper grounds
-on, and graph-verifies against, the curated kinship edges instead of guessing
-(`ui_kits/living-line/kinship.js`). Next: Seam 2 (shared `evaluatePolicy` gate + NDJSON
-trace). The Keeper already orchestrates; it just calls out instead of guessing.
+Seam 1 (relational truth from the kinship graph) and Seam 2 (typed `evaluatePolicy` gate +
+NDJSON trace) are **both landed in-repo** — the Keeper grounds on and graph-verifies against
+the curated edges (`kinship.js`), then gates each item allow/needs-approval/block by named
+rules and writes a replayable `TraceEvent` audit trail (`governance.js`). Next: Seam 3
+(durable episodic→semantic memory via agent-memory-service), then the public glass-box pane
+that renders these traces.
 
 **Phase 2 — Make memory provable.**
 Seam 3 (agent-memory-service on dossier merge) + the drift auditor (agent 7). Now the
