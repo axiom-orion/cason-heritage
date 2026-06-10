@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-09",
-  "digest": "att:cd2a24ed",
+  "generatedAt": "2026-06-10",
+  "digest": "att:b0585dde",
   "counts": {
     "people": 101,
     "tiers": {
@@ -120,5 +120,411 @@
     "woodhouse": "0e8288b8",
     "wyles": "d4336286",
     "zeke": "d4336286"
+  },
+  "claims": {
+    "alexander": {
+      "t": "secondary",
+      "s": 0
+    },
+    "anne": {
+      "t": "unsolved",
+      "s": 0
+    },
+    "becki": {
+      "t": "secondary",
+      "s": 0
+    },
+    "becky": {
+      "t": "possible",
+      "s": 0
+    },
+    "berrien-cason-jr": {
+      "t": "secondary",
+      "s": 3
+    },
+    "berrien-cason-sr": {
+      "t": "possible",
+      "s": 0
+    },
+    "buddy": {
+      "t": "possible",
+      "s": 0
+    },
+    "cannon-sr": {
+      "t": "eliminated",
+      "s": 0
+    },
+    "carl-columbus": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "carol": {
+      "t": "secondary",
+      "s": 0
+    },
+    "carrie-mae": {
+      "t": "possible",
+      "s": 0
+    },
+    "casey-ann": {
+      "t": "secondary",
+      "s": 0
+    },
+    "cassandra-weeks": {
+      "t": "secondary",
+      "s": 0
+    },
+    "clementine": {
+      "t": "possible",
+      "s": 0
+    },
+    "dorsey": {
+      "t": "secondary",
+      "s": 0
+    },
+    "dot": {
+      "t": "possible",
+      "s": 0
+    },
+    "dynah": {
+      "t": "possible",
+      "s": 0
+    },
+    "earl": {
+      "t": "possible",
+      "s": 0
+    },
+    "eddie-ross": {
+      "t": "possible",
+      "s": 0
+    },
+    "eli-cason": {
+      "t": "leading",
+      "s": 5
+    },
+    "elizabeth": {
+      "t": "possible",
+      "s": 0
+    },
+    "elizabeth-keeling-leighton": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "elizabeth-watkins": {
+      "t": "secondary",
+      "s": 1
+    },
+    "george-washington": {
+      "t": "possible",
+      "s": 0
+    },
+    "georgia-mckinney": {
+      "t": "possible",
+      "s": 0
+    },
+    "guynn": {
+      "t": "secondary",
+      "s": 0
+    },
+    "henry-1732": {
+      "t": "secondary",
+      "s": 0
+    },
+    "henry-cason-b": {
+      "t": "possible",
+      "s": 1
+    },
+    "hillery": {
+      "t": "unlikely",
+      "s": 0
+    },
+    "jake": {
+      "t": "possible",
+      "s": 0
+    },
+    "james-1634": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "james-1727": {
+      "t": "leading",
+      "s": 3
+    },
+    "james-green": {
+      "t": "confirmed",
+      "s": 3
+    },
+    "james-johnson": {
+      "t": "possible",
+      "s": 0
+    },
+    "james-jr-1690": {
+      "t": "possible",
+      "s": 0
+    },
+    "james-jr-1750": {
+      "t": "leading",
+      "s": 3
+    },
+    "james-orphan": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "jane-cannon": {
+      "t": "possible",
+      "s": 0
+    },
+    "john-1728": {
+      "t": "possible",
+      "s": 0
+    },
+    "john-barrow": {
+      "t": "possible",
+      "s": 0
+    },
+    "john-cason": {
+      "t": "eliminated",
+      "s": 0
+    },
+    "john-cason-6": {
+      "t": "possible",
+      "s": 0
+    },
+    "john-r-cason": {
+      "t": "secondary",
+      "s": 3
+    },
+    "john-stratton": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "johnny": {
+      "t": "possible",
+      "s": 0
+    },
+    "julia-matilda": {
+      "t": "possible",
+      "s": 0
+    },
+    "kate": {
+      "t": "possible",
+      "s": 0
+    },
+    "king-douglas": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "lawrence": {
+      "t": "possible",
+      "s": 0
+    },
+    "lena-alice": {
+      "t": "possible",
+      "s": 0
+    },
+    "lucy-barrow": {
+      "t": "possible",
+      "s": 0
+    },
+    "marie": {
+      "t": "possible",
+      "s": 0
+    },
+    "martha": {
+      "t": "possible",
+      "s": 0
+    },
+    "mary-ann": {
+      "t": "possible",
+      "s": 0
+    },
+    "mary-nell": {
+      "t": "possible",
+      "s": 0
+    },
+    "moore": {
+      "t": "secondary",
+      "s": 0
+    },
+    "moses": {
+      "t": "possible",
+      "s": 0
+    },
+    "munden-father": {
+      "t": "unsolved",
+      "s": 0
+    },
+    "munden-sister": {
+      "t": "secondary",
+      "s": 0
+    },
+    "noah": {
+      "t": "possible",
+      "s": 0
+    },
+    "paul": {
+      "t": "possible",
+      "s": 0
+    },
+    "paul-r": {
+      "t": "secondary",
+      "s": 0
+    },
+    "phoebe-c": {
+      "t": "secondary",
+      "s": 0
+    },
+    "phoebe-munden": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "puckett": {
+      "t": "possible",
+      "s": 0
+    },
+    "ransom-2": {
+      "t": "confirmed",
+      "s": 1
+    },
+    "ransom-jr": {
+      "t": "possible",
+      "s": 0
+    },
+    "ransom-sr": {
+      "t": "confirmed",
+      "s": 2
+    },
+    "raymos": {
+      "t": "secondary",
+      "s": 0
+    },
+    "rebecca-cason": {
+      "t": "confirmed",
+      "s": 1
+    },
+    "richard": {
+      "t": "secondary",
+      "s": 0
+    },
+    "robert-carl": {
+      "t": "secondary",
+      "s": 0
+    },
+    "robert-jr": {
+      "t": "secondary",
+      "s": 0
+    },
+    "robert-randall-3": {
+      "t": "secondary",
+      "s": 0
+    },
+    "robert-sr": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "roberts": {
+      "t": "secondary",
+      "s": 0
+    },
+    "ruth": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "ryan": {
+      "t": "secondary",
+      "s": 0
+    },
+    "sarah-barrow-ormond": {
+      "t": "secondary",
+      "s": 0
+    },
+    "sarah-poole": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "speckled-bill": {
+      "t": "possible",
+      "s": 0
+    },
+    "susan-holloway": {
+      "t": "possible",
+      "s": 0
+    },
+    "susannah": {
+      "t": "possible",
+      "s": 0
+    },
+    "suzy": {
+      "t": "secondary",
+      "s": 0
+    },
+    "thadeous": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "thomas-3": {
+      "t": "possible",
+      "s": 0
+    },
+    "thomas-jr": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "thomas-sr": {
+      "t": "confirmed",
+      "s": 5
+    },
+    "timothy": {
+      "t": "possible",
+      "s": 0
+    },
+    "tom-arthur": {
+      "t": "possible",
+      "s": 0
+    },
+    "whitehurst": {
+      "t": "secondary",
+      "s": 0
+    },
+    "wilber": {
+      "t": "secondary",
+      "s": 0
+    },
+    "wilbur": {
+      "t": "possible",
+      "s": 0
+    },
+    "william-1695": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "william-cason-b": {
+      "t": "secondary",
+      "s": 1
+    },
+    "william-jr": {
+      "t": "eliminated",
+      "s": 0
+    },
+    "william-leighton": {
+      "t": "confirmed",
+      "s": 0
+    },
+    "wilma-douglas": {
+      "t": "possible",
+      "s": 0
+    },
+    "woodhouse": {
+      "t": "secondary",
+      "s": 0
+    },
+    "wyles": {
+      "t": "possible",
+      "s": 0
+    },
+    "zeke": {
+      "t": "possible",
+      "s": 0
+    }
   }
 }
