@@ -93,7 +93,64 @@ function invariants(data, MEM, PERS, GOV, SUP) {
   const ungrounded = SUP.all().filter(function (r) { return !(people[r.subject] && r.match.test(groundText(r.subject))); });
   out.push({ name: 'supersession-grounding', ok: ungrounded.length === 0, detail: ungrounded.length === 0 ? SUP.all().length + ' correction(s), each grounded in data.js' : ungrounded.length + ' ungrounded supersession(s)' });
 
+  // 6. eliminated containment (H7): nobody's ancestry runs THROUGH a ruled-out node.
+  // Direction matters: a confirmed father may keep `children` links to candidate sons he
+  // ruled out (that IS the audit trail), but no standing person may cite an eliminated/
+  // disproven person as a parent or spouse — that is the Cason↔Causey corruption class.
+  let throughElim = 0;
+  ids.forEach(function (id) {
+    const tier = people[id].evidence || 'possible';
+    if (tier === 'eliminated' || tier === 'disproven') return; // quarantined nodes may point anywhere
+    ['parents', 'spouse'].forEach(function (rel) {
+      (people[id][rel] || []).forEach(function (rid) {
+        const t = people[rid] && people[rid].evidence;
+        if (t === 'eliminated' || t === 'disproven') throughElim++;
+      });
+    });
+  });
+  out.push({ name: 'eliminated-containment', ok: throughElim === 0, detail: throughElim === 0 ? 'no ancestry runs through a ruled-out node (parent/spouse)' : throughElim + ' kin claim(s) THROUGH an eliminated/disproven person' });
+
   return out;
+}
+
+/* ---- claim reconciliation (H7): standing claims replayed against the baseline ----
+   The attestation now freezes a per-person claim fingerprint { t: tier, s: #sources }.
+   On the next run, each standing claim is reconciled against what was attested:
+     • a tier may not RISE without at least one new source (a claim silently promoted
+       above its evidence, post-commit);
+     • sources may not be REMOVED from under a standing confirmed/secondary claim
+       while its tier holds (evidence withdrawn, claim unmoved).
+   Demotions, additions, and evidenced promotions are DRIFT (reported, baseline
+   refreshed) — the record evolving, not a regression. A baseline without claims
+   (pre-upgrade) establishes one; nothing fails on first contact. */
+var TIER_RANK = { disproven: -1, eliminated: -1, unlikely: 0, unsolved: 0, possible: 1, leading: 2, secondary: 3, confirmed: 4 };
+
+function claimsOf(data) {
+  const people = data.people, out = {};
+  Object.keys(people).sort().forEach(function (id) {
+    out[id] = { t: people[id].evidence || 'possible', s: (people[id].sources || []).length };
+  });
+  return out;
+}
+
+function reconcileClaims(baseClaims, curClaims) {
+  if (!baseClaims) return { established: true, failures: [], drift: [] };
+  const failures = [], drift = [];
+  Object.keys(curClaims).forEach(function (id) {
+    const b = baseClaims[id], c = curClaims[id];
+    if (!b) { drift.push(id + ': new claim (' + c.t + ', ' + c.s + ' source(s))'); return; }
+    if (b.t === c.t && b.s === c.s) return;
+    const rose = (TIER_RANK[c.t] != null && TIER_RANK[b.t] != null && TIER_RANK[c.t] > TIER_RANK[b.t]);
+    if (rose && c.s <= b.s) {
+      failures.push(id + ': tier rose ' + b.t + ' → ' + c.t + ' with no new source (' + b.s + ' → ' + c.s + ')');
+    } else if (c.s < b.s && (c.t === 'confirmed' || c.t === 'secondary') && TIER_RANK[c.t] >= TIER_RANK[b.t]) {
+      failures.push(id + ': source(s) removed under a standing ' + c.t + ' claim (' + b.s + ' → ' + c.s + ')');
+    } else {
+      drift.push(id + ': ' + b.t + (b.t === c.t ? '' : ' → ' + c.t) + (b.s === c.s ? '' : ' (sources ' + b.s + ' → ' + c.s + ')'));
+    }
+  });
+  Object.keys(baseClaims).forEach(function (id) { if (!curClaims[id]) drift.push(id + ': claim removed (was ' + baseClaims[id].t + ')'); });
+  return { established: false, failures: failures, drift: drift };
 }
 
 /* ---- the attestation: a content-addressed fingerprint of the governed state ---- */
@@ -119,9 +176,10 @@ function attest(data, MEM, PERS) {
   const gaps = (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }).length;
   const quarantine = (MEM.nodes || []).filter(function (n) { return n.evidence === 'disproven' || n.evidence === 'eliminated'; }).length;
   const fps = personaFingerprints(PERS);
+  const claims = claimsOf(data); // per-person { t: tier, s: #sources } — the H7 reconciliation baseline
   const counts = { people: ids.length, tiers: tiers, sources: sources, gaps: gaps, quarantine: quarantine, refDangling: dangling, personas: Object.keys(fps).length };
-  const digest = 'att:' + fnv(JSON.stringify({ counts: counts, fps: fps }));
-  return { digest: digest, counts: counts, personas: fps };
+  const digest = 'att:' + fnv(JSON.stringify({ counts: counts, fps: fps, claims: claims }));
+  return { digest: digest, counts: counts, personas: fps, claims: claims };
 }
 
 /* ---- baseline compare ---- */
@@ -157,7 +215,11 @@ function report(date, inv, cur, diff) {
   else {
     if (diff.countChanges.length) md += '- **Counts:** ' + diff.countChanges.join(' · ') + '\n';
     if (diff.personaChanges.length) md += '- **Persona fingerprints:** ' + diff.personaChanges.join(', ') + '\n';
-    if (!diff.countChanges.length && !diff.personaChanges.length) md += '- The attestation digest changed.\n';
+    if (diff.claimChanges && diff.claimChanges.length) {
+      const shown = diff.claimChanges.slice(0, 10);
+      md += '- **Claims (reconciled):** ' + shown.join(' · ') + (diff.claimChanges.length > shown.length ? ' · …' + (diff.claimChanges.length - shown.length) + ' more' : '') + '\n';
+    }
+    if (!diff.countChanges.length && !diff.personaChanges.length && !(diff.claimChanges && diff.claimChanges.length)) md += '- The attestation digest changed.\n';
   }
   md += '\n' + (failures.length ? '**' + failures.length + ' invariant(s) FAILED — this is a regression that must be fixed.**' : '_All invariants hold._') + '\n';
   return { md: md, failures: failures.length };
@@ -175,6 +237,22 @@ function main() {
   const cur = attest(data, MEM, PERS);
   const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : null;
   const diff = diffAttest(base, cur);
+
+  // H7: reconcile every standing claim against the attested baseline. A failure here
+  // is a post-commit regression (a claim silently strengthened, or evidence withdrawn
+  // from under it); ordinary evolution lands in the drift section instead.
+  const rec = reconcileClaims(base && base.claims, cur.claims);
+  diff.claimChanges = rec.drift;
+  inv.push({
+    name: 'claim-reconciliation',
+    ok: rec.failures.length === 0,
+    detail: rec.established
+      ? 'claims baseline established (' + Object.keys(cur.claims).length + ' standing claims)'
+      : rec.failures.length === 0
+        ? Object.keys(cur.claims).length + ' standing claim(s) reconciled against the attested baseline'
+        : rec.failures.length + ' reconciliation failure(s): ' + rec.failures.slice(0, 3).join('; ') + (rec.failures.length > 3 ? '; …' : ''),
+  });
+
   const r = report(today(), inv, cur, diff);
 
   console.log('Drift audit — ' + cur.digest);
@@ -199,6 +277,6 @@ function main() {
   return r.failures ? 1 : 0;
 }
 
-module.exports = { invariants: invariants, attest: attest, personaFingerprints: personaFingerprints, diffAttest: diffAttest, report: report, load: load };
+module.exports = { invariants: invariants, attest: attest, personaFingerprints: personaFingerprints, diffAttest: diffAttest, report: report, load: load, claimsOf: claimsOf, reconcileClaims: reconcileClaims, TIER_RANK: TIER_RANK };
 
 if (require.main === module) process.exit(main());

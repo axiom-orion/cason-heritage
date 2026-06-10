@@ -22,6 +22,18 @@ re-run here on a cadence so a slow regression can't hide:
   is auto-allowed); `governance.autonomyPosture()` must still report supervised.
 - `supersession-grounding` — every correction in the ledger is still documented in
   its subject's own `data.js` text (the ledger can't drift into invention).
+- `eliminated-containment` — nobody's ancestry runs *through* a ruled-out node: no
+  standing person may cite an `eliminated`/`disproven` person as a **parent or
+  spouse**. Direction matters — `children` links *to* ruled-out candidates are the
+  audit trail of the elimination and stay legal (a confirmed father recording the
+  sons he ruled out is the record working, not breaking).
+- `claim-reconciliation` — the post-commit honesty check: every standing claim is
+  replayed against the attested baseline (the per-person `{ tier, #sources }` map
+  now frozen in `attestation.json`). A tier may not **rise** without at least one
+  new source, and sources may not be **removed** from under a standing
+  `confirmed`/`secondary` claim — either is a regression. Demotions, additions,
+  and *evidenced* promotions are ordinary drift: honesty may always lower a claim
+  for free, but strengthening one always costs new evidence.
 
 ## Invariant failure vs. drift — two different things
 
