@@ -4,8 +4,8 @@
 vocabulary (BASIS · CogniGate · CAR ID · Paramesphere · PAG), grounds every claim in the
 code that actually runs across the four repositories, closes five adversarial gaps using
 the machinery that already exists, and re-grades what may be said in public. **No code
-changes — this is a sign-off artifact.** Build only after the open decisions in §11 are
-settled.*
+changes — this is a sign-off artifact.** The six decisions in §11 are now **resolved**
+(recorded there with their rationale); build proceeds against them.*
 
 This sits **above** the existing canon and does not replace it. Read first:
 [`ORCHESTRATION.md`](./ORCHESTRATION.md) (the federation register), [`KEEPER.md`](./KEEPER.md)
@@ -52,10 +52,10 @@ mechanism that instantiates it, the file that proves it, and a recommendation.
 | **CogniGate** (cross-tier enforcement) | `evaluatePolicy(action, rules)` → `allow / needs_approval / block` | governed-agents `lib/governance.ts`; cason-heritage `ui_kits/living-line/governance.js` (faithful port) | **Built** | Adopt "CogniGate" as the *cross-system label* for this gate. Do **not** rebuild. |
 | **CAR ID** (scoped agent identity) | `agents.js` registry — each agent has a handle, modules, abilities, autonomy tier, governance hooks; `selftest:agents` enforces "a `live` agent must have a real module on disk" | cason-heritage `ui_kits/living-line/agents.js` | **Built (unsigned)** | The registry *is* CAR ID. Net-new = cryptographically signing the entry (identity → capability binding becomes tamper-evident). |
 | **ATD** (Agent Trust Descriptor) | The `agents.js` registry entry itself: identity bound to autonomy tier + capability envelope + governance hooks | same as above | **Built (unsigned)** | ATD = a signed `agents.js` entry. Don't invent a new artifact; sign the one that exists. |
-| **BASIS tiers** (T1–T7) | Autonomy tiers `advises / proposes / acts-bounded / cross-cutting`, with the **top tier (autonomous write) deliberately unoccupied** (`governance.js` `supervised()` → `topTier: 'unoccupied'`) | cason-heritage `agents.js`, `governance.js` | **Built (different scale)** | Map T-numbers onto the live tiers (§4). The empty T7 is *already codified* — keep it as the autonomy frontier. |
+| **BASIS tiers** (T1–T7) | Autonomy tiers `advises / proposes / acts-bounded / cross-cutting`, with the **top tier (autonomous write) deliberately unoccupied** (`governance.js` `supervised()` → `topTier: 'unoccupied'`) | cason-heritage `agents.js`, `governance.js` | **Built (different scale)** | **Resolved (§11-3):** BASIS = a **privilege + assurance ladder** (§4). Tier = max write privilege (gate-checkable); each rung carries assurance requirements. The empty top *is* the frontier — and under privilege semantics it is two rungs deep (§4). |
 | **PAG** (provenance, replayable) | Append-only episodic + audit log + supersession-not-deletion (`agent-memory-service`); content-addressed `attestation.json` digest (cason drift-audit); per-run `.trace.ndjson` (Keeper) | agent-memory-service `src/agent_memory/`; cason `research/attestation.json`, `research/proposals/*.trace.ndjson` | **~75% built** | PAG = agent-memory-service + the trace + the attestation digest. Net-new = content-addressing on memory writes, signing, agent-identity on audit entries, replay snapshot (§7-5). |
-| **Paramesphere** (model-identity attestation) | `attestation.json` = content-addressed digest + **per-persona behavioral fingerprints**, regression-checked weekly by drift-audit | cason `scripts/drift-audit.js`, `research/DRIFT.md`, `research/attestation.json` | **Behavioral attestation built; weight-space N/A** | This is the *behavioral* grade (B1). It is real and running. Weight-space `I(θ)` needs a self-hosted model the system does **not** yet have (§4, §7-6). |
-| **Red Cell / oversight independence** | The **one law**: corroboration counts independent *sources*, not voices (`bloodhound.md`); `require-model-consensus` (≥2 of the triad) | cason `research/bloodhound.md`, `governance.js`; governed-agents `lib/consensus.ts` | **Built (source-level)** | Bloodhound already defeats "same blind spot" at the source level. Net-new = *attesting* the consenting models are distinct instances (§7-2). |
+| **Paramesphere** (model-identity attestation) | `attestation.json` = content-addressed digest + **per-persona behavioral fingerprints**, regression-checked weekly by drift-audit. **And a weight-space target already exists:** genealogy-graphrag loads `sentence-transformers/all-MiniLM-L6-v2` + `cross-encoder/ms-marco-MiniLM-L-6-v2` locally (full weight custody), and agent-memory-service embeds locally — load-bearing open weights, currently unfingerprinted | cason `scripts/drift-audit.js`, `research/attestation.json`; genealogy-graphrag `src/genealogy_rag/config.py`, `embeddings.py`, `rerank.py` | **Behavioral built; weight-space target present, unfingerprinted** | **Resolved (§11-6):** full self-host ladder S0→S3 (§10). S0 fingerprints the embedder/reranker weights *now* (a tampered embedder silently corrupts retrieval — a real attack surface); S2/S3 add LLM-grade targets. |
+| **Red Cell / oversight independence** | The **one law**: corroboration counts independent *sources*, not voices (`bloodhound.md`); `require-model-consensus` (≥2 of the triad) | cason `research/bloodhound.md`, `governance.js`; governed-agents `lib/consensus.ts` | **Built (source-level)** | **Resolved (§11-4):** Bloodhound (structural filter) **and** an attested adversarial **Red-Cell mode** (generative disconfirmation hunter) — complementary, not substitutes. Net-new = the mode + *attesting* the consenting/adversarial instances are distinct (§7-2). |
 
 **The headline recommendation:** treat the Vorion terms as a **standard vocabulary layered
 over working mechanisms**, never as a mandate to re-implement them under new names. That is
@@ -79,9 +79,14 @@ The brief's B1–B5 stand and are well-aimed; keep them verbatim. The survey add
 - **B8 — the GPS framing is absent in the code.** The brief leans on the Genealogical
   Proof Standard (esp. "GPS component 4"); the live system uses its **own** evidence tiers
   (`confirmed / secondary / leading / possible / unsolved / eliminated / disproven`) and the
-  bloodhound law, and never references GPS. Decide in §11 whether to adopt GPS vocabulary or
-  keep the tiers. **Until decided, express refusals in the live tier/law terms** — that is
-  what this document does in §6.
+  bloodhound law, and never references GPS. **Resolved (§11-2): map-and-grade.** Each GPS
+  component maps to a live mechanism (GPS-2 citations → provenance/`/proof`; GPS-3/4
+  analysis + conflict resolution → bloodhound law + `no-overclaimed-record`; GPS-5 written
+  conclusion → the dossier) and is graded **per component, never wholesale** — with the
+  GPS-1 caveat stated plainly: the Keeper sweeps a *bounded* source set, so GPS-1
+  ("reasonably exhaustive research") is claimed as **coverage, not completeness**, and the
+  swept sources are reported. The tiers + law remain the operational layer; refusals are
+  expressed in their terms (§6).
 
 ---
 
@@ -141,15 +146,35 @@ justify moving — the empty slot is the pitch, not a gap.
 
 ## 4. Trust & attestation model (grounded)
 
-**Tier mapping (proposed — the code uses names, not T-numbers; adopt this in §11):**
+**BASIS, canonically (resolved §11-3): a privilege + assurance ladder.** A tier is the
+**maximum write privilege** an agent may hold — the thing CogniGate can check mechanically —
+and each rung carries **minimum assurance requirements** to hold it (what the auditor
+checks). Autonomy and pipeline-stage are not separate axes; both fall out of privilege.
+Two structural rules:
 
-| BASIS | Live autonomy tier | Live example |
-|---|---|---|
-| T1–T2 | `advises` / staging-only `proposes` | Almanac (advises); Ingestion/Gatekeeper (staging write only) |
-| T3–T4 | `proposes` | Bloodhound, External Research/consensus — emit proposals, never write canonical |
-| T5 | `acts-bounded` (oversight) | Drift Auditor, Circuit Breaker — act within a fixed envelope |
-| T6 | `proposes` + **human merge** | Keeper — drafts the dossier; the human merge is the gate |
-| **T7** | **unoccupied** | autonomous canonical write — `governance.js` refuses it by construction |
+- **T5 is deliberately non-nested.** The ladder nests T1–T4 and T6–T7, but oversight
+  privilege is a *branch*, not a superset — **separation of duties**: an agent may not hold
+  T4 (propose) and T5 (verdict) in the same claim domain, or it can launder its own claims.
+  The live code already obeys this (`drift-audit.js`: *"it does not touch data.js"*).
+- **The top two rungs are where the humans live.** The brief claimed T7 unoccupied; under
+  privilege semantics the truth is stronger — autonomous agents top out at **T5**; T6
+  exists only as the human-agent dyad (the merge); T7 is reserved.
+
+| Tier | Privilege (gate-checkable) | Assurance required to hold it | Who holds it today |
+|---|---|---|---|
+| T1 | Read + advise only (no writes) | CAR ID (registry entry) | Almanac, Journey, Reflection, Personas¹ |
+| T2 | Staging/quarantine write | + provenance rules enforced on every write | Ingestion/Gatekeeper |
+| T3 | Annotate/cite staged items | + current behavioral attestation | *(unoccupied — citation lives inside the Gatekeeper)* |
+| T4 | Propose against canonical; drafts | + corroboration law (sources, not voices) | Bloodhound, Consensus, Curator, Keeper |
+| T5 | Oversight verdicts (gates others) | + **distinct-instance attestation** vs. whatever it oversees; **no T4 in the same domain** | Drift Auditor; Red-Cell mode (§7-2) |
+| T6 | Canonical/public write **with human co-sign** | + full PAG record + recorded human signature | **No agent — the human merge itself** |
+| **T7** | Canonical/public write, no human | + all of the above + quantified telemetry thresholds (defined, unmet) | **Unoccupied — reserved** |
+
+¹ The personas' temporal-horizon is a *runtime bound*, not a write privilege — T1 with
+extra runtime constraints. Tiers may be honestly unoccupied at the low end too (T3).
+CogniGate (`governance.js`) is not an agent holding a tier; it is the enforcement plane.
+This ladder is the industrializable form: the assurance column *is* the conformance
+checklist a future "BASIS 1.0" would version.
 
 **The five-layer per-action check, reconciled:**
 
@@ -157,16 +182,27 @@ justify moving — the empty slot is the pitch, not a gap.
    to make it tamper-evident.*
 2. **ATD** — that entry's capability envelope (modules, abilities, autonomy tier). CogniGate
    checks the action falls inside it. *Built; the signed entry is the ATD.*
-3. **BASIS tier** — required tier ≤ asserted tier. *Provable within-system* (your standard,
-   your system); "industry standard" stays aspirational.
+3. **BASIS tier** — the action's required privilege ∈ the agent's envelope (T1–T4, T6–T7
+   nest; T5 checked as the non-nested oversight branch). *Provable within-system* (your
+   standard, your system); "industry standard" stays aspirational until BASIS 1.0 +
+   external adoption.
 4. **Model-identity attestation — dual mode, two grades:**
    - *Behavioral (today, all agents):* `attestation.json` content-addressed digest +
      per-persona fingerprints, regression-checked weekly. Detects gross drift/swap on
      fingerprinted behaviors. **Strictly weaker than weight identity; for API agents you are
      ultimately trusting the provider's model routing — name that assumption (B-canary).**
-   - *Weight-space (aspirational):* Paramesphere `I(θ)` requires a self-hosted open-weight
-     model the system does not yet run. Qualified even then: same-model tamper/swap on a
-     fixed weight set, **not** cross-model identity, **not** quantization-robust.
+   - *Weight-space (S0 — applicable today):* the system already runs open weights with full
+     custody — graphrag's MiniLM embedder + ms-marco reranker, memory-service's embedder.
+     S0 pins HF revision + artifact SHA-256 at build and computes a **loaded-state**
+     fingerprint at model load, landing both in `attestation.json`. **Honesty note — what
+     `I(θ)` adds over a file hash:** for at-rest files, `sha256(safetensors)` is stronger
+     and cheaper; a weight-space fingerprint earns its keep in exactly two places — (a)
+     attesting the *loaded, in-memory* state (catches post-load tampering a file hash never
+     sees), and (b) identity that *survives benign re-serialization* (re-saved/re-sharded
+     weights: hash alarms falsely, fingerprint correctly says "same model"). Any demo must
+     show one of those two, or it is a file hash with extra steps. Qualified throughout:
+     same-model tamper/swap on a fixed weight set — **not** cross-model identity, **not**
+     quantization-robust.
 5. **PAG** — the admitted action is recorded append-only with inputs, attestation result,
    tier, and reasoning, replayable. *agent-memory-service + the NDJSON trace + the
    attestation digest; net-new crypto in §7-5.*
@@ -238,10 +274,17 @@ law, propose-never-publish human gating, and a replayable trace — and gets the
    drop the Haplo agent and the `ydna_haplogroup_conflict` gate from the brief (no such agent
    or rule exists, and DNA is out by decision). H3-as-DNA becomes H2/H3″ as written.
 2. **Enforced oversight independence.** *Live cover:* bloodhound counts independent sources;
-   `require-model-consensus` needs ≥2. *Delta:* CogniGate should refuse to honor a consensus
-   when model-identity attestation shows the consenting agents resolved to the **same model
-   instance** — bind the §4 fingerprints to the consensus check so "independent" is
-   *attested*, not assumed.
+   `require-model-consensus` needs ≥2. *Delta (resolved §11-4), two parts:* (a) CogniGate
+   refuses to honor a consensus when model-identity attestation shows the consenting agents
+   resolved to the **same model instance** — bind the §4 fingerprints to the consensus check
+   so "independent" is *attested*, not assumed. (b) Add an attested **Red-Cell mode** to the
+   External-Research/consensus agent — Bloodhound is a *structural filter* (echo-collapse,
+   overclaim caps) but never *hunts disconfirmation*; the Red-Cell mode is generative-
+   adversarial ("find the record that proves these are two people; make the strongest case
+   against this merge"), runs on a provably distinct instance, holds T5 in the claim domains
+   it attacks (so never T4 there), and its verdict is refused if attestation shows it
+   collapsed onto the generator's instance. A *mode*, not a 14th agent — privacy-style:
+   don't proliferate agents for what is a constraint.
 3. **Canary / provider trust, named.** *Live cover:* weekly drift attestation. *Delta:*
    make the fingerprint/probe set **secret + rotated**, add distributional drift on real
    outputs (not only fixed challenges), and **state plainly in the ledger that for API
@@ -251,12 +294,19 @@ law, propose-never-publish human gating, and a replayable trace — and gets the
    invariant battery + attestation + regression PR. *Delta:* add one invariant — replay PAG
    provenance for each standing claim vs. current evidence; open a drift PR on divergence.
    This *is* the reconciliation auditor (primitive #1).
-5. **PAG substrate, pinned.** *Live cover:* agent-memory-service (append-only episodic +
-   audit + supersession) + cason's content-addressed `attestation.json`. *Delta:* content-address
-   memory writes (SHA-256 over content+metadata), sign audit entries, record `agent_id` +
-   `model_id` + `attestation_level` per entry, and persist a replay snapshot so "why was this
-   refused months later" is reconstructable. Until done, **"replayable provenance" is
-   qualified, not provable** in the ledger.
+5. **PAG substrate, pinned — with a firewall.** *Live cover:* agent-memory-service
+   (append-only episodic + audit + supersession) + cason's content-addressed
+   `attestation.json`. *Resolved (§11-5):* agent-memory-service **hosts** PAG, but PAG is
+   **only its append-only slice** (episodic + audit — already write-once, never-deleted),
+   fire-walled from the layer that *forgets*: semantic consolidation mutates in place and
+   TTL prunes — by design, and the **opposite** of a provenance ledger, which must never
+   forget and must be tamper-evident. The mutable/forgetting layer stays "memory" and is
+   explicitly **not** the provenance of record. *Delta (= the definition of "done"):*
+   content-address PAG writes (SHA-256 over content+metadata), sign entries, record
+   `agent_id` + `model_id` + `attestation_level`, persist a replay snapshot. "PAG" expands
+   as Provenance Attestation **Graph** (items already carry upstream-ID provenance edges —
+   it *is* a DAG); the "gateway" is just its write interface. Until the deltas land,
+   **"replayable provenance" is qualified, not provable** in the ledger.
 
 ---
 
@@ -284,7 +334,7 @@ The brief's ledger under-counts what is built. Honest re-grade:
 | Multi-model consensus catches swap/echo | qualified | **Built (source-level), qualified on adaptive evasion** | `bloodhound.md`, `consensus.ts`, `require-model-consensus` |
 | Replayable provenance (PAG) | implied | **Qualified** until content-addressing/signing/snapshot land | agent-memory-service + attestation.json |
 | Behavioral model attestation | (API fallback) | **Built, qualified** | `attestation.json` fingerprints, weekly drift |
-| Paramesphere `I(θ)` weight-space | qualified | **Not yet applicable** — no self-hosted model exists | survey: no self-hosted weights in any repo |
+| Paramesphere `I(θ)` weight-space | qualified | **Applicable today (S0), qualified** — load-bearing open weights (embedder/reranker) run with full custody, currently unfingerprinted; LLM-grade target arrives with S2/S3 | graphrag `embeddings.py`/`rerank.py`; memory-service embedder; same-model-only + quantization caveats stand |
 | BASIS as *industry* standard | aspirational | **Aspirational** | no external adoption |
 | "Fully autonomous" | reframe | **Supervised-autonomous** | human merge is the only write path; T7 unoccupied |
 | Telemetry could justify removing the human (T7) | aspirational | **Aspirational (roadmap thesis)** | unchanged |
@@ -309,24 +359,72 @@ Most agents exist; the gap is the seam (ORCHESTRATION.md §0). Staging reflects 
   ledger; `/living` privacy enforced; demo copy uses live names (B7) and the ledger's
   grades (§9). *Benchmark:* no public claim outruns §9.
 
-A self-hosted open-weight agent (for a real Paramesphere target) is **out of scope for
-sign-off** and a separate decision — note it, don't assume it.
+**The self-host ladder (resolved §11-6: full ladder adopted, S0→S3).** Two honest
+corrections to the brief's §7 frame it: at current volume (a weekly Keeper cron, hundreds
+of images/month) **the cost argument for self-hosting fails** — API and serverless-GPU
+costs are both single-digit dollars/month, and cost only flips at ~100× volume (bulk
+archive ingestion). The honest driver is **attestation + capability demonstration**. And
+"open-weight API" providers (Together/Fireworks/Bedrock-style) are a trap option: open
+weights ≠ **weight custody**; no custody → no `I(θ)` → not "self-hosted" for attestation
+purposes.
+
+- **S0 — fingerprint the weights already running** (immediate, ~zero cost). Pin HF
+  revision + artifact SHA-256; loaded-state fingerprint at model load for graphrag's
+  MiniLM embedder + ms-marco reranker and memory-service's embedder; land in
+  `attestation.json`; the existing weekly drift-audit regression-checks them for free.
+  *Benchmark:* "weight-space attestation in production" is a true sentence, demonstrated on
+  the case a file hash cannot cover (§4-4).
+- **S1 — CI swap-test harness.** Load a small open model → fingerprint → swap/perturb
+  weights → fingerprint trips → quarantine; include the benign re-serialization case
+  (hash alarms falsely, fingerprint holds). *Benchmark:* tamper trips; benign re-save
+  does not.
+- **S2 — production self-hosted Scribe** (batch OCR/extraction). Infra: **Cloud Run GPU**
+  (already the memory-service platform; scale-to-zero; L4 ≈ $0.7–1/hr → a 30-min weekly
+  batch ≈ $2–5/mo, structural estimate; weight volume cached to tame cold pulls). Model
+  candidates: Qwen-VL-class document VLM, olmOCR, TrOCR-handwritten — but 17th-century
+  secretary hand is brutal for all of them, so **S2 is gated on a frozen OCR eval corpus**
+  built from `/proof` artifacts with known transcriptions; measured accuracy makes the
+  call (the decision itself eval-driven, house style). *Benchmark:* a deliberately swapped
+  Scribe weight set trips `I(θ)` at load and quarantines the agent.
+- **S3 — self-hosted voice in the consensus triad.** One **weight-attested vote in every
+  consensus** — the strongest possible footing for §7-2's distinct-instance enforcement.
+  Sequenced after S2 proves the ops story; always-on-shaped, so sized deliberately.
+  Personas stay API regardless: they are latency-sensitive, and a GPU on the interactive
+  path would break the "governance off the critical path" thesis. *Benchmark:* a consensus
+  round carries one vote whose model identity is weight-attested end-to-end in the trace.
 
 ---
 
-## 11. Open decisions for sign-off
+## 11. Decisions — resolved at sign-off
 
-1. **Vocabulary:** adopt the Vorion terms as labels over the live mechanisms (recommended,
-   §1) — or keep home-grown names only? This governs all demo copy.
-2. **GPS framing (B8):** adopt Genealogical Proof Standard vocabulary, or keep the live
-   evidence tiers + bloodhound law? (§6 uses the live terms pending this.)
-3. **Tier mapping (§4):** accept the proposed BASIS↔autonomy-tier table, or refine?
-4. **Red Cell:** introduce a distinct adversarial agent, or treat Bloodhound's
-   source-independence law as the oversight (recommended — it already runs)?
-5. **PAG naming/ownership:** confirm agent-memory-service as the PAG substrate and the §7-5
-   crypto deltas as the definition of "done."
-6. **Self-hosted model:** in or out of the roadmap for a real (weight-space) Paramesphere
-   target?
+1. **Vocabulary — RESOLVED: dual-register.** Home-grown names (Keeper, Bloodhound,
+   `/proof`, `/living`) stay canonical in the product; Vorion terms (CogniGate, CAR ID,
+   BASIS, PAG, Paramesphere) are canonical in the governance-reference layer; the §1 table
+   is the bijection. Non-negotiable rider: **each Vorion term is defined operationally by
+   what flcason demonstrably does — never by the patent's definition** (B5). Adopting a
+   label creates a forcing function: anything later sold under that label must be this
+   contract or a faithful superset.
+2. **GPS framing — RESOLVED: map-and-grade per component** (see B8). Never "GPS-proven"
+   wholesale; GPS-1 is claimed as coverage, not completeness, with swept sources reported.
+   The evidence tiers + bloodhound law remain the operational layer.
+3. **BASIS — RESOLVED: privilege + assurance ladder** (the §4 table is canonical). Tier =
+   max write privilege (gate-checkable) + per-rung assurance requirements (auditor-checkable);
+   T5 non-nested by separation of duties; agents top out at T5 today; T6 = the human merge;
+   T7 reserved. The assurance column is the seed of a versioned BASIS 1.0 conformance
+   checklist.
+4. **Red Cell — RESOLVED: attested adversarial *mode*, not a 14th agent** (§7-2).
+   Complementary to Bloodhound (structural filter vs. generative disconfirmation hunter);
+   provably distinct instance; T5 in the domains it attacks; verdict refused if attestation
+   shows instance-collapse onto the generator.
+5. **PAG — RESOLVED: agent-memory-service hosts it; PAG = the append-only slice only**
+   (episodic + audit), fire-walled from the consolidation/TTL layer that forgets (§7-5).
+   "Done" = content-addressing + signing + agent/model identity per entry + replay
+   snapshot. Expansion: Provenance Attestation **Graph**.
+6. **Self-hosting — RESOLVED: the full ladder, S0→S3** (§10). S0 (fingerprint the
+   already-running embedder/reranker weights) immediately; S1 (CI swap-test) alongside;
+   S2 (production Scribe on Cloud Run GPU) **gated on the frozen OCR eval corpus**; S3
+   (weight-attested triad voice) sequenced after S2 proves the ops story. Driver is
+   attestation, not cost (§10 corrections).
 
 ---
 
@@ -335,13 +433,17 @@ sign-off** and a separate decision — note it, don't assume it.
 - **Decision applied:** no Y-DNA in the money shot; the refusal stands on evidence
   corroboration alone (§6). The brief's Haplo agent and `ydna_haplogroup_conflict` gate are
   dropped — no such agent or rule exists, and reality uses evidence tiers, not GPS/DNA.
-- **ATD and PAG remain inferred expansions** (Agent Trust Descriptor; Provenance
-  Attestation Graph). This document binds them to `agents.js` and agent-memory-service
-  respectively; confirm in §11 before they harden into spec.
+- **ATD and PAG were inferred expansions, now bound** (Agent Trust Descriptor = the signed
+  `agents.js` entry; Provenance Attestation Graph = agent-memory-service's append-only
+  slice, §11-5). If the canonical Vorion expansions differ, the bindings — not the live
+  mechanisms — are what should move.
 - **Federation seams are documented but not yet live-wired** (ORCHESTRATION.md): the site
   runs self-contained faithful ports of the three sibling layers. Stage 0 closes this.
 - **Behavioral ≠ weight-space attestation.** `attestation.json` fingerprints are behavioral
   and content-addressed, regression-checked weekly — real, and strictly weaker than weight
-  identity. Weight-space `I(θ)` has no target until a self-hosted model exists.
+  identity. Weight-space targets exist today only for the embedding/reranker weights (S0);
+  LLM-grade weight attestation arrives with S2/S3 and stays qualified per B2 (same-model
+  only; quantization false-positive risk).
 - Cost/latency claims remain structural, not measured — the async/batch shape keeps
-  enforcement off the critical path, but real token volumes are still needed to quantify.
+  enforcement off the critical path, and S2's $-figures are estimates to be replaced by a
+  measured month; real token volumes are still needed to quantify the API side.
