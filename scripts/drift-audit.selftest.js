@@ -49,5 +49,44 @@ const d = DA.diffAttest(base, curB);
 ok('diffAttest flags a changed digest', d.changed === true);
 ok('first run is reported as baseline (no false drift)', DA.diffAttest(null, base).firstRun === true);
 
+/* 6. eliminated containment (H7) — ancestry may not run THROUGH a ruled-out node */
+ok('invariant present: eliminated-containment', inv.some(function (i) { return i.name === 'eliminated-containment'; }));
+ok('eliminated-containment holds on the current record', inv.filter(function (i) { return i.name === 'eliminated-containment'; })[0].ok === true);
+const elimClone = JSON.parse(JSON.stringify(data));
+const elimId = Object.keys(elimClone.people).filter(function (id) { return ['eliminated', 'disproven'].indexOf(elimClone.people[id].evidence) !== -1; })[0];
+const victim = Object.keys(elimClone.people).filter(function (id) { return elimClone.people[id].evidence === 'confirmed'; })[0];
+elimClone.people[victim].parents = (elimClone.people[victim].parents || []).concat([elimId]);
+const elimInv = DA.invariants(elimClone, MEM, PERS, GOV, SUP).filter(function (i) { return i.name === 'eliminated-containment'; })[0];
+ok('a confirmed person citing an eliminated PARENT fails eliminated-containment', elimInv.ok === false);
+// ...while the existing children-links to ruled-out candidates (the audit trail) stay legal
+ok('audit-trail children links to eliminated candidates stay legal (current state passes)', DA.invariants(data, MEM, PERS, GOV, SUP).filter(function (i) { return i.name === 'eliminated-containment'; })[0].ok === true);
+
+/* 7. claim reconciliation (H7) — standing claims replayed against the attested baseline */
+ok('attestation carries per-person claims', base.claims && Object.keys(base.claims).length === Object.keys(data.people).length);
+const same = DA.reconcileClaims(base.claims, DA.claimsOf(data));
+ok('identical state reconciles clean', !same.established && same.failures.length === 0 && same.drift.length === 0);
+ok('a missing baseline establishes, never fails', DA.reconcileClaims(null, DA.claimsOf(data)).established === true);
+
+const promo = JSON.parse(JSON.stringify(data));
+const possId = Object.keys(promo.people).filter(function (id) { return promo.people[id].evidence === 'possible'; })[0];
+promo.people[possId].evidence = 'confirmed'; // tier rises, no new source
+const promoRec = DA.reconcileClaims(base.claims, DA.claimsOf(promo));
+ok('a tier promotion WITHOUT new evidence is a reconciliation FAILURE', promoRec.failures.length === 1 && promoRec.failures[0].indexOf(possId) === 0);
+
+promo.people[possId].sources = (promo.people[possId].sources || []).concat(['New primary record, located ' + new Date().getFullYear()]);
+const promoOk = DA.reconcileClaims(base.claims, DA.claimsOf(promo));
+ok('the same promotion WITH a new source is drift, not failure', promoOk.failures.length === 0 && promoOk.drift.some(function (s) { return s.indexOf(possId) === 0; }));
+
+const strip = JSON.parse(JSON.stringify(data));
+const confSrcId = Object.keys(strip.people).filter(function (id) { return strip.people[id].evidence === 'confirmed' && (strip.people[id].sources || []).length > 0; })[0];
+strip.people[confSrcId].sources = [];
+const stripRec = DA.reconcileClaims(base.claims, DA.claimsOf(strip));
+ok('removing sources from under a standing confirmed claim is a FAILURE', stripRec.failures.length === 1 && stripRec.failures[0].indexOf(confSrcId) === 0);
+
+const demote = JSON.parse(JSON.stringify(data));
+demote.people[confSrcId].evidence = 'possible';
+const demoteRec = DA.reconcileClaims(base.claims, DA.claimsOf(demote));
+ok('a demotion is drift, not failure (honesty may always lower a claim)', demoteRec.failures.length === 0 && demoteRec.drift.some(function (s) { return s.indexOf(confSrcId) === 0; }));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed.');
 process.exit(fail ? 1 : 0);
