@@ -176,6 +176,15 @@ CogniGate (`governance.js`) is not an agent holding a tier; it is the enforcemen
 This ladder is the industrializable form: the assurance column *is* the conformance
 checklist a future "BASIS 1.0" would version.
 
+**Now in code:** `ui_kits/living-line/basis.js` encodes this ladder — `permits(agentTier,
+requiredTier)` honors the nesting and treats T5 as the non-nested oversight branch
+(exact-match only), and `auditRoster()` reads the live `agents.js` registry and proves the
+invariants: every agent maps to a tier via the autonomy vocabulary (`advises→T1`,
+`proposes→T4`, `acts-bounded→T5`), none occupies T6/T7, and none exceeds the T5 ceiling.
+`basis.selftest.js` (26 assertions, in CI via `selftest:all`) is the conformance check, and
+a planted off-ladder agent is caught — so "the top tier is unoccupied" is provable, not
+asserted.
+
 **The five-layer per-action check, reconciled:**
 
 1. **CAR ID** — the acting agent resolves to an `agents.js` registry entry. *Built; sign it
@@ -330,7 +339,7 @@ The brief's ledger under-counts what is built. Honest re-grade:
 |---|---|---|---|
 | CogniGate hard-gates actions | buildable | **Provable / running** | `governance.js` + `keeper.js`, selftested |
 | CAR ID = scoped checkable identity | buildable | **Built (unsigned)** | `agents.js` registry + `selftest:agents` |
-| Tier-gated capability, self-consistent | provable within-system | **Built** | autonomy tiers + unoccupied top tier in code |
+| Tier-gated capability, self-consistent | provable within-system | **Built + checkable** | `basis.js` encodes the ladder; `basis.selftest.js` audits the live roster (T6/T7 unoccupied, T5 non-nested), CI-gated |
 | Multi-model consensus catches swap/echo | qualified | **Built (source-level), qualified on adaptive evasion** | `bloodhound.md`, `consensus.ts`, `require-model-consensus` |
 | Replayable provenance (PAG) | implied | **Qualified** until content-addressing/signing/snapshot land | agent-memory-service + attestation.json |
 | Behavioral model attestation | (API fallback) | **Built, qualified** | `attestation.json` fingerprints, weekly drift |

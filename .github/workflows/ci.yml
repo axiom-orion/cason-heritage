@@ -6,6 +6,17 @@ on:
   pull_request:
 
 jobs:
+  selftests:
+    name: Node selftests (governance · drift · BASIS · agents)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # No install: the selftests run the real living-line modules directly under Node.
+      - run: npm run selftest:all
+
   smoke:
     name: Playwright smoke
     runs-on: ubuntu-latest
