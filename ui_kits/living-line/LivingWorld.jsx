@@ -381,6 +381,16 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
     if (onSaved) onSaved();
   }
 
+  // route a corroborated finding to the in-app review queue (a keeper approves it under Governance)
+  function proposeConsensus(data) {
+    if (!data || !data.consensus || !(window.CASON_AUTH && window.CASON_AUTH.submitProposal)) return;
+    const c = data.consensus;
+    const ev = c.confidence === 'high' ? 'leading' : 'possible'; // model consensus caps at 'leading'
+    window.CASON_AUTH.submitProposal({ personId: personId, summary: c.answer, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', justification: data.question, origin: 'consensus' })
+      .then(function () { setMsgs(function (m) { return m.concat([{ role: 'persona', text: 'Proposed to the review queue — a keeper can approve it under Governance → Review queue.', mode: 'note' }]); }); })
+      .catch(function (e) { setMsgs(function (m) { return m.concat([{ role: 'persona', text: 'Could not propose: ' + (e && e.message || e), mode: 'error' }]); }); });
+  }
+
   function saveFinding() {
     if (!rdata || !rdata.consensus) return;
     const c = rdata.consensus;
@@ -422,6 +432,7 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
                   <div style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--deep-blue)', marginBottom: 4 }}>⚖ Cross-check · Grok · Gemini · Claude</div>
                   <ConsensusView data={m.data} />
                   {m.data.consensus && m.data.consensus.confidence !== 'low' && <button onClick={function () { saveConsensus(m.data); }} style={{ ...ctlBtn(false), marginTop: 6 }}>Save corroborated finding to {nm(personId).split(' ')[0]}</button>}
+                  {m.data.consensus && m.data.consensus.confidence !== 'low' && member && <button onClick={function () { proposeConsensus(m.data); }} title="Send this to the in-app review queue for a keeper to approve under the policy gate" style={{ ...ctlBtn(false), marginTop: 6, marginLeft: 6 }}>Propose for review</button>}
                 </div>
               );
             }
@@ -1317,6 +1328,118 @@ function AlmanacCard() {
     </GovCard>
   );
 }
+/* ---------- In-app approval queue — agent proposals decided at the policy gate ---------- */
+const PROP_TIERS = ['possible', 'leading', 'unsolved'];
+function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
+  const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
+  const GOV = window.CASON_GOVERNANCE, KIN = window.CASON_KINSHIP, SUP = window.CASON_SUPERSESSIONS;
+  proposals = proposals || [];
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [notes, setNotes] = useState({});
+  const [tiers, setTiers] = useState({});
+
+  const policy = useMemo(function () {
+    if (!GOV) return null;
+    const BANNED = /digswell|elizabeth alcott|church warden|virginia land company|steeple morden|stockholder/i;
+    return GOV.buildKeeperPolicy({ bannedPattern: BANNED, eliminatedPatterns: (KIN ? KIN.eliminatedKin() : []), supersededValues: (SUP ? SUP.values() : []), primaryThreshold: 1.0, consensusThreshold: 0.5 });
+  }, []);
+  function decisionFor(p, tier) {
+    if (!GOV || !policy) return null;
+    const action = { kind: p.kind || 'write_record', payload: { personId: p.person_id, evidence: tier || p.evidence, text: p.summary }, justification: p.justification || 'proposal', provenance: p.source ? [{ sourceId: 'src', snippet: p.source, score: /consensus|model/i.test(p.source) ? 0.5 : 0.8 }] : [] };
+    return GOV.evaluatePolicy(action, policy);
+  }
+  function approve(p) {
+    const tier = tiers[p.id] || (PROP_TIERS.indexOf(p.evidence) !== -1 ? p.evidence : 'possible');
+    const d = decisionFor(p, tier);
+    if (d && d.decision === 'block') { setMsg('The policy gate blocks this proposal — it cannot be approved into the record.'); return; }
+    setBusy(true); setMsg('');
+    const rec = { personId: p.person_id, text: p.summary, evidence: tier, source: (p.source || 'proposal') + ' · approved by ' + (member || 'a keeper'), when: Date.now() };
+    if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) { try { window.CASON_MEMORY.addUserMemory(rec); } catch (e) {} }
+    (window.CASON_AUTH.addContribution ? window.CASON_AUTH.addContribution(rec) : Promise.resolve())
+      .then(function () { return window.CASON_AUTH.decideProposal(p.id, 'approved', notes[p.id] || '', tier); })
+      .then(function () { reload && reload(); })
+      .catch(function (e) { setMsg('Could not approve: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+  function reject(p) {
+    setBusy(true); setMsg('');
+    window.CASON_AUTH.decideProposal(p.id, 'rejected', notes[p.id] || '')
+      .then(function () { reload && reload(); })
+      .catch(function (e) { setMsg('Could not reject: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+  function noteFor(id, v) { setNotes(function (n) { return Object.assign({}, n, { [id]: v }); }); }
+
+  const pending = proposals.filter(function (p) { return p.status === 'pending'; });
+  const decided = proposals.filter(function (p) { return p.status !== 'pending'; });
+  const inp = { fontFamily: 'var(--font-serif)', fontSize: 11.5, padding: '4px 8px', border: '1px solid rgba(139,69,19,0.25)', borderRadius: 7, background: '#fff', color: 'var(--ink)' };
+  const mini = function (bg, on) { return { fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, padding: '4px 10px', borderRadius: 7, border: 'none', color: '#fff', background: bg, cursor: (busy || !on) ? 'default' : 'pointer', opacity: (busy || !on) ? 0.45 : 1 }; };
+
+  return (
+    <GovCard cap={'Review queue — agent proposals, decided at the gate (' + pending.length + ' pending)'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Where the agents' findings come to be <strong>approved in the app</strong>, not on GitHub. Each proposal is run through the same typed policy gate the Keeper uses — <strong>allow / needs-approval / block</strong> — and a verified member promotes it into the record (a flagged, attributed contribution) or rejects it. <strong>The gate can refuse</strong>: a proposal that repeats a quarantined myth, revives a ruled-out ancestor, or over-claims a tier <em>cannot</em> be approved.
+      </div>
+      {!enabled && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>Connect the family backend to open the review queue.</div>}
+      {msg && <div style={{ fontSize: 11.5, color: /Could not|blocks/.test(msg) ? 'var(--blood)' : 'var(--sea-green)', marginBottom: 8 }}>{msg}</div>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {pending.map(function (p) {
+          const tier = tiers[p.id] || (PROP_TIERS.indexOf(p.evidence) !== -1 ? p.evidence : 'possible');
+          const d = decisionFor(p, tier);
+          const dc = d ? (GATE_COLOR[d.decision] || 'var(--faded)') : 'var(--faded)';
+          const blocked = d && d.decision === 'block';
+          return (
+            <div key={p.id} style={{ borderLeft: '3px solid ' + dc, paddingLeft: 10 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 3 }}>
+                {d && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, color: '#fff', background: dc }}>{d.decision.replace('_', ' ')}</span>}
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>{p.origin}</span>
+                {p.person_id && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{nm(p.person_id)}</span>}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5, margin: '3px 0' }}>{p.summary}</div>
+              {p.source && <div style={{ fontSize: 11.5, color: 'var(--faded)' }}><strong>Source:</strong> {p.source}</div>}
+              {d && d.violations && d.violations.length > 0 && (
+                <div style={{ fontSize: 11, color: 'var(--blood)', marginTop: 3 }}>
+                  {d.violations.map(function (v, i) { return <div key={i}>⛔ {v.rule}: {v.detail}</div>; })}
+                </div>
+              )}
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 2 }}>proposed by {p.submitter_name || 'a member'}{p.created_at ? ' · ' + new Date(p.created_at).toLocaleDateString() : ''}</div>
+              {verified && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)' }}>tier</span>
+                  <select value={tier} onChange={function (e) { const v = e.target.value; setTiers(function (t) { return Object.assign({}, t, { [p.id]: v }); }); }} style={inp}>
+                    {PROP_TIERS.map(function (t) { return <option key={t} value={t}>{t}</option>; })}
+                  </select>
+                  <input value={notes[p.id] || ''} onChange={function (e) { noteFor(p.id, e.target.value); }} placeholder="decision note…" style={Object.assign({}, inp, { width: 160 })} />
+                  <button onClick={function () { approve(p); }} disabled={busy || blocked} title={blocked ? 'The policy gate blocks this proposal' : 'Approve → promote into the record as a flagged contribution'} style={mini('var(--sea-green)', !blocked)}>Approve</button>
+                  <button onClick={function () { reject(p); }} disabled={busy} style={mini('var(--blood)', true)}>Reject</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {loaded && pending.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>No proposals awaiting review. Run the ⚖ All-3 cross-check on an open line, then “Propose for review”.</div>}
+      </div>
+
+      {decided.length > 0 && (
+        <div style={{ marginTop: 12, paddingTop: 9, borderTop: '1px dashed rgba(139,69,19,0.2)' }}>
+          <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 6 }}>Decided ({decided.length})</div>
+          {decided.slice(0, 6).map(function (p) {
+            return (
+              <div key={p.id} style={{ fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.45, marginBottom: 4 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, color: p.status === 'approved' ? 'var(--sea-green)' : 'var(--blood)', textTransform: 'uppercase' }}>{p.status}</span>
+                {p.final_evidence ? ' · ' + p.final_evidence : ''}{p.reviewer_name ? ' · ' + p.reviewer_name : ''} — {p.summary.length > 90 ? p.summary.slice(0, 90) + '…' : p.summary}
+                {p.decision_note ? <span style={{ fontStyle: 'italic', color: 'var(--faded)' }}> ({p.decision_note})</span> : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </GovCard>
+  );
+}
+
 function GovernancePanel({ personId, onSelect, member, verified }) {
   const audit = useMemo(function () {
     const people = DATA.people, ids = Object.keys(people);
@@ -1375,6 +1498,14 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
     window.CASON_AUTH.loadAppeals().then(function (rows) { setAppeals(rows || []); setAppealsLoaded(true); }).catch(function () { setAppealsLoaded(true); });
   }
   useEffect(function () { reloadAppeals(); }, []);
+  // the in-app approval queue
+  const [proposals, setProposals] = useState([]);
+  const [proposalsLoaded, setProposalsLoaded] = useState(false);
+  function reloadProposals() {
+    if (!(window.CASON_AUTH && window.CASON_AUTH.enabled)) { setProposalsLoaded(true); return; }
+    window.CASON_AUTH.loadProposals().then(function (rows) { setProposals(rows || []); setProposalsLoaded(true); }).catch(function () { setProposalsLoaded(true); });
+  }
+  useEffect(function () { reloadProposals(); }, []);
   return (
     <div style={{ maxWidth: 780 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Governance — the glass box</h2>
@@ -1385,6 +1516,7 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
       <CuratorCard />
 
       <AlmanacCard />
+      <ReviewQueueCard member={member} verified={verified} proposals={proposals} loaded={proposalsLoaded} reload={reloadProposals} />
 
       <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">
         <div style={{ marginBottom: audit.watch.flags.length ? 9 : 0 }}>
@@ -1470,6 +1602,240 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
           </div>
         </GovCard>
       ) : <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)' }}>Select a person to see their governance record.</div>}
+    </div>
+  );
+}
+
+/* ---------- Seasonal refresh — the homestead re-themes & re-features with the calendar ---------- */
+function SeasonCard({ onSelect, onResearch }) {
+  const s = useMemo(function () { return window.CASON_SEASON ? window.CASON_SEASON.current() : null; }, []);
+  if (!s) return null;
+  const pill = { fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fff', background: s.accent, padding: '3px 9px', borderRadius: 20 };
+  const link = { cursor: 'pointer', color: s.accent, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2 };
+  return (
+    <div style={{ margin: '14px 22px 0', border: '1px solid ' + s.accent + '33', borderLeft: '4px solid ' + s.accent, borderRadius: 11, background: 'linear-gradient(180deg, ' + s.accent + '0d, transparent)', padding: '13px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap', marginBottom: 6 }}>
+        <span style={{ fontSize: 18 }}>{s.emoji}</span>
+        <span style={pill}>{s.label} at the homestead</span>
+        <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--ink)' }}>{s.theme}</span>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 18px', fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.6 }}>
+        {s.featured && (
+          <div><strong>Featured this season:</strong>{' '}
+            <span style={link} onClick={function () { onSelect && onSelect(s.featured.id); }}>{s.featured.name}</span>
+            {s.featured.line ? <span style={{ color: 'var(--faded)' }}> — {s.featured.line}</span> : null}
+          </div>
+        )}
+        {s.question && (
+          <div><strong>The line is chasing:</strong>{' '}
+            <span style={link} onClick={function () { onResearch && onResearch(s.question.ownerId, s.question.text); }} title="Research this open line with the consensus models">{s.question.name}</span>
+            <span style={{ color: 'var(--faded)' }}> — {s.question.text.length > 120 ? s.question.text.slice(0, 120) + '…' : s.question.text}</span>
+          </div>
+        )}
+      </div>
+      {s.highlight && (
+        <div style={{ marginTop: 7, fontFamily: 'var(--font-serif)', fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55, borderTop: '1px dashed ' + s.accent + '33', paddingTop: 7 }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: s.accent }}>A record to remember{s.highlight.owner ? ' · ' + s.highlight.owner : ''}</span><br />
+          {s.highlight.text}
+        </div>
+      )}
+      <div style={{ marginTop: 8, display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'baseline', fontSize: 11, color: 'var(--faded)' }}>
+        <span>🔎 Where we’re digging: {s.archivalFocus}</span>
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'baseline' }}>
+          <span>{s.stats.people} people · {s.stats.sources} sources · {s.stats.openLines} open lines</span>
+          <code style={{ fontFamily: 'monospace', fontSize: 10.5, color: s.accent }}>{s.attest}</code>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- The Desk — the command center: uploads, file sorting, the queue, all in-app ---------- */
+const ART_KINDS = ['photo', 'document', 'letter', 'deed', 'census', 'will', 'map', 'other'];
+const ART_TIERS = ['confirmed', 'secondary', 'leading', 'possible'];
+function kindIcon(k) { return ({ photo: '🖼️', document: '📄', letter: '✉️', deed: '📜', census: '🗒️', will: '⚖️', map: '🗺️' })[k] || '📎'; }
+
+function UploadsCard({ artifacts, loaded, verified, member, onSelect, reload }) {
+  const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState('');
+  const [pid, setPid] = useState('');
+  const [kind, setKind] = useState('photo');
+  const [tier, setTier] = useState('possible');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [open, setOpen] = useState(false);
+  // sorting controls
+  const [fKind, setFKind] = useState('');
+  const [fPid, setFPid] = useState('');
+  const [fTier, setFTier] = useState('');
+  const [sortBy, setSortBy] = useState('new');
+  const [groupBy, setGroupBy] = useState('none');
+
+  const people = useMemo(function () { return Object.keys(DATA.people).map(function (id) { return { id: id, name: DATA.people[id].name }; }).sort(function (a, b) { return a.name.localeCompare(b.name); }); }, []);
+  const inp = { fontFamily: 'var(--font-serif)', fontSize: 12, padding: '5px 8px', border: '1px solid rgba(139,69,19,0.25)', borderRadius: 7, background: '#fff', color: 'var(--ink)' };
+  const lbl = { fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--faded)' };
+
+  function submit() {
+    if (!file) { setMsg('Choose a file first.'); return; }
+    setBusy(true); setMsg('Uploading…');
+    window.CASON_AUTH.uploadArtifact(file, { personId: pid || null, title: title || file.name, kind: kind, evidence: tier, note: note || null })
+      .then(function () { setMsg('Uploaded — sorted into the gallery.'); setFile(null); setTitle(''); setNote(''); setOpen(false); reload && reload(); })
+      .catch(function (e) { setMsg('Could not upload: ' + (e && e.message || e)); })
+      .then(function () { setBusy(false); });
+  }
+
+  let list = (artifacts || []).slice();
+  if (fKind) list = list.filter(function (a) { return (a.kind || 'document') === fKind; });
+  if (fPid) list = list.filter(function (a) { return a.person_id === fPid; });
+  if (fTier) list = list.filter(function (a) { return (a.evidence || 'possible') === fTier; });
+  const sorters = {
+    new: function (a, b) { return new Date(b.created_at || 0) - new Date(a.created_at || 0); },
+    old: function (a, b) { return new Date(a.created_at || 0) - new Date(b.created_at || 0); },
+    person: function (a, b) { return nm(a.person_id || 'zz').localeCompare(nm(b.person_id || 'zz')); },
+    kind: function (a, b) { return (a.kind || '').localeCompare(b.kind || ''); },
+    tier: function (a, b) { return ART_TIERS.indexOf(a.evidence) - ART_TIERS.indexOf(b.evidence); },
+  };
+  list.sort(sorters[sortBy] || sorters.new);
+  let groups;
+  if (groupBy === 'none') groups = [{ key: '', items: list }];
+  else {
+    const m = {};
+    list.forEach(function (a) { const k = groupBy === 'person' ? (a.person_id ? nm(a.person_id) : '— unattached') : groupBy === 'kind' ? (a.kind || 'document') : (a.evidence || 'possible'); (m[k] = m[k] || []).push(a); });
+    groups = Object.keys(m).sort().map(function (k) { return { key: k, items: m[k] }; });
+  }
+  const sel = { fontFamily: 'var(--font-sans)', fontSize: 11, padding: '3px 6px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.22)', background: '#fff', color: 'var(--ink)' };
+
+  return (
+    <GovCard cap={'Uploads & evidence — your files, sorted (' + (artifacts || []).length + ')'}>
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 10 }}>
+        Photos, letters, deeds, census pages, wills — uploaded here and <strong>attached to a person and a tier</strong>, then filtered, sorted and grouped. A real document is real provenance: it can back a proposal and lift it past what a model alone could claim.
+      </div>
+
+      {enabled && verified ? (
+        <div style={{ marginBottom: 12 }}>
+          {!open && <button onClick={function () { setOpen(true); setMsg(''); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--deep-blue)', background: 'var(--deep-blue)', color: '#fff', cursor: 'pointer' }}>＋ Upload a file</button>}
+          {open && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end', background: '#fff', border: '1px solid rgba(139,69,19,0.2)', borderRadius: 9, padding: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span style={lbl}>file</span><input type="file" onChange={function (e) { setFile(e.target.files && e.target.files[0]); }} style={{ fontSize: 11 }} /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span style={lbl}>title</span><input value={title} onChange={function (e) { setTitle(e.target.value); }} placeholder="what is it?" style={inp} /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span style={lbl}>person</span>
+                <select value={pid} onChange={function (e) { setPid(e.target.value); }} style={inp}><option value="">— unattached</option>{people.map(function (p) { return <option key={p.id} value={p.id}>{p.name}</option>; })}</select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span style={lbl}>kind</span>
+                <select value={kind} onChange={function (e) { setKind(e.target.value); }} style={inp}>{ART_KINDS.map(function (k) { return <option key={k} value={k}>{k}</option>; })}</select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span style={lbl}>tier</span>
+                <select value={tier} onChange={function (e) { setTier(e.target.value); }} style={inp}>{ART_TIERS.map(function (t) { return <option key={t} value={t}>{t}</option>; })}</select>
+              </div>
+              <button onClick={submit} disabled={busy} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--sea-green)', color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1 }}>Upload</button>
+              <button onClick={function () { setOpen(false); setMsg(''); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 12, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(139,69,19,0.25)', background: 'transparent', color: 'var(--faded)', cursor: 'pointer' }}>Cancel</button>
+            </div>
+          )}
+        </div>
+      ) : <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12, marginBottom: 12 }}>{enabled ? 'Verified family members can upload evidence — sign in (Narrator → family email).' : 'Connect the family backend to upload evidence.'}</div>}
+
+      {msg && <div style={{ fontSize: 11.5, color: /Could not|first/.test(msg) ? 'var(--blood)' : 'var(--sea-green)', marginBottom: 8 }}>{msg}</div>}
+
+      {/* sorting controls */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', marginBottom: 10, fontSize: 11, color: 'var(--faded)' }}>
+        <span style={lbl}>sort</span>
+        <select value={fKind} onChange={function (e) { setFKind(e.target.value); }} style={sel}><option value="">all kinds</option>{ART_KINDS.map(function (k) { return <option key={k} value={k}>{k}</option>; })}</select>
+        <select value={fTier} onChange={function (e) { setFTier(e.target.value); }} style={sel}><option value="">all tiers</option>{ART_TIERS.map(function (t) { return <option key={t} value={t}>{t}</option>; })}</select>
+        <select value={fPid} onChange={function (e) { setFPid(e.target.value); }} style={sel}><option value="">all people</option>{people.map(function (p) { return <option key={p.id} value={p.id}>{p.name}</option>; })}</select>
+        <select value={sortBy} onChange={function (e) { setSortBy(e.target.value); }} style={sel}><option value="new">newest</option><option value="old">oldest</option><option value="person">by person</option><option value="kind">by kind</option><option value="tier">by tier</option></select>
+        <select value={groupBy} onChange={function (e) { setGroupBy(e.target.value); }} style={sel}><option value="none">no grouping</option><option value="person">group: person</option><option value="kind">group: kind</option><option value="tier">group: tier</option></select>
+        <span style={{ marginLeft: 'auto' }}>{list.length} shown</span>
+      </div>
+
+      {groups.map(function (g) {
+        return (
+          <div key={g.key || 'all'} style={{ marginBottom: g.key ? 10 : 0 }}>
+            {g.key && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 700, color: 'var(--rust)', margin: '4px 0' }}>{g.key} · {g.items.length}</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {g.items.map(function (a) {
+                return (
+                  <div key={a.id} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '5px 8px', background: '#fff', border: '1px solid rgba(139,69,19,0.14)', borderRadius: 8 }}>
+                    <span style={{ fontSize: 16 }}>{kindIcon(a.kind)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {a.url ? <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>{a.title || a.kind}</a> : (a.title || a.kind)}
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--faded)' }}>
+                        {a.person_id ? <span onClick={function () { onSelect && onSelect(a.person_id); }} style={{ cursor: 'pointer', color: 'var(--deep-blue)' }}>{nm(a.person_id)}</span> : 'unattached'}
+                        {' · ' + (a.kind || 'document')}{a.author_name ? ' · ' + a.author_name : ''}{a.created_at ? ' · ' + new Date(a.created_at).toLocaleDateString() : ''}
+                      </div>
+                    </div>
+                    <GovBadge t={a.evidence || 'possible'} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {loaded && list.length === 0 && <div style={{ fontStyle: 'italic', color: 'var(--faded)', fontSize: 12 }}>{(artifacts || []).length ? 'No files match these filters.' : 'No evidence uploaded yet.'}</div>}
+    </GovCard>
+  );
+}
+
+function DeskView({ verified, member, onSelect, onResearch, onGoto }) {
+  const enabled = !!(window.CASON_AUTH && window.CASON_AUTH.enabled);
+  const [proposals, setProposals] = useState([]);
+  const [pLoaded, setPLoaded] = useState(false);
+  const [appeals, setAppeals] = useState([]);
+  const [artifacts, setArtifacts] = useState([]);
+  const [aLoaded, setALoaded] = useState(false);
+  function reloadProposals() { if (!enabled) { setPLoaded(true); return; } window.CASON_AUTH.loadProposals().then(function (r) { setProposals(r || []); setPLoaded(true); }).catch(function () { setPLoaded(true); }); }
+  function reloadArtifacts() { if (!enabled) { setALoaded(true); return; } window.CASON_AUTH.loadArtifacts().then(function (r) { setArtifacts(r || []); setALoaded(true); }).catch(function () { setALoaded(true); }); }
+  function reloadAppeals() { if (!enabled) return; window.CASON_AUTH.loadAppeals().then(function (r) { setAppeals(r || []); }).catch(function () {}); }
+  useEffect(function () { reloadProposals(); reloadArtifacts(); reloadAppeals(); }, []);
+
+  const openLines = useMemo(function () { return (MEM.nodes || []).filter(function (n) { return n.kind === 'gap'; }); }, []);
+  const pending = proposals.filter(function (p) { return p.status === 'pending'; });
+  const openAppeals = appeals.filter(function (a) { return a.status === 'under_review'; });
+  const topLines = useMemo(function () {
+    return openLines.slice().sort(function (a, b) { return (b.evidence === 'possible' ? 1 : 0) - (a.evidence === 'possible' ? 1 : 0); }).slice(0, 5);
+  }, [openLines.length]);
+
+  function Chip(p) {
+    return (
+      <div onClick={p.onClick} style={{ cursor: p.onClick ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 7, background: 'var(--cream,#faf6f0)', border: '1px solid rgba(139,69,19,0.16)', borderRadius: 10, padding: '8px 13px' }}>
+        <span style={{ fontSize: 17 }}>{p.icon}</span>
+        <div><div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: p.color, lineHeight: 1 }}>{p.n}</div><div style={{ fontSize: 10.5, color: 'var(--faded)' }}>{p.label}</div></div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: '20px 24px 60px', maxWidth: 840 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 21, color: 'var(--ink)', marginBottom: 3 }}>Your desk</h2>
+      <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 16, maxWidth: 640 }}>Everything in one place — the agents bring their findings here, you upload and sort the evidence, and you decide. No need to leave the page.</p>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 18 }}>
+        {Chip({ icon: '🗳️', n: pending.length, label: 'proposals to review', color: 'var(--gold-bright,#c8941f)' })}
+        {Chip({ icon: '📎', n: (artifacts || []).length, label: 'evidence files', color: 'var(--sea-green)' })}
+        {Chip({ icon: '🔎', n: openLines.length, label: 'open lines', color: 'var(--rust)' })}
+        {Chip({ icon: '⚖️', n: openAppeals.length, label: 'appeals to rule', color: 'var(--deep-blue)', onClick: function () { onGoto && onGoto('gov'); } })}
+      </div>
+
+      <UploadsCard artifacts={artifacts} loaded={aLoaded} verified={verified} member={member} onSelect={onSelect} reload={reloadArtifacts} />
+
+      <ReviewQueueCard member={member} verified={verified} proposals={proposals} loaded={pLoaded} reload={reloadProposals} />
+
+      <GovCard cap="Open lines — research one, then propose it">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {topLines.map(function (n, i) {
+            return (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <button onClick={function () { onResearch && onResearch(n.ownerId, n.text); }} style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, fontWeight: 600, padding: '3px 9px', borderRadius: 7, border: '1px solid var(--rust)', background: 'transparent', color: 'var(--rust)', cursor: 'pointer', whiteSpace: 'nowrap' }}>Research</button>
+                <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.45 }}><strong>{nm(n.ownerId)}</strong> — {n.text.length > 120 ? n.text.slice(0, 120) + '…' : n.text}</div>
+              </div>
+            );
+          })}
+        </div>
+      </GovCard>
     </div>
   );
 }
@@ -1600,7 +1966,7 @@ function LivingWorld() {
         right={
           <div style={{ display: 'flex', gap: narrow ? 4 : 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <button onClick={function () { setShowRole(function (v) { return !v; }); }} style={tabBtn(isMember)} title="Your role">{isMember ? '✦ ' + String(role.name || 'Member').split(' ')[0] : 'Narrator'}</button>
-            {[['homestead', narrow ? 'Home' : 'Homestead'], ['day', narrow ? 'Day' : 'A Day Here'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth'], ['arc', narrow ? 'Arc' : 'The Long Move'], ['gov', narrow ? 'Gov' : 'Governance']].map(function (v) {
+            {[['homestead', narrow ? 'Home' : 'Homestead'], ['desk', 'Desk'], ['day', narrow ? 'Day' : 'A Day Here'], ['people', 'People'], ['lines', narrow ? 'Lines' : 'Open lines'], ['hearth', narrow ? 'Hearth' : 'Memory Hearth'], ['arc', narrow ? 'Arc' : 'The Long Move'], ['gov', narrow ? 'Gov' : 'Governance']].map(function (v) {
               return <button key={v[0]} onClick={function () { setView(v[0]); }} style={tabBtn(view === v[0])}>{v[1]}</button>;
             })}
             {!narrow && <a href="/dashboard" style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--gold-bright)', textDecoration: 'none', marginLeft: 4 }}>↗ tree</a>}
@@ -1683,6 +2049,10 @@ function LivingWorld() {
             </div>
           )}
 
+          {view === 'desk' && (
+            <DeskView verified={!!role.verified} member={isMember ? role.name : null} onSelect={selectPerson} onResearch={researchLine} onGoto={setView} />
+          )}
+
           {view === 'lines' && (
             <div style={{ padding: '20px 24px 60px', maxWidth: 720 }}>
               <OpenLines onSelect={selectPerson} onResearch={researchLine} />
@@ -1700,6 +2070,7 @@ function LivingWorld() {
 
           {view === 'homestead' && (
             <div>
+              <SeasonCard onSelect={selectPerson} onResearch={researchLine} />
               {threeD && (
                 <div style={{ padding: '14px 22px 0' }}>
                   <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>

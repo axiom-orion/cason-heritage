@@ -394,4 +394,26 @@ function dossier(runs, memNote) {
   console.log('\nWrote ' + path.relative(ROOT, file) + ' + ' + path.relative(ROOT, traceFile) +
     ' — ' + d.graphResolved + ' graph-resolved, ' + d.corroborated + ' lead(s), ' + d.caught + ' caught; gate ' +
     d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block); memory ' + memNote + '.');
+
+  await postToQueue(runs);
 })().catch(function (e) { console.error('Keeper failed:', e); process.exit(1); });
+
+// Push the needs-approval leads straight into the in-app review queue (/api/propose),
+// so they show up on the Desk for approval without a GitHub round-trip. Env-gated:
+// if KEEPER_PROPOSE_URL + KEEPER_INGEST_TOKEN aren't set, the dossier/PR path stands alone.
+async function postToQueue(runs) {
+  const url = process.env.KEEPER_PROPOSE_URL, token = process.env.KEEPER_INGEST_TOKEN;
+  if (!url || !token) return;
+  const proposals = runs.filter(function (r) {
+    return r.action && r.action.kind === 'write_record' && r.decision && r.decision.decision === 'needs_approval';
+  }).map(function (r) {
+    return { personId: r.q.ownerId, summary: r.action.payload.text, evidence: r.action.payload.evidence,
+      source: 'AI consensus (Grok · Gemini · Claude) — Keeper ' + today(), justification: clip(r.gate.verdict, 400), origin: 'keeper' };
+  });
+  if (!proposals.length) { console.log('No needs-approval leads to push to the in-app queue.'); return; }
+  try {
+    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify({ proposals: proposals }) });
+    const j = await r.json().catch(function () { return {}; });
+    console.log(r.ok ? ('Pushed ' + (j.inserted || proposals.length) + ' lead(s) to the in-app review queue.') : ('In-app push failed (' + r.status + '): ' + (j.error || '')));
+  } catch (e) { console.log('In-app push error: ' + (e && e.message || e)); }
+}

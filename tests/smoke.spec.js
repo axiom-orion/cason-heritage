@@ -21,6 +21,8 @@ test('The Living World renders, navigates all views, zero console errors', async
   await expect(page.getByText('The Living Line', { exact: false }).first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText('Watch them live')).toBeVisible();
   await expect(page.getByText(/At this homestead/)).toBeVisible();
+  // the seasonal refresh re-themes the homestead and features a persona/open line
+  await expect(page.getByText(/Featured this season/)).toBeVisible();
 
   // A persona is selected by default; its memory tiers should render.
   await expect(page.getByText(/Knows generations/).first()).toBeVisible();
@@ -187,7 +189,20 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText(/Seasonal —/)).toBeVisible();                    // the Curator's live, date-aware suggestions
   await expect(page.getByText(/The Almanac — on this day/)).toBeVisible();      // the family calendar, honoring the line
   await expect(page.getByText(/The dates we honor/)).toBeVisible();            // the main-line birthdays & passings roster
+  await expect(page.getByText(/Review queue — agent proposals/)).toBeVisible(); // the in-app approval queue
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The Desk command center renders uploads, sorting, and the queue', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living');
+  await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
+  await page.getByRole('button', { name: 'Desk' }).click();
+  await expect(page.getByRole('heading', { name: 'Your desk' })).toBeVisible();
+  await expect(page.getByText(/Uploads & evidence/)).toBeVisible();             // in-app uploads + file sorting
+  await expect(page.getByText(/Review queue — agent proposals/)).toBeVisible(); // the in-app approval queue, on the Desk
+  await expect(page.getByText(/Open lines — research one/)).toBeVisible();      // the research strip
+  expect(errors, 'errors on the Desk:\n' + errors.join('\n')).toEqual([]);
 });
 
 test('The Proof page loads with zero console errors', async ({ page }) => {

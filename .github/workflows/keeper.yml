@@ -50,6 +50,10 @@ jobs:
         if: steps.guard.outputs.open == '0'
         env:
           KEEPER_CONSENSUS_URL: ${{ vars.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus' }}
+          # Optional: push needs-approval leads straight into the in-app review queue (the Desk).
+          # Set repo variable KEEPER_PROPOSE_URL (e.g. https://flcason.com/api/propose) and secret KEEPER_INGEST_TOKEN.
+          KEEPER_PROPOSE_URL: ${{ vars.KEEPER_PROPOSE_URL }}
+          KEEPER_INGEST_TOKEN: ${{ secrets.KEEPER_INGEST_TOKEN }}
         run: node scripts/keeper.js --max "${{ github.event.inputs.max || '3' }}"
 
       - name: Open a proposal PR

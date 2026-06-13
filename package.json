@@ -9,6 +9,7 @@
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "keeper": "node scripts/keeper.js",
+    "season": "node scripts/season-report.js",
     "drift-audit": "node scripts/drift-audit.js",
     "selftest": "node ui_kits/living-line/selftest.js",
     "selftest:kinship": "node ui_kits/living-line/kinship.selftest.js",

@@ -160,6 +160,27 @@ which already holds the API keys server-side — so the Action needs **no secret
 only the automatic `GITHUB_TOKEN` to open the PR. To point it elsewhere, set a
 repository variable `KEEPER_CONSENSUS_URL`.
 
+### Straight into the in-app review queue (no GitHub round-trip)
+
+The Keeper can push its **needs-approval** leads directly into the app's
+**Desk → Review queue** (the `cason_proposals` table) so a keeper approves them
+in-app — no dossier PR needed. It posts to the `api/propose.js` ingest endpoint,
+which inserts with the Supabase **service-role** key (server-side only, never the
+browser) and a shared bearer token. The in-app queue still re-runs the **full
+policy gate** on every item, so nothing can be approved that violates policy.
+
+To turn it on:
+
+1. In **Vercel** env: `SUPABASE_SERVICE_ROLE_KEY` (the project's service-role key)
+   and `KEEPER_INGEST_TOKEN` (any long random string you choose).
+2. In **GitHub** repo settings: variable `KEEPER_PROPOSE_URL` =
+   `https://flcason.com/api/propose`, and secret `KEEPER_INGEST_TOKEN` = the
+   same string.
+
+Leave them unset and the Keeper just writes the dossier/PR as before — the push
+is purely additive. Members also feed the same queue from the app: run the
+**⚖ All-3** cross-check on an open line, then **Propose for review**.
+
 ## Approving a dossier
 
 1. Open the Keeper PR; read each question's verdict and the corroborated points.
@@ -171,8 +192,18 @@ repository variable `KEEPER_CONSENSUS_URL`.
    reject. Either way the thread is documented; the next run won't re-pile while
    one is open.
 
-## Seasonal refresh (next)
+## Seasonal refresh
 
-The same pipeline, run quarterly, also powers content freshness: a "new to the
-record this season" digest, a featured-persona rotation, and a re-attestation of
-the `gov:<digest>` integrity stamp. That builds on this orchestrator.
+Content freshness, two layers — both deterministic, no tokens:
+
+- **Live (client-side):** `ui_kits/living-line/season.js` re-themes the homestead
+  with the real calendar season and rotates what it features — a persona, a
+  documented fact to remember, the open line the family is chasing, and where the
+  digging goes this season. It is derived from the record and seeded by
+  year+season, so it is stable within a load and **never invents a fact**; living
+  descendants are excluded from the public feature. The page changes with the
+  season on its own — no run required.
+- **Quarterly digest (`.github/workflows/season.yml`):** captures that rotation as
+  a durable note in the record and re-attests the `gov:<digest>` integrity stamp,
+  opening a PR (1st of Jan/Apr/Jul/Oct, or manual). `npm run season` runs it
+  locally. It only summarizes what is already documented.

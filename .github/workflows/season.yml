@@ -1,0 +1,65 @@
+name: Seasonal refresh
+
+# Quarterly content-freshness pass. The live page already re-themes and
+# re-features with the season on its own (deterministic, client-side); this
+# job captures the season's rotation as a durable digest in the record and
+# re-attests the integrity stamp. It spends NO tokens — it only summarizes
+# what is already documented. Propose, never publish: merge the PR to keep
+# the seasonal note, close it to discard.
+
+on:
+  schedule:
+    - cron: '0 14 1 1,4,7,10 *'   # 1st of Jan / Apr / Jul / Oct — once a season
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: season
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    name: Write the seasonal digest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Skip if a seasonal PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search 'Seasonal refresh in:title' --json number --jq 'length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then echo "A seasonal PR is already open — skipping."; fi
+
+      - name: Generate the digest
+        if: steps.guard.outputs.open == '0'
+        run: node scripts/season-report.js
+
+      - name: Open a seasonal PR
+        if: steps.guard.outputs.open == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain research/proposals)" ]; then
+            echo "No new digest — nothing to propose."; exit 0
+          fi
+          iso=$(date -u +%Y-%m-%d)
+          branch="season/refresh-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/proposals
+          git commit -m "Seasonal refresh digest $iso"
+          git push -u origin "$branch"
+          gh pr create \
+            --title "Seasonal refresh — $iso" \
+            --body $'Quarterly content-freshness digest. The live homestead already re-themes and re-features with the season; this captures that rotation for the record and re-attests the `gov:<digest>` integrity stamp.\n\n**It invents nothing** — it re-features what is already documented, and excludes living descendants. Merge to keep the seasonal note, or close to discard.\n\nSee `research/KEEPER.md`.' \
+            --base main --head "$branch"
