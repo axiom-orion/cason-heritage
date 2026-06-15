@@ -54,7 +54,9 @@ Each row: the aspirational agent, the module that **is** it today, and its hones
 > door that runs every contribution through the same gate; **Narrative Journey** `journey.js`;
 > **Reflection & Self-Improvement** `reflection.js`; and the **Curator** (editor-in-residence)
 > `curator.js` — which learns from the record + the calendar and proposes edits, seasonal
-> features, and additions, surfaced live in the Governance view. **Recovery & Resilience** is honestly marked
+> features, and additions; and the **Almanac** (keeper of days) `almanac.js` — a full family
+> calendar compiled from the record (structured years + dates extracted from the narratives) that
+> honors the main line on this day. Both are surfaced live in the Governance view. **Recovery & Resilience** is honestly marked
 > *cross-cutting* (graceful degradation realized across modules, not one file). The roster is
 > visible in the living-line **Governance** view.
 

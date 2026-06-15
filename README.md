@@ -27,7 +27,7 @@ disproves, and shows its work.
 
 ## The agent system
 
-Twelve agents across four layers, each a **real, no-build module** — governed, traced,
+Thirteen agents across four layers, each a **real, no-build module** — governed, traced,
 self-tested, and self-described in a registry (`ui_kits/living-line/agents.js`). Every
 agent's *system* (how it works) and *ability* is machine-checkable: `npm run
 selftest:agents` asserts that each `live` agent names a module that exists on disk.
@@ -36,6 +36,7 @@ selftest:agents` asserts that each `live` agent names a module that exists on di
 |---|---|---|
 | Foundation | **Memory Graph Steward** | Tri-layer graph from `data.js` + a temporal-horizon access filter; optional durable cross-run memory → `accessibleSubgraph`, provenance/tiers, supersession-aware recall. |
 | Foundation | **Ingestion & Provenance** (+ Gatekeeper) | The governed front door: entity-link → honest tier cap → privacy tier → the **same gate** → route (refuse / human-queue). A contribution can't re-introduce a disproven myth. |
+| Foundation | **Almanac** (keeper of days) | Compiles a full family calendar from the record — structured years + dates extracted from the narratives — to **honor the main line on this day**; precision flagged, public-only. |
 | Specialist | **Persona Agents** (Becky + the line) | Era-grounded voices fed only horizon-accessible facts → in-character dialogue that won't claim the future or invent kin. |
 | Specialist | **Evidence & Proof Auditor** | Deterministic kinship resolution + evidence tiering → `<relation> of <person>`, eliminated-kin detection, gap-finding. Corroboration counts independent **sources**, not voices. |
 | Specialist | **External Research & Validation** | Claude + Grok + Gemini in parallel, ≥2 = corroborated → multi-model corroboration, same-source echo collapse. |
