@@ -37,6 +37,7 @@ const server = http.createServer(function (req, res) {
     const url = req.url.split('?')[0];
     if (req.method === 'POST' && url === '/recall') return send(200, { records: store }); // public
     if (req.method === 'GET' && url === '/stats') return send(200, { active: 1, superseded: 1 });
+    if (req.method === 'GET' && url === '/pag/verify') return send(200, { ok: true, length: 7, head: 'a1b2c3', signed: false, actor: { agent_id: 'memory-service', attestation_level: 'config-hash' } }); // public PAG integrity
     if (req.method === 'POST' && (url === '/ingest' || url === '/consolidate')) {
       if (!authed(req)) return send(401, { detail: 'missing bearer token' });
       if (url === '/ingest') { lastIngest = j.records; return send(200, { ingested: (j.records || []).length }); }
@@ -77,11 +78,22 @@ server.listen(0, async function () {
   ok('consolidate() succeeds (Bearer)', (await MEM.consolidate(20600)) === true);
   ok('stats() returns active/superseded counts', (await MEM.stats()).superseded === 1);
 
-  // 4. bad URL -> graceful (no throw, empty/false)
+  // 3b. PAG integrity — the provenance chain behind the durable memory (public)
+  const pag = await MEM.pagVerify();
+  ok('pagVerify() reads the provenance-chain integrity report', !!pag && pag.ok === true && pag.length === 7);
+  ok('pagVerify() surfaces the attested actor + signed flag', !!pag && pag.actor.attestation_level === 'config-hash' && pag.signed === false);
+
+  // 4. bad URL -> graceful (no throw, empty/false/null)
   process.env.KEEPER_MEMORY_URL = 'http://127.0.0.1:1'; // nothing listening
   MEM = load();
   ok('recall() to a dead endpoint no-ops to [] (graceful)', (await MEM.recall('x')).length === 0);
   ok('ingest() to a dead endpoint no-ops to false (graceful)', (await MEM.ingest(recIn)) === false);
+  ok('pagVerify() to a dead endpoint no-ops to null (graceful)', (await MEM.pagVerify()) === null);
+
+  // 5. unset URL -> pagVerify no-ops to null too
+  delete process.env.KEEPER_MEMORY_URL;
+  MEM = load();
+  ok('pagVerify() returns null when unconfigured (never throws)', (await MEM.pagVerify()) === null);
 
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed.');

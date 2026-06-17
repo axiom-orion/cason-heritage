@@ -34,6 +34,16 @@ re-run here on a cadence so a slow regression can't hide:
   `confirmed`/`secondary` claim — either is a regression. Demotions, additions,
   and *evidenced* promotions are ordinary drift: honesty may always lower a claim
   for free, but strengthening one always costs new evidence.
+- `provenance-replay` — the H7 standing-claim replay (Stage 2, VORION-GOVERNANCE §5/§10):
+  for every **standing** claim (any fact-bearing tier — not the quarantined/open
+  `disproven`/`eliminated`/`unsolved`), the source citations it was committed on are
+  replayed against the *current* evidence state. Where `claim-reconciliation` compares
+  source **counts** across runs, this replays the **chain itself** and catches evidence
+  that has turned under a claim the count check can't see: a citation now marked
+  **retracted/withdrawn** (the string stays, the count holds), or a citation the
+  supersession ledger has since **disproven** (`supersessions.js`). Either is a regression
+  → the auditor exits non-zero and opens a drift PR; it never touches `data.js`. *Benchmark
+  (§10 Stage 2): a retracted source trips a drift PR* — proven in `selftest:drift`.
 
 ## Invariant failure vs. drift — two different things
 

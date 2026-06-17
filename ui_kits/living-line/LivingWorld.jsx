@@ -1306,6 +1306,28 @@ function CuratorCard() {
     </GovCard>
   );
 }
+/* ---------- The Almanac — on this day, honoring the line ---------- */
+function AlmanacCard() {
+  const A = window.CASON_ALMANAC, DATA = window.CASON_DATA;
+  if (!A) return null;
+  const ev = A.build({ data: DATA });
+  const now = new Date();
+  const h = A.honor(ev, now), st = A.stats(ev), roster = A.mainLineDates(ev);
+  const fmt = function (e) { return e.precision === 'day' ? (A.MONTH_NAMES[e.month] + ' ' + e.day + ', ' + e.year) : ('' + e.year + ' (year only)'); };
+  const ul = { margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55 };
+  return (
+    <GovCard cap="The Almanac — on this day, honoring the line">
+      <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 8 }}>
+        A calendar built from the record — <strong>{st.mainLine}</strong> main-line birthdays &amp; passings and <strong>{st.dayPrecise}</strong> exact-dated events in all. Year-only dates are marked as such; nothing is invented.
+      </div>
+      {h.today.length ? <div>{agentSub('Today — ' + h.month + ' ' + now.getDate())}<ul style={ul}>{h.today.map(function (e, i) { return <li key={i}><strong>{e.name}</strong> — {e.kind} · {fmt(e)}</li>; })}</ul></div>
+        : <div style={{ fontSize: 12.5, color: 'var(--faded)', fontStyle: 'italic' }}>No recorded anniversary falls on today ({h.month} {now.getDate()}).</div>}
+      {h.thisMonth.length ? <div>{agentSub('This month on the line')}<ul style={ul}>{h.thisMonth.slice(0, 8).map(function (e, i) { return <li key={i}>{A.MONTH_NAMES[e.month]} {e.day} — <strong>{e.name}</strong> {e.kind} ({e.year})</li>; })}</ul></div> : null}
+      {agentSub('The dates we honor (main line)')}
+      <ul style={ul}>{roster.slice(0, 10).map(function (e, i) { return <li key={i}>{e.name} — {e.kind} {fmt(e)}</li>; })}</ul>
+    </GovCard>
+  );
+}
 /* ---------- In-app approval queue — agent proposals decided at the policy gate ---------- */
 const PROP_TIERS = ['possible', 'leading', 'unsolved'];
 function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
@@ -1493,6 +1515,7 @@ function GovernancePanel({ personId, onSelect, member, verified }) {
 
       <CuratorCard />
 
+      <AlmanacCard />
       <ReviewQueueCard member={member} verified={verified} proposals={proposals} loaded={proposalsLoaded} reload={reloadProposals} />
 
       <GovCard cap="Needs your eye — soft signals (won't fail the build, but worth watching)">

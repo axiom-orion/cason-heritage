@@ -19,7 +19,8 @@
     "selftest:drift": "node scripts/drift-audit.selftest.js",
     "selftest:agents": "node scripts/agents.selftest.js",
     "selftest:basis": "node ui_kits/living-line/basis.selftest.js",
-    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis"
+    "selftest:gate-contract": "node ui_kits/living-line/gate-contract.selftest.js",
+    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis && npm run selftest:gate-contract"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
