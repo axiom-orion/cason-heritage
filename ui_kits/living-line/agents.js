@@ -47,6 +47,13 @@
       hooks: ['the gate (myth / eliminated-kin / superseded / overclaim)', 'living-private → authenticated-descendant tier'],
     },
     {
+      id: 'almanac', name: 'Almanac (keeper of days)', layer: 'foundation', status: 'live', autonomy: 'advises',
+      modules: ['ui_kits/living-line/almanac.js'],
+      system: 'Compiles a full family calendar from the record — structured born/died years (year precision) plus the specific dates written into narratives ("7 July 1635", "12 Nov 1853"; day precision), classified born/died/married/land/military/estate. Every event carries its precision.',
+      abilities: ['honor the main line on this day / this month', 'the roster of dates to honor', 'on-this-day / in-month lookup', 'other dates of note'],
+      hooks: ['public-only (living-private dates excluded)', 'precision flagged — a year-only anniversary is never shown as an exact date'],
+    },
+    {
       id: 'personas', name: 'Persona Agents (Becky + the line)', layer: 'specialist', status: 'live', autonomy: 'acts-bounded',
       modules: ['ui_kits/living-line/personas.js', 'api/persona.js'],
       system: 'Era-grounded archetype voices reconstructed from data.js, fed ONLY horizon-accessible facts; a live Claude voice when configured, a deterministic templated voice otherwise.',

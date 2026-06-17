@@ -1,0 +1,23 @@
+{
+  "$comment": "The canonical policy-gate + TraceEvent contract, owned by governed-agents (lib/governance.ts, lib/trace-events.ts). cason-heritage runs a faithful, dependency-free port in ui_kits/living-line/governance.js; gate-contract.selftest.js verifies that port against THIS fixture so 'faithful' is checked, not hoped. The RULES differ by domain and are not part of the contract — only the decision algebra, the severity model, and the trace wire format are.",
+  "source": "axiom-orion/governed-agents @ lib/governance.ts + lib/trace-events.ts",
+  "decisions": ["allow", "needs_approval", "block"],
+  "severities": ["block", "review"],
+  "defaultSeverity": "block",
+  "precedence": "a block-severity violation wins; else a review-severity violation routes to needs_approval; else allow",
+  "decisionAlgebra": [
+    { "name": "no violations -> allow", "severities": [], "decision": "allow" },
+    { "name": "one review violation -> needs_approval", "severities": ["review"], "decision": "needs_approval" },
+    { "name": "one block violation -> block", "severities": ["block"], "decision": "block" },
+    { "name": "block beats review", "severities": ["review", "block"], "decision": "block" },
+    { "name": "order does not matter (block beats review)", "severities": ["block", "review"], "decision": "block" },
+    { "name": "many reviews still only need approval", "severities": ["review", "review"], "decision": "needs_approval" },
+    { "name": "a violation with no severity defaults to block", "severities": ["default"], "decision": "block" }
+  ],
+  "decisionFields": ["decision", "violations", "evaluatedAt"],
+  "traceEventTypes": [
+    "run_started", "step_started", "step_completed", "action_proposed",
+    "gate_decision", "executed", "awaiting_approval", "halted", "run_completed", "error"
+  ],
+  "gateDecisionEvent": { "type": "gate_decision", "carries": "decision" }
+}

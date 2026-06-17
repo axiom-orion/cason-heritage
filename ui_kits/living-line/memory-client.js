@@ -17,6 +17,13 @@
      POST /ingest   { records: [{id,text,ts_day,subject,attribute,value,importance}] }
      POST /consolidate?now_day=N                                            (Bearer)
      GET  /stats                                     -> { active, superseded }
+     GET  /pag/verify -> { ok, length, head, signed, actor }                (public)
+
+   That last is the PAG (Provenance Attestation Graph): the service records every
+   memory operation in an append-only, hash-chained, actor-attributed log, and
+   /pag/verify reports its integrity — provenance the Keeper relies on but does
+   not itself hold. The Keeper can confirm the chain verifies before trusting a
+   recall (and surface it in the glass-box).
 
    Config (env): KEEPER_MEMORY_URL (base), KEEPER_MEMORY_TOKEN (admin Bearer).
    ENV-GATED + GRACEFUL: unset URL => enabled() is false and every call is a
@@ -69,8 +76,16 @@
     if (!c.url) return null;
     try { const r = await fetch(c.url + '/stats'); return r.ok ? await r.json() : null; } catch (e) { return null; }
   }
+  // public — provenance-chain integrity of the durable memory (PAG). Returns the
+  // verify report ({ ok, length, head, signed, actor }) or null when unconfigured /
+  // unreachable; never throws, so a provenance check never fails a Keeper run.
+  async function pagVerify() {
+    const c = cfg();
+    if (!c.url) return null;
+    try { const r = await fetch(c.url + '/pag/verify'); return r.ok ? await r.json() : null; } catch (e) { return null; }
+  }
 
-  const API = { enabled: enabled, recall: recall, ingest: ingest, consolidate: consolidate, stats: stats };
+  const API = { enabled: enabled, recall: recall, ingest: ingest, consolidate: consolidate, stats: stats, pagVerify: pagVerify };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (root) root.CASON_MEMORY_CLIENT = API;
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : null));

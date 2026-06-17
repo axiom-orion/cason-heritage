@@ -49,7 +49,7 @@ mechanism that instantiates it, the file that proves it, and a recommendation.
 
 | Vorion concept | Live mechanism (today) | Proof (repo · file) | Status | Recommendation |
 |---|---|---|---|---|
-| **CogniGate** (cross-tier enforcement) | `evaluatePolicy(action, rules)` → `allow / needs_approval / block` | governed-agents `lib/governance.ts`; cason-heritage `ui_kits/living-line/governance.js` (faithful port) | **Built** | Adopt "CogniGate" as the *cross-system label* for this gate. Do **not** rebuild. |
+| **CogniGate** (cross-tier enforcement) | `evaluatePolicy(action, rules)` → `allow / needs_approval / block` | governed-agents `lib/governance.ts`; cason-heritage `ui_kits/living-line/governance.js` (faithful port, **conformance-tested** against `contract/gate-contract.json` — `selftest:gate-contract`) | **Built + conformance-gated** | Adopt "CogniGate" as the *cross-system label* for this gate. Do **not** rebuild. The port's faithfulness to the canonical algebra + trace format is now checked in CI, not hoped. |
 | **CAR ID** (scoped agent identity) | `agents.js` registry — each agent has a handle, modules, abilities, autonomy tier, governance hooks; `selftest:agents` enforces "a `live` agent must have a real module on disk" | cason-heritage `ui_kits/living-line/agents.js` | **Built (unsigned)** | The registry *is* CAR ID. Net-new = cryptographically signing the entry (identity → capability binding becomes tamper-evident). |
 | **ATD** (Agent Trust Descriptor) | The `agents.js` registry entry itself: identity bound to autonomy tier + capability envelope + governance hooks | same as above | **Built (unsigned)** | ATD = a signed `agents.js` entry. Don't invent a new artifact; sign the one that exists. |
 | **BASIS tiers** (T1–T7) | Autonomy tiers `advises / proposes / acts-bounded / cross-cutting`, with the **top tier (autonomous write) deliberately unoccupied** (`governance.js` `supervised()` → `topTier: 'unoccupied'`) | cason-heritage `agents.js`, `governance.js` | **Built (different scale)** | **Resolved (§11-3):** BASIS = a **privilege + assurance ladder** (§4). Tier = max write privilege (gate-checkable); each rung carries assurance requirements. The empty top *is* the frontier — and under privilege semantics it is two rungs deep (§4). |
@@ -175,6 +175,15 @@ extra runtime constraints. Tiers may be honestly unoccupied at the low end too (
 CogniGate (`governance.js`) is not an agent holding a tier; it is the enforcement plane.
 This ladder is the industrializable form: the assurance column *is* the conformance
 checklist a future "BASIS 1.0" would version.
+
+**Now in code:** `ui_kits/living-line/basis.js` encodes this ladder — `permits(agentTier,
+requiredTier)` honors the nesting and treats T5 as the non-nested oversight branch
+(exact-match only), and `auditRoster()` reads the live `agents.js` registry and proves the
+invariants: every agent maps to a tier via the autonomy vocabulary (`advises→T1`,
+`proposes→T4`, `acts-bounded→T5`), none occupies T6/T7, and none exceeds the T5 ceiling.
+`basis.selftest.js` (26 assertions, in CI via `selftest:all`) is the conformance check, and
+a planted off-ladder agent is caught — so "the top tier is unoccupied" is provable, not
+asserted.
 
 **The five-layer per-action check, reconciled:**
 
@@ -330,7 +339,7 @@ The brief's ledger under-counts what is built. Honest re-grade:
 |---|---|---|---|
 | CogniGate hard-gates actions | buildable | **Provable / running** | `governance.js` + `keeper.js`, selftested |
 | CAR ID = scoped checkable identity | buildable | **Built (unsigned)** | `agents.js` registry + `selftest:agents` |
-| Tier-gated capability, self-consistent | provable within-system | **Built** | autonomy tiers + unoccupied top tier in code |
+| Tier-gated capability, self-consistent | provable within-system | **Built + checkable** | `basis.js` encodes the ladder; `basis.selftest.js` audits the live roster (T6/T7 unoccupied, T5 non-nested), CI-gated |
 | Multi-model consensus catches swap/echo | qualified | **Built (source-level), qualified on adaptive evasion** | `bloodhound.md`, `consensus.ts`, `require-model-consensus` |
 | Replayable provenance (PAG) | implied | **Qualified** until content-addressing/signing/snapshot land | agent-memory-service + attestation.json |
 | Behavioral model attestation | (API fallback) | **Built, qualified** | `attestation.json` fingerprints, weekly drift |

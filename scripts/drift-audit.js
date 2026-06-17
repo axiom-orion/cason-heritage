@@ -110,6 +110,23 @@ function invariants(data, MEM, PERS, GOV, SUP) {
   });
   out.push({ name: 'eliminated-containment', ok: throughElim === 0, detail: throughElim === 0 ? 'no ancestry runs through a ruled-out node (parent/spouse)' : throughElim + ' kin claim(s) THROUGH an eliminated/disproven person' });
 
+  // 7. provenance replay (H7): for each STANDING claim, replay the source chain it was
+  // committed on against the CURRENT evidence state. A count-based reconciliation is blind
+  // to a source RETRACTED IN PLACE (the citation string stays, the count holds) — this
+  // replays the citations themselves. Divergence = the claim still stands but the evidence
+  // under it no longer does: a retracted/withdrawn source, or a citation the supersession
+  // ledger has since disproven. (Mere source COUNT is already guarded by reconcileClaims.)
+  const replay = replayProvenance(data, SUP);
+  out.push({
+    name: 'provenance-replay',
+    ok: replay.divergences.length === 0,
+    detail: replay.divergences.length === 0
+      ? replay.standing + ' standing claim(s) replayed; every source chain still supported'
+      : replay.divergences.length + ' standing claim(s) diverge from current evidence: ' +
+        replay.divergences.slice(0, 3).map(function (d) { return d.id + ' (' + d.reason + ')'; }).join('; ') +
+        (replay.divergences.length > 3 ? '; …' : ''),
+  });
+
   return out;
 }
 
@@ -151,6 +168,49 @@ function reconcileClaims(baseClaims, curClaims) {
   });
   Object.keys(baseClaims).forEach(function (id) { if (!curClaims[id]) drift.push(id + ': claim removed (was ' + baseClaims[id].t + ')'); });
   return { established: false, failures: failures, drift: drift };
+}
+
+/* ---- provenance replay (H7): standing claims replayed against CURRENT evidence ----
+   reconcileClaims compares attested COUNTS across runs; it cannot see a source that was
+   retracted IN PLACE (the citation text stays, so { t, s } is unchanged). This replays
+   the actual provenance CHAIN — each standing claim's source citations — against the
+   current evidence state, the way the §5/§7 spec asks: a standing canonical assertion
+   "no longer supported by replayed evidence (retracted source, broken citation, …)".
+
+   A claim is STANDING when the record is actively asserting it — any tier the gate would
+   honour as fact-bearing (not the quarantined/open tiers disproven/eliminated/unsolved).
+   The divergences we flag are evidence that has actively TURNED under a still-standing
+   claim — not the mere absence of an inline citation (many claims are documented through
+   a kin cluster or narrative, and source COUNT is already guarded by reconcileClaims):
+     • retracted  — a citation now carries a retraction/withdrawal marker (the source was
+                    pulled; the count is unchanged, so the count-based check is blind to it);
+     • superseded — a citation's text trips a disproven/eliminated supersession matcher
+                    (the claim still rests on a source the ledger has since invalidated).
+   Read-only over (data, SUP): proposes, never mutates — like the rest of the auditor. */
+var RETRACTED = /\b(?:retracted|withdrawn|rescinded|repudiated)\b|\[\s*retract|\(\s*retract/i;
+
+function replayProvenance(data, SUP) {
+  const people = data.people;
+  // supersession matchers for values the ledger has DISPROVEN/ELIMINATED — a still-cited
+  // source whose text trips one of these rests on evidence the record has since pulled.
+  const killed = (SUP && SUP.values ? SUP.values() : []).filter(function (v) { return v && v.match; });
+  const divergences = [];
+  let standing = 0;
+  Object.keys(people).sort().forEach(function (id) {
+    const p = people[id], tier = p.evidence || 'possible';
+    if (tier === 'disproven' || tier === 'eliminated' || tier === 'unsolved') return; // not a standing assertion
+    standing++;
+    (p.sources || []).forEach(function (src) {
+      const s = String(src);
+      if (RETRACTED.test(s)) {
+        divergences.push({ id: id, reason: 'retracted', detail: 'cites a retracted source — "' + s + '"' });
+        return;
+      }
+      const hit = killed.filter(function (v) { return v.match.test(s); })[0];
+      if (hit) divergences.push({ id: id, reason: 'superseded', detail: 'cites a source the ledger disproved (' + hit.label + ') — "' + s + '"' });
+    });
+  });
+  return { standing: standing, divergences: divergences };
 }
 
 /* ---- the attestation: a content-addressed fingerprint of the governed state ---- */
@@ -277,6 +337,6 @@ function main() {
   return r.failures ? 1 : 0;
 }
 
-module.exports = { invariants: invariants, attest: attest, personaFingerprints: personaFingerprints, diffAttest: diffAttest, report: report, load: load, claimsOf: claimsOf, reconcileClaims: reconcileClaims, TIER_RANK: TIER_RANK };
+module.exports = { invariants: invariants, attest: attest, personaFingerprints: personaFingerprints, diffAttest: diffAttest, report: report, load: load, claimsOf: claimsOf, reconcileClaims: reconcileClaims, replayProvenance: replayProvenance, TIER_RANK: TIER_RANK };
 
 if (require.main === module) process.exit(main());

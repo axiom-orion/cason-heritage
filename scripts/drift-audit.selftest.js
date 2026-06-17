@@ -88,5 +88,50 @@ demote.people[confSrcId].evidence = 'possible';
 const demoteRec = DA.reconcileClaims(base.claims, DA.claimsOf(demote));
 ok('a demotion is drift, not failure (honesty may always lower a claim)', demoteRec.failures.length === 0 && demoteRec.drift.some(function (s) { return s.indexOf(confSrcId) === 0; }));
 
+/* 8. provenance replay (H7, Stage-2 benchmark) — each standing claim's source chain is
+   replayed against CURRENT evidence; a retracted/superseded source under a still-standing
+   claim trips a drift finding, while a still-supported claim does NOT trip it. */
+ok('invariant present: provenance-replay', inv.some(function (i) { return i.name === 'provenance-replay'; }));
+ok('provenance-replay holds on the current record (every standing source chain supported)',
+  inv.filter(function (i) { return i.name === 'provenance-replay'; })[0].ok === true);
+
+const replayClean = DA.replayProvenance(data, SUP);
+ok('a still-supported claim does NOT trip provenance-replay', replayClean.divergences.length === 0 && replayClean.standing > 0);
+
+// THE BENCHMARK: a retracted source under a standing claim trips a drift finding.
+const retract = JSON.parse(JSON.stringify(data));
+const retractId = Object.keys(retract.people).filter(function (id) { return retract.people[id].evidence === 'confirmed' && (retract.people[id].sources || []).length > 0; })[0];
+retract.people[retractId].sources[0] = retract.people[retractId].sources[0] + ' [RETRACTED 2026 — record withdrawn by the holding archive]';
+const retractReplay = DA.replayProvenance(retract, SUP);
+ok('a RETRACTED source under a standing claim is a provenance divergence', retractReplay.divergences.some(function (d) { return d.id === retractId && d.reason === 'retracted'; }));
+
+// ...and the divergence drives the invariant red -> report counts a failure -> a drift PR opens.
+const retractInv = DA.invariants(retract, MEM, PERS, GOV, SUP).filter(function (i) { return i.name === 'provenance-replay'; })[0];
+ok('the retracted source fails the provenance-replay INVARIANT (the auditor would open a drift PR)', retractInv.ok === false);
+const retractReport = DA.report('2026-01-01', DA.invariants(retract, MEM, PERS, GOV, SUP), DA.attest(data, MEM, PERS), DA.diffAttest(null, DA.attest(data, MEM, PERS)));
+ok('a retracted source trips a drift PR (report records a regression -> non-zero exit)', retractReport.failures >= 1 && /provenance-replay/.test(retractReport.md));
+
+// ...and the failure is PRECISE — the other invariants stay green (not a blanket fail).
+ok('a retracted source leaves the other invariants green (precise, not a blanket fail)',
+  DA.invariants(retract, MEM, PERS, GOV, SUP).filter(function (i) { return i.name !== 'provenance-replay'; }).every(function (i) { return i.ok; }));
+
+// a source the supersession ledger has DISPROVEN, still cited under a standing claim, also diverges.
+const superseded = JSON.parse(JSON.stringify(data));
+const supId = Object.keys(superseded.people).filter(function (id) { return ['confirmed', 'secondary', 'leading', 'possible'].indexOf(superseded.people[id].evidence) !== -1; })[0];
+superseded.people[supId].sources = (superseded.people[supId].sources || []).concat(['Parish register, Digswell, Hertfordshire (origin)']);
+const supReplay = DA.replayProvenance(superseded, SUP);
+ok('a still-cited source the ledger disproved is a provenance divergence (superseded)', supReplay.divergences.some(function (d) { return d.id === supId && d.reason === 'superseded'; }));
+
+// a retracted source under a QUARANTINED claim (disproven/eliminated) is NOT standing -> no trip.
+const quarantined = JSON.parse(JSON.stringify(data));
+const qId = Object.keys(quarantined.people).filter(function (id) { return ['disproven', 'eliminated'].indexOf(quarantined.people[id].evidence) !== -1; })[0];
+if (qId) {
+  quarantined.people[qId].sources = (quarantined.people[qId].sources || []).concat(['Some source [RETRACTED]']);
+  ok('a retracted source under an already-quarantined claim does NOT trip (not standing)',
+    DA.replayProvenance(quarantined, SUP).divergences.every(function (d) { return d.id !== qId; }));
+} else {
+  ok('a retracted source under an already-quarantined claim does NOT trip (not standing)', true);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed.');
 process.exit(fail ? 1 : 0);

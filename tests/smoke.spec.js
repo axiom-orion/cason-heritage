@@ -187,6 +187,8 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
   await expect(page.getByText('Governance Conductor').first()).toBeVisible();  // an agent in the roster
   await expect(page.getByText(/The Curator & the interaction agents/)).toBeVisible(); // headless agents now surfaced
   await expect(page.getByText(/Seasonal —/)).toBeVisible();                    // the Curator's live, date-aware suggestions
+  await expect(page.getByText(/The Almanac — on this day/)).toBeVisible();      // the family calendar, honoring the line
+  await expect(page.getByText(/The dates we honor/)).toBeVisible();            // the main-line birthdays & passings roster
   await expect(page.getByText(/Review queue — agent proposals/)).toBeVisible(); // the in-app approval queue
   expect(errors, 'errors on governance view:\n' + errors.join('\n')).toEqual([]);
 });
