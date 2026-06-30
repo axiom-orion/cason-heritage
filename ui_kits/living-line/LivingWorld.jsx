@@ -561,6 +561,26 @@ function MemoryHearth({ personId }) {
   );
 }
 
+function eraRgba(era, alpha) {
+  const h = eraHex(era);
+  return 'rgba(' + ((h >> 16) & 0xff) + ',' + ((h >> 8) & 0xff) + ',' + (h & 0xff) + ',' + alpha + ')';
+}
+
+/* ---------------- arrival overlay ---------------- */
+function ArrivalOverlay({ stage }) {
+  if (!stage) return null;
+  const bg = eraRgba(stage.era, 0.94);
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', animation: 'cason-arrive 2.0s ease-in-out forwards' }}>
+      <div style={{ textAlign: 'center', color: '#fff', padding: '0 28px', animation: 'cason-arrive-text 2.0s ease-in-out forwards' }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', marginBottom: 10 }}>{stage.year}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 34, fontWeight: 700, lineHeight: 1.15, textShadow: '0 2px 18px rgba(0,0,0,0.35)' }}>{stage.label}</div>
+        <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 17, color: 'rgba(255,255,255,0.82)', marginTop: 12, maxWidth: 420 }}>{stage.blurb}</div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- the map ---------------- */
 function HomesteadMap({ stageId, onSelect }) {
   const ref = useRef(null), mapRef = useRef(null), markers = useRef({});
@@ -593,12 +613,24 @@ function HomesteadMap({ stageId, onSelect }) {
 /* ---------------- live feed ---------------- */
 function snapLines(snap, salt) {
   const out = [], tl = snap.env.timeOfDay.label;
-  if (snap.encounter) snap.encounter.lines.slice(0, 2).forEach(function (l) { out.push({ t: tl, who: nm(l.speaker), text: '“' + l.text + '”', kind: 'talk' }); });
-  if (snap.agents.length) {
-    const a = snap.agents[salt % snap.agents.length];
-    out.push({ t: tl, who: nm(a.id), text: a.activity + '.', kind: a.kind });
+  // encounter dialogue — show up to 3 lines for richer scene-setting
+  if (snap.encounter) snap.encounter.lines.slice(0, 3).forEach(function (l) {
+    out.push({ t: tl, who: nm(l.speaker), text: '”' + l.text + '”', kind: 'talk' });
+  });
+  // 3 different agents doing different things — rotate through the cohort on each tick
+  const n = snap.agents.length;
+  if (n) {
+    const seen = {};
+    snap.encounter && snap.encounter.lines.forEach(function (l) { seen[l.speaker] = 1; });
+    [0, 1, 2].forEach(function (offset) {
+      const a = snap.agents[(salt + offset) % n];
+      if (a && !seen[nm(a.id)]) { seen[nm(a.id)] = 1; out.push({ t: tl, who: nm(a.id), text: a.activity + '.', kind: a.kind }); }
+    });
   }
-  if (snap.reflections[0]) { const r = snap.reflections[0]; out.push({ t: tl, who: nm(r.id), text: '(reflects) “' + r.text + '”', kind: 'reflect' }); }
+  // up to 2 reflections — they carry real memory-graph citations
+  snap.reflections.slice(0, 2).forEach(function (r) {
+    out.push({ t: tl, who: nm(r.id), text: '“' + r.text + '”', kind: 'reflect' });
+  });
   return out;
 }
 function LiveFeed({ feed }) {
@@ -1873,6 +1905,7 @@ function LivingWorld() {
   const [chatFocus, setChatFocus] = useState(0);
   const [authMsg, setAuthMsg] = useState('');
   const [feed, setFeed] = useState([]);
+  const [arriving, setArriving] = useState(null);
   const [, force] = useState(0);
   const rerender = function () { force(function (n) { return n + 1; }); };
   const worldRef = useRef(null);
@@ -1883,6 +1916,13 @@ function LivingWorld() {
 
   const stage = STAGES.find(function (s) { return s.id === stageId; });
   const cohort = useMemo(function () { return cohortFor(stage); }, [stageId]);
+
+  // arrival overlay — fires each time the homestead changes
+  useEffect(function () {
+    setArriving(stage);
+    const t = setTimeout(function () { setArriving(null); }, 2100);
+    return function () { clearTimeout(t); };
+  }, [stageId]);
 
   // (re)build the homestead world when the stage changes. Every village is
   // anchored to *today's* calendar day (in its own era's year), so the season,
@@ -1976,6 +2016,7 @@ function LivingWorld() {
 
   return (
     <div style={{ ...window.parchmentBg, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
+      <ArrivalOverlay stage={arriving} />
       <AppHeader
         subtitle={narrow ? undefined : 'The Living Line'}
         right={
@@ -2084,7 +2125,7 @@ function LivingWorld() {
           )}
 
           {view === 'homestead' && (
-            <div>
+            <div style={{ background: 'linear-gradient(180deg, ' + eraRgba(stage.era, 0.07) + ' 0%, transparent 320px)' }}>
               <SeasonCard onSelect={selectPerson} onResearch={researchLine} />
               {!threeD && (
                 <div style={{ padding: ‘14px 22px 0’ }}>
