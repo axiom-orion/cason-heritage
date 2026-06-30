@@ -311,7 +311,7 @@ function ConsensusView({ data }) {
 function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPendingConsumed, member, focusSignal }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
-  const [mode, setMode] = useState('templated');
+  const [mode, setMode] = useState('live');
   const [busy, setBusy] = useState(false);
   const [showR, setShowR] = useState(false);
   const [rq, setRq] = useState('');
@@ -322,7 +322,19 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(function () { setMsgs([]); setRdata(null); setRerr(null); setSaved(false); setRq(''); }, [personId]);
+  useEffect(function () {
+    setMsgs([]); setRdata(null); setRerr(null); setSaved(false); setRq('');
+    // auto-greeting: let the persona introduce themselves when selected
+    if (!personId) return;
+    setBusy(true);
+    window.CASON_AI.personaRespond({ personId: personId, userMessage: 'Tell me about your life.', history: [], mode: 'live' })
+      .then(function (out) { setMsgs([{ role: 'persona', text: out.text, mode: out.mode }]); })
+      .catch(function () {
+        const off = window.CASON_AI.templated(personId, 'Tell me about your life.');
+        setMsgs([{ role: 'persona', text: off.text, mode: 'templated' }]);
+      })
+      .then(function () { setBusy(false); });
+  }, [personId]);
 
   useEffect(function () {
     if (focusSignal && chatRef.current) { try { chatRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} if (inputRef.current) inputRef.current.focus(); }
@@ -452,8 +464,11 @@ function PersonaDossier({ personId, sheet, person, snap, onSaved, pending, onPen
         <button onClick={function () { send(); }} disabled={busy} style={{ ...ctlBtn(true), opacity: busy ? 0.5 : 1 }}>Send</button>
         {member && <button onClick={function () { pushToAll(); }} disabled={busy} title="Push this question to all three models — Grok, Gemini & Claude — and bring the cross-checked answer into the conversation" style={{ ...ctlBtn(false), opacity: busy ? 0.5 : 1, whiteSpace: 'nowrap' }}>⚖ All 3</button>}
       </div>
-      {member && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Send speaks with {nm(personId).split(' ')[0]} in their own voice (bounded to what they could know). <strong>⚖ All 3</strong> pushes the question to Grok, Gemini &amp; Claude and brings the cross-checked answer into the conversation.</div>}
-      {mode === 'live' && !member && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>Live mode needs a server key; it falls back to the offline voice if unavailable.</div>}
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>
+        {member
+          ? <span>Send speaks with {nm(personId).split(' ')[0]} in their own voice — bounded to what they could know. <strong>⚖ All 3</strong> cross-checks Grok, Gemini &amp; Claude.</span>
+          : <span>Speaking with {nm(personId).split(' ')[0]} — bounded to what they could know in their lifetime. Switch to Templated for an offline, deterministic voice.</span>}
+      </div>
 
       {/* multi-model research */}
       <div style={{ marginTop: 12 }}>
@@ -1844,7 +1859,7 @@ function LivingWorld() {
   const [stageId, setStageId] = useState('fl');
   const [selectedId, setSelectedId] = useState(null);
   const [view, setView] = useState('homestead');
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(true);
   const [threeD, setThreeD] = useState(false);
   const [sceneErr, setSceneErr] = useState(null);
   const vp = useViewport();
@@ -2071,12 +2086,26 @@ function LivingWorld() {
           {view === 'homestead' && (
             <div>
               <SeasonCard onSelect={selectPerson} onResearch={researchLine} />
+              {!threeD && (
+                <div style={{ padding: ‘14px 22px 0’ }}>
+                  <button onClick={function () { setThreeD(true); }} style={{ width: ‘100%’, padding: ‘14px 18px’, borderRadius: 10, border: ‘1px solid rgba(139,69,19,0.3)’, background: ‘linear-gradient(135deg, rgba(44,24,16,0.06), rgba(154,123,45,0.08))’, cursor: ‘pointer’, textAlign: ‘left’, display: ‘flex’, alignItems: ‘center’, gap: 16 }}>
+                    <span style={{ fontSize: 28 }}>🏡</span>
+                    <span>
+                      <span style={{ display: ‘block’, fontFamily: ‘var(--font-display)’, fontWeight: 700, fontSize: 15, color: ‘var(--ink)’ }}>Enter the homestead in 3-D ▸</span>
+                      <span style={{ display: ‘block’, fontFamily: ‘var(--font-serif)’, fontSize: 12, color: ‘var(--faded)’, marginTop: 2 }}>Low-poly scene of {stage ? stage.label : ‘this place’} — day/night cycle, people at their tasks, campfire at dusk. Click a figure to speak with them.</span>
+                    </span>
+                  </button>
+                </div>
+              )}
               {threeD && (
-                <div style={{ padding: '14px 22px 0' }}>
-                  <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>
-                    {sceneErr && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--faded)' }}>{sceneErr}</div>}
+                <div style={{ padding: ‘14px 22px 0’ }}>
+                  <div ref={sceneHost} style={{ width: ‘100%’, height: 440, borderRadius: 10, overflow: ‘hidden’, border: ‘1px solid rgba(139,69,19,0.2)’, background: ‘#dfe6ee’, position: ‘relative’ }}>
+                    {sceneErr && <div style={{ position: ‘absolute’, inset: 0, display: ‘flex’, alignItems: ‘center’, justifyContent: ‘center’, textAlign: ‘center’, padding: 20, fontFamily: ‘var(--font-serif)’, fontStyle: ‘italic’, color: ‘var(--faded)’ }}>{sceneErr}</div>}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>{isMember ? 'You’re embodied ✦ — click the ground to walk your avatar. Drag to look, scroll to zoom, click a figure to meet them.' : 'Drag to look · scroll to zoom · click a figure to select them. You’re observing as narrator.'}</div>
+                  <div style={{ fontFamily: ‘var(--font-sans)’, fontSize: 11, color: ‘var(--faded)’, marginTop: 6, display: ‘flex’, justifyContent: ‘space-between’, alignItems: ‘center’ }}>
+                    <span>{isMember ? ‘You\’re embodied ✦ — click the ground to walk. Drag to look · scroll to zoom · click a figure to speak.’ : ‘Drag to look · scroll to zoom · click a figure to select them.’}</span>
+                    <button onClick={function () { setThreeD(false); }} style={{ ...ctlBtn(false), fontSize: 10 }}>Exit 3-D</button>
+                  </div>
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: (narrow || !memOpen) ? 'column' : 'row', gap: 22, padding: '18px 22px 60px', minWidth: 0 }}>
