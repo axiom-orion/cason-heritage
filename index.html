@@ -427,6 +427,10 @@
   .hero-content {
     position: relative;
     z-index: 2;
+    /* .hero is a column flex with align-items:center, which sizes this to
+       max-content (the moments row ≈ 800px) and forces phones to zoom out;
+       bound it to the viewport so children wrap instead. */
+    max-width: 100%;
   }
 
   .hero h1 {
@@ -1129,6 +1133,9 @@
       flex-shrink: 0;
     }
     .hero-moments::before { display: none; }
+    /* Two 200px-min stat cards don't fit a ~326px content box; the grid
+       was overflowing and forcing the page to zoom out. */
+    .stat-grid { grid-template-columns: 1fr; }
   }
 
   /* ── ANIMATIONS ── */
