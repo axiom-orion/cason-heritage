@@ -2128,23 +2128,23 @@ function LivingWorld() {
             <div style={{ background: 'linear-gradient(180deg, ' + eraRgba(stage.era, 0.07) + ' 0%, transparent 320px)' }}>
               <SeasonCard onSelect={selectPerson} onResearch={researchLine} />
               {!threeD && (
-                <div style={{ padding: ‘14px 22px 0’ }}>
-                  <button onClick={function () { setThreeD(true); }} style={{ width: ‘100%’, padding: ‘14px 18px’, borderRadius: 10, border: ‘1px solid rgba(139,69,19,0.3)’, background: ‘linear-gradient(135deg, rgba(44,24,16,0.06), rgba(154,123,45,0.08))’, cursor: ‘pointer’, textAlign: ‘left’, display: ‘flex’, alignItems: ‘center’, gap: 16 }}>
+                <div style={{ padding: '14px 22px 0' }}>
+                  <button onClick={function () { setThreeD(true); }} style={{ width: '100%', padding: '14px 18px', borderRadius: 10, border: '1px solid rgba(139,69,19,0.3)', background: 'linear-gradient(135deg, rgba(44,24,16,0.06), rgba(154,123,45,0.08))', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 16 }}>
                     <span style={{ fontSize: 28 }}>🏡</span>
                     <span>
-                      <span style={{ display: ‘block’, fontFamily: ‘var(--font-display)’, fontWeight: 700, fontSize: 15, color: ‘var(--ink)’ }}>Enter the homestead in 3-D ▸</span>
-                      <span style={{ display: ‘block’, fontFamily: ‘var(--font-serif)’, fontSize: 12, color: ‘var(--faded)’, marginTop: 2 }}>Low-poly scene of {stage ? stage.label : ‘this place’} — day/night cycle, people at their tasks, campfire at dusk. Click a figure to speak with them.</span>
+                      <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>Enter the homestead in 3-D ▸</span>
+                      <span style={{ display: 'block', fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--faded)', marginTop: 2 }}>Low-poly scene of {stage ? stage.label : 'this place'} — day/night cycle, people at their tasks, campfire at dusk. Click a figure to speak with them.</span>
                     </span>
                   </button>
                 </div>
               )}
               {threeD && (
-                <div style={{ padding: ‘14px 22px 0’ }}>
-                  <div ref={sceneHost} style={{ width: ‘100%’, height: 440, borderRadius: 10, overflow: ‘hidden’, border: ‘1px solid rgba(139,69,19,0.2)’, background: ‘#dfe6ee’, position: ‘relative’ }}>
-                    {sceneErr && <div style={{ position: ‘absolute’, inset: 0, display: ‘flex’, alignItems: ‘center’, justifyContent: ‘center’, textAlign: ‘center’, padding: 20, fontFamily: ‘var(--font-serif)’, fontStyle: ‘italic’, color: ‘var(--faded)’ }}>{sceneErr}</div>}
+                <div style={{ padding: '14px 22px 0' }}>
+                  <div ref={sceneHost} style={{ width: '100%', height: 440, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,69,19,0.2)', background: '#dfe6ee', position: 'relative' }}>
+                    {sceneErr && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 20, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--faded)' }}>{sceneErr}</div>}
                   </div>
-                  <div style={{ fontFamily: ‘var(--font-sans)’, fontSize: 11, color: ‘var(--faded)’, marginTop: 6, display: ‘flex’, justifyContent: ‘space-between’, alignItems: ‘center’ }}>
-                    <span>{isMember ? ‘You\’re embodied ✦ — click the ground to walk. Drag to look · scroll to zoom · click a figure to speak.’ : ‘Drag to look · scroll to zoom · click a figure to select them.’}</span>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)', marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{isMember ? 'You\'re embodied ✦ — click the ground to walk. Drag to look · scroll to zoom · click a figure to speak.' : 'Drag to look · scroll to zoom · click a figure to select them.'}</span>
                     <button onClick={function () { setThreeD(false); }} style={{ ...ctlBtn(false), fontSize: 10 }}>Exit 3-D</button>
                   </div>
                 </div>
