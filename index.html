@@ -1158,6 +1158,93 @@
   .leaflet-popup-content { font-size: 14px; line-height: 1.5; }
   .popup-title { font-weight: 700; color: var(--rust); font-size: 15px; }
   .popup-date { color: var(--faded); font-size: 13px; }
+
+  /* ============================================================
+     RECONNECT — "Are you family?"  (added 2026-07-16)
+     ============================================================ */
+  .kin-strip {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem 0.9rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-hairline);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--fg-2);
+  }
+  .kin-strip strong { font-weight: 600; color: var(--fg-1); }
+  .kin-strip a {
+    color: var(--fg-accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(139,69,19,0.3);
+  }
+  .kin-strip a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+
+  .reconnect { max-width: 820px; margin: 0 auto; padding: var(--space-8) var(--space-5); }
+  .reconnect-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-hairline);
+    border-top: 3px solid var(--gold);
+    border-radius: var(--r-lg);
+    padding: 2.5rem clamp(1.25rem, 5vw, 3rem);
+    box-shadow: var(--shadow-2);
+    text-align: center;
+  }
+  .reconnect .eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--fs-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+  .reconnect h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-h2);
+    color: var(--deep-blue);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .reconnect p {
+    font-family: var(--font-serif);
+    font-size: var(--fs-body-lg);
+    color: var(--fg-1);
+    max-width: 60ch;
+    margin: 0 auto 1rem;
+    line-height: var(--lh-body);
+  }
+  .reconnect p.lead-strong { font-weight: 600; }
+  .reconnect p.fine { font-size: var(--fs-body-sm); color: var(--fg-2); }
+  .reconnect-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.75rem;
+  }
+  .reconnect-btn {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--r-sm);
+    text-decoration: none;
+    border: 1px solid var(--gold);
+    transition: all var(--t-fast);
+  }
+  .reconnect-btn.primary { background: var(--rust); color: var(--cream); border-color: var(--rust); }
+  .reconnect-btn.primary:hover { background: #763a0f; color: var(--cream); }
+  .reconnect-btn.ghost { background: transparent; color: var(--rust); border-color: rgba(139,69,19,0.4); }
+  .reconnect-btn.ghost:hover { background: rgba(139,69,19,0.07); }
+  @media (max-width: 520px) { .reconnect-btn { width: 100%; text-align: center; } }
+
 </style>
 </head>
 <body>
@@ -1238,6 +1325,12 @@
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
   </div>
 </section>
+
+<!-- ████ KIN STRIP ████ -->
+<div class="kin-strip">
+  <span><strong>Are you family?</strong> If you&rsquo;re a Cason&mdash;or kin who married in&mdash;this record is yours too.</span>
+  <a href="#reconnect">Find your branch or add what you remember &rarr;</a>
+</div>
 
 <!-- ████ PROLOGUE ████ -->
 <section class="narrative" style="max-width:780px; padding-top:5rem;" id="map-anchor">
@@ -2146,6 +2239,21 @@
 </section>
 
 <!-- ████ SOURCES FOOTER ████ -->
+<!-- ████ RECONNECT — Are you family? ████ -->
+<section class="reconnect" id="reconnect">
+  <div class="reconnect-card">
+    <p class="eyebrow">Are you family?</p>
+    <h2>You&rsquo;re already in this line.</h2>
+    <p>If you&rsquo;re a Cason &mdash; or a Douglas, a Barrow, a Holloway, a Munden, or any of the lines that married in &mdash; this is your record too. Three hundred of us stood together at the last reunions twenty years ago. Some of us have lost touch since.</p>
+    <p class="lead-strong">Find your branch. Tell us yours. Add what you remember.</p>
+    <p class="fine">A name we&rsquo;re missing, a photo, a story, or just a hello &mdash; it all helps pull the thread back together. Nothing you send is published on anyone&rsquo;s say-so; every piece is weighed and sourced, the same care the rest of this record was built with.</p>
+    <div class="reconnect-actions">
+      <a class="reconnect-btn primary" href="/dashboard">Find your branch &rarr;</a>
+      <a class="reconnect-btn ghost" href="https://github.com/axiom-orion/cason-heritage/issues/new?template=correction.yml" target="_blank" rel="noopener">Add what you know &rarr;</a>
+    </div>
+  </div>
+</section>
+
 <footer class="sources-footer">
   <div class="source-grid">
     <div class="source-col">
