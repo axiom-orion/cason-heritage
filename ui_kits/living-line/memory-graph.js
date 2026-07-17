@@ -166,7 +166,7 @@
     { ownerId: 'james-green', tags: ['naming', 'maternal'],
       text: 'My middle name is Green — but whose people were the Greens? It has the look of a mother’s maiden name, and I cannot yet say which line carried it down to me.' },
     { ownerId: 'casey-ann', tags: ['endogamy', 'cason'],
-      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. None of it is yet proven on paper.' },
+      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. Now there is paper: a Berrien Cason and I hold a bounty-land patent together in 1860, in Alachua. It does not yet say in so many words that he is my father, nor which Berrien he was — the warrant papers still must.' },
     { ownerId: 'thadeous', tags: ['marriage', 'discrepancy'],
       text: 'My headstone at Tustenuggee says I married Georgia on 25 December 1883, but the family record keeps it as Christmas Eve 1882. Which year — and which day — is right? The Columbia County marriage return will settle it.' },
     { ownerId: 'carl-columbus', tags: ['parentage', 'land'],
