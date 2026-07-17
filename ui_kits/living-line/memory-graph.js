@@ -170,7 +170,7 @@
     { ownerId: 'thadeous', tags: ['marriage', 'discrepancy'],
       text: 'My headstone at Tustenuggee says I married Georgia on 25 December 1883, but the family record keeps it as Christmas Eve 1882. Which year — and which day — is right? The Columbia County marriage return will settle it.' },
     { ownerId: 'carl-columbus', tags: ['parentage', 'land'],
-      text: 'The family names Thadeous as my father, but no primary record yet places me in his Fort White household — his gravestone even lists only four children, and I am not among them. The 1900/1910/1920 census, and his 1945 Columbia County probate, should name me and say who took the Fort White land.' },
+      text: 'The family names Thadeous as my father, but no primary record yet places me in his Fort White household — his gravestone even lists only four children, and I am not among them. And there is no homestead patent for the Fort White land — the federal index carries none in Thad\'s name — so it was bought or handed down: the Columbia County deed books, and Thad\'s 1945 probate, should name me and say who took it.' },
   ];
 
   /* ============================================================

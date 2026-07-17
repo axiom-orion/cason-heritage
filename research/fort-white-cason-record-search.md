@@ -39,15 +39,24 @@ leads to confirm against primary vitals, not proof.
 
 ## The land-descent answer
 
-**No will, deed, or homestead patent has been located online yet** — but the records
-**survive** and the repositories are pinned. The single highest-value pull is
-**Thadeous's 1945 Columbia County probate file**: if it exists it likely names the
-Fort White land *and* which son took it, documenting the land **and** the
-Thadeous→Carl link in one record.
+**BLM-GLO settled (Columbia County, 17 results): there is NO Thaddeus/Thad Cason land
+patent.** The only Cason federal patents in Columbia County are:
+- **Bartholomew Cason** — Military Warrant MW-0623-185, T6S R18E Sec.19 NE, 10 Jul 1852
+- **William W. Cason** — Serial Patent SER-735685, T4S R16E Sec.21 (phosphate reserved), 19 Feb 1920
 
-Note: only ~40% of homestead applicants ever patented, so a **null BLM-GLO result does
-not mean "no land"** — it likely means the land came by **cash sale or private deed**
-(Columbia Co. deeds survive from **1875**).
+Neither is Thadeous, and neither tract matches the Fort White / CR 778 homeplace. So the
+**Fort White land was acquired by deed (private purchase) or inheritance, NOT a federal
+homestead/patent.** (This fits the base rate — only ~40% of homestead applicants ever
+patented — but here it's a clean negative: Thad simply isn't in the patent index.)
+
+**Therefore the two remaining pulls are decisive:**
+1. **Columbia Co. deed books (survive from 1875)** — search *Cason* for the CR 778 tract:
+   the purchase into the family, and any Thadeous→Carl / Carl→Robert conveyance.
+2. **Thadeous's 1945 Columbia Co. probate** — if he left a will/estate, it names the land
+   and the heir who took it (and settles the Thadeous→Carl link).
+
+**Two unplaced Columbia Casons surfaced** (likely kin — to place against the tree):
+Bartholomew Cason (a Seminole-War veteran, 1852) and William W. Cason (1920).
 
 ---
 
