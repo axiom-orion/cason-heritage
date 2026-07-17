@@ -104,8 +104,19 @@
 
   function sentences(text) {
     if (!text) return [];
-    return String(text)
-      .split(/(?<=[.?!])\s+/)
+    // Split after sentence-ending punctuation followed by whitespace.
+    // No regex lookbehind here: it is a parse-time SyntaxError on
+    // iOS Safari < 16.4 and would kill this entire file (no CASON_MEMORY).
+    const str = String(text);
+    const parts = [];
+    const re = /[.?!]\s+/g;
+    let start = 0, m;
+    while ((m = re.exec(str)) !== null) {
+      parts.push(str.slice(start, m.index + 1));
+      start = m.index + m[0].length;
+    }
+    parts.push(str.slice(start));
+    return parts
       .map(function (s) { return s.trim(); })
       .filter(function (s) { return s.length >= 28; });
   }
