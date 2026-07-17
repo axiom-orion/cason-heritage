@@ -28,7 +28,7 @@ test('The Living World renders, navigates all views, zero console errors', async
   await expect(page.getByText(/Knows generations/).first()).toBeVisible();
 
   // People Explorer
-  await page.getByRole('button', { name: 'People' }).click();
+  await page.getByRole('button', { name: 'People', exact: true }).click();
   await expect(page.getByText(/\d+ people/).first()).toBeVisible();
 
   // Memory Hearth (SVG rings)
@@ -42,7 +42,7 @@ test('The Living World renders, navigates all views, zero console errors', async
   await page.getByRole('button', { name: /live/ }).click();
 
   // Travel to another homestead via the Explorer (picks a different era).
-  await page.getByRole('button', { name: 'People' }).click();
+  await page.getByRole('button', { name: 'People', exact: true }).click();
   await page.getByText('Carl', { exact: false }).first().click();
   await expect(page.getByText(/At this homestead/)).toBeVisible();
 
@@ -64,7 +64,8 @@ test('The 3-D homestead toggles on without throwing', async ({ page }) => {
   await page.goto('/living');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: /Enter 3-D/ }).click();
-  await expect(page.getByRole('button', { name: /Exit 3-D/ })).toBeVisible();
+  // two intentional exits render in 3-D mode: the in-scene control + the flipped toggle
+  await expect(page.getByRole('button', { name: /Exit 3-D/ }).first()).toBeVisible();
   await page.waitForTimeout(4000); // let three.js load + the scene build (or fall back gracefully)
   // Either a WebGL canvas mounts, or a graceful fallback message — never a crash.
   expect(await page.locator('canvas').count()).toBeGreaterThanOrEqual(0);
@@ -80,7 +81,7 @@ test('The Living World is usable on a narrow (mobile) viewport', async ({ page }
   await page.getByRole('button', { name: /Map & feed/ }).first().click();
   await expect(page.getByText('Watch them live')).toBeVisible();
   // tabs still work
-  await page.getByRole('button', { name: 'People' }).click();
+  await page.getByRole('button', { name: 'People', exact: true }).click();
   await expect(page.getByText(/\d+ people/).first()).toBeVisible();
   expect(errors, 'mobile errors:\n' + errors.join('\n')).toEqual([]);
 });
