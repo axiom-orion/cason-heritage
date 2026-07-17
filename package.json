@@ -5,6 +5,8 @@
   "description": "The Cason Line — heritage narrative + audit-verified lineage ledger + family-tree-app variants + research prompt. Static site, deployed to Vercel.",
   "scripts": {
     "dev": "npx serve . -p 4000",
+    "check:syntax": "node scripts/syntax-check.js",
+    "pretest": "npm run check:syntax",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "esbuild": "^0.28.1",
     "serve": "^14.2.4"
   }
 }
