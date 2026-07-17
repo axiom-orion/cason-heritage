@@ -13,9 +13,40 @@ function watchErrors(page) {
   return errors;
 }
 
-test('The Living World renders, navigates all views, zero console errors', async ({ page }) => {
+test('The Living Line landing renders, the generation line is interactive, zero console errors', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/living');
+
+  // Hero mounts after the in-browser Babel transform.
+  await expect(page.getByText(/Every Cason, awake/)).toBeVisible({ timeout: 25000 });
+  await expect(page.getByRole('link', { name: 'SPEAK WITH AN ANCESTOR' }).first()).toBeVisible();
+
+  // The five editorial sections are present.
+  await expect(page.getByText('THE FAMILY LINE').first()).toBeVisible();
+  await expect(page.getByText('THE METHOD').first()).toBeVisible();
+  await expect(page.getByText('THE HORIZON RULE').first()).toBeVisible();
+  await expect(page.getByText('PERSONA SHEETS').first()).toBeVisible();
+
+  // Member cards render from the real record (every card has an OPEN SHEET link).
+  await expect(page.getByText('OPEN SHEET', { exact: false }).first()).toBeVisible();
+
+  // The memory-graph teaser draws to a canvas.
+  await expect(page.locator('canvas').first()).toBeVisible();
+
+  // The generation line is interactive: pick generation I, the heading follows.
+  await page.locator('#line').getByText('1604', { exact: false }).first().click();
+  await expect(page.getByRole('heading', { name: /The Crossing/ })).toBeVisible();
+
+  // The app CTA points at the immersive experience, not back at the landing.
+  const worldLinks = await page.locator('a[href="/living/world"]').count();
+  expect(worldLinks).toBeGreaterThan(0);
+
+  expect(errors, 'console/page errors on /living landing:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The Living World renders, navigates all views, zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/living/world');
 
   // The app mounts after the in-browser Babel transform — wait for the chrome.
   await expect(page.getByText('The Living Line', { exact: false }).first()).toBeVisible({ timeout: 25000 });
@@ -51,7 +82,7 @@ test('The Living World renders, navigates all views, zero console errors', async
 
 test('Templated persona chat answers offline (no keys)', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Tell me about your life' }).click();
   // the deterministic voice replies "<Name> speaking. ..." — no network needed
@@ -61,7 +92,7 @@ test('Templated persona chat answers offline (no keys)', async ({ page }) => {
 
 test('The 3-D homestead toggles on without throwing', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: /Enter 3-D/ }).click();
   // two intentional exits render in 3-D mode: the in-scene control + the flipped toggle
@@ -75,7 +106,7 @@ test('The 3-D homestead toggles on without throwing', async ({ page }) => {
 test('The Living World is usable on a narrow (mobile) viewport', async ({ page }) => {
   const errors = watchErrors(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText(/At this homestead/)).toBeVisible({ timeout: 25000 });
   // the map/feed sidebar is collapsed on mobile — open it
   await page.getByRole('button', { name: /Map & feed/ }).first().click();
@@ -88,7 +119,7 @@ test('The Living World is usable on a narrow (mobile) viewport', async ({ page }
 
 test('The Open Lines worklist renders with research actions', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Open lines' }).click();
   await expect(page.getByText(/unresolved threads/)).toBeVisible();
@@ -98,7 +129,7 @@ test('The Open Lines worklist renders with research actions', async ({ page }) =
 
 test('Narrator panel offers verified email sign-in (Supabase connected)', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Narrator' }).click();
   // With Supabase configured, family members verify via an email magic-link —
@@ -119,7 +150,7 @@ test('The family-tree dashboard loads with zero console errors', async ({ page }
 
 test('A Day Here and The Long Move views render', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   // the day-in-the-life: movements + the era's documented trial
   await page.getByRole('button', { name: 'A Day Here' }).click();
@@ -134,7 +165,7 @@ test('A Day Here and The Long Move views render', async ({ page }) => {
 
 test('Governance holds: horizon, quarantine, and referential integrity', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   const report = await page.evaluate(() => {
     const D = window.CASON_DATA, MEM = window.CASON_MEMORY, people = D.people;
@@ -168,7 +199,7 @@ test('Governance holds: horizon, quarantine, and referential integrity', async (
 
 test('The Governance glass-box renders with live integrity status', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Governance' }).click();
   await expect(page.getByRole('heading', { name: /Governance/ })).toBeVisible();
@@ -196,7 +227,7 @@ test('The Governance glass-box renders with live integrity status', async ({ pag
 
 test('The Desk command center renders uploads, sorting, and the queue', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/living');
+  await page.goto('/living/world');
   await expect(page.getByText('Watch them live')).toBeVisible({ timeout: 25000 });
   await page.getByRole('button', { name: 'Desk' }).click();
   await expect(page.getByRole('heading', { name: 'Your desk' })).toBeVisible();

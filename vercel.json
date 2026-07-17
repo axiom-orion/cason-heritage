@@ -11,6 +11,7 @@
     { "source": "/hub",       "destination": "/hub" },
     { "source": "/tree",      "destination": "/cason-tree" },
     { "source": "/dashboard", "destination": "/ui_kits/family-tree-app" },
+    { "source": "/living/world", "destination": "/ui_kits/living-line/world" },
     { "source": "/living",    "destination": "/ui_kits/living-line" },
     { "source": "/proof",     "destination": "/ui_kits/proof" },
     { "source": "/deck",      "destination": "/slides" },

@@ -32,7 +32,7 @@ const STAGES = [
   { id: 'fl', placeId: 'newnansville', era: 'pioneer', year: 1845, label: 'Newnansville, Alachua Co., Florida', blurb: 'Florida pioneer homestead · 1840s' },
   { id: 'war', placeId: 'cason-cem', era: 'civil', year: 1864, label: 'Alachua County at War', blurb: 'The county at war · 1860s' },
   { id: 'fw', placeId: 'fort-white', era: 'modern', year: 1910, label: 'Fort White, Columbia Co., Florida', blurb: 'Turpentine & timber · 1900s' },
-  { id: 'sc', placeId: 'titusville', era: 'modern', year: 1957, label: 'Titusville · the Space Coast', blurb: 'Rockets on the horizon · 1957' },
+  { id: 'sc', placeId: 'titusville', era: 'modern', year: 1975, label: 'Titusville · the Space Coast', blurb: 'The full household · rockets on the horizon · 1975' },
 ];
 const MIGRATION = ['digswell', 'jamestown', 'lynnhaven', 'princess', 'beaufort', 'glynn', 'newnansville', 'cason-cem', 'fort-white', 'titusville'];
 
