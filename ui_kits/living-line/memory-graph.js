@@ -167,6 +167,10 @@
       text: 'My middle name is Green — but whose people were the Greens? It has the look of a mother’s maiden name, and I cannot yet say which line carried it down to me.' },
     { ownerId: 'casey-ann', tags: ['endogamy', 'cason'],
       text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. None of it is yet proven on paper.' },
+    { ownerId: 'thadeous', tags: ['marriage', 'discrepancy'],
+      text: 'My headstone at Tustenuggee says I married Georgia on 25 December 1883, but the family record keeps it as Christmas Eve 1882. Which year — and which day — is right? The Columbia County marriage return will settle it.' },
+    { ownerId: 'carl-columbus', tags: ['parentage', 'land'],
+      text: 'The family names Thadeous as my father, but no primary record yet places me in his Fort White household — his gravestone even lists only four children, and I am not among them. The 1900/1910/1920 census, and his 1945 Columbia County probate, should name me and say who took the Fort White land.' },
   ];
 
   /* ============================================================
