@@ -49,14 +49,31 @@ Neither is Thadeous, and neither tract matches the Fort White / CR 778 homeplace
 homestead/patent.** (This fits the base rate — only ~40% of homestead applicants ever
 patented — but here it's a clean negative: Thad simply isn't in the patent index.)
 
-**Therefore the two remaining pulls are decisive:**
-1. **Columbia Co. deed books (survive from 1875)** — search *Cason* for the CR 778 tract:
-   the purchase into the family, and any Thadeous→Carl / Carl→Robert conveyance.
-2. **Thadeous's 1945 Columbia Co. probate** — if he left a will/estate, it names the land
-   and the heir who took it (and settles the Thadeous→Carl link).
+**Probate ALSO ruled out for Thad.** A thorough browse of the FamilySearch *Florida
+Probate Records, 1784–1990* collection — including the actual **Columbia County "Estate
+index 1860–1955"** (the complete alphabetical Cason block, images 113–115) — found **no
+estate for Thaddeus/Thad Cason.** He died 17 Dec 1945 apparently **without an
+administered estate.** So the land did not pass by his will either.
 
-**Two unplaced Columbia Casons surfaced** (likely kin — to place against the tree):
-Bartholomew Cason (a Seminole-War veteran, 1852) and William W. Cason (1920).
+**⇒ The deed books are the single remaining documentary path.** Because Thad neither
+patented nor devised the land, it moved by **deed (an inter-vivos conveyance) or informal
+family transfer.** The Columbia Co. deed books survive from 1875, but the **online index
+only reaches 1987** — the 1880s–1960s Cason deeds must be pulled in person from the
+**grantor/grantee books at the Lake City courthouse** (see the Courthouse Pull-List).
+
+**Columbia County Cason estates that DO exist (collateral — leads to place):**
+- No. 211 — **William Cason**, 1872–1874 (admin. C.E.W. Collins)
+- No. 1089 — **Mary F. Cason** (minor), 1885 — guardian **Elias C. Osteen** (note the
+  Cason–O'Steen intermarriage already in the tree via Eli Cason's wife Cassandra O'Steen;
+  Guardian Book B p.153)
+- No. 1306 — **H. P. Cason**, will Sept 1933 (**Columbia Will Book C, p.111**), admin.
+  **Cora Cason**, activity 1937–1951 — *not* digitized on FamilySearch; closest in timing
+  to Thad's generation and worth pulling at the courthouse
+- No. 89 — **G. P. Cason** (admin. C. P. Farrell)
+- one bare index hit for **Ransom Cason** (no detail)
+
+**Two unplaced Columbia Casons from the patent index** (likely kin — to place):
+Bartholomew Cason (Seminole-War veteran, 1852) and William W. Cason (1920).
 
 ---
 
@@ -100,3 +117,38 @@ Sources: Find a Grave (#11538485; Cemetery ID 2150620), DuBose compiled genealog
 (TNG database), FamilySearch Research Wiki (Columbia Co. FL; FL probate/death/draft
 collections), BLM-GLO (`glorecords.blm.gov`), NARA land-entry guidance, and the
 Columbia County Clerk of Court (columbiaclerk.com).
+
+---
+
+## Courthouse Pull-List — Columbia County Clerk of Court, Lake City
+
+Online paths are exhausted: **BLM** carries no Thad patent; **FamilySearch probate** has
+no Thad estate; the Clerk's **online deed index only reaches 1987.** The 1880s–1960s
+Cason deeds must be pulled in person.
+
+**Clerk of Court** · 173 NE Hernando Ave, Lake City, FL 32055 · (386) 758-1342 · M–F 8–5.
+*Call first* to confirm pre-1987 deed books and old probate/will books are on-site, copy
+fees, and whether phone photos are allowed.
+
+**Cheat-sheet (who/when):**
+- Thaddeus / Thad / T. C. Cason — arrives Fort White ~1888 (deed TO him); d. 17 Dec 1945
+- Carl C. Cason — d. 22 Nov 1966
+- Robert R. Cason Sr. — b. 5 Apr 1933
+
+**Steps:**
+1. **Property Appraiser** (columbia.floridapa.com) — get the **Sec/Twp/Rng** for CR 778 /
+   the farmhouse tract; it lets you search deeds by legal description.
+2. **Grantee ("reverse") index → `Cason`** — find the **purchase into the family**
+   (~1885–1900, to Thaddeus). Note Book & Page.
+3. **Grantor ("direct") index → `Cason`** — find **Thad→Carl** and **Carl→Robert**
+   conveyances. Note Book & Page.
+4. **Pull the Deed Books** to those pages; photograph each (grantor, grantee, date, legal
+   description).
+5. **Probate/Will books** — pull **H. P. Cason's will, Columbia Will Book C p.111**
+   (1933; admin. Cora Cason) — the closest-in-time Cason estate, not online — and check it
+   for a relationship to Thaddeus. (Thad himself left no estate file.)
+6. **Also try surname variants** in the deed/estate indexes as a rule-out: *Casson,
+   Cayson, Kason.*
+
+**Bring back for the record:** for each deed — grantor · grantee · date · book/page ·
+legal description; for any will — book & page (or a photo).
