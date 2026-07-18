@@ -485,7 +485,7 @@ function Roadmap() {
   return (
     <section id="roadmap" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 12 }}>
-        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>VI &mdash; ROADMAP</span>
+        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>VII &mdash; ROADMAP</span>
         <span style={{ flex: 1, height: 1, background: 'rgba(34,28,20,.16)' }} />
       </div>
       <RoadRow phase="PHASE I" title="The Record" badge={{ style: complete, text: 'COMPLETE · 2025' }}>
@@ -647,6 +647,83 @@ function TheNumbers() {
 }
 
 /* ====================================================================
+   Section VI — The Threads (evidence-stamped asides, collapsed by default)
+==================================================================== */
+const STAMP_TONE = {
+  strong: LL.accent,        // ON THE RECORD / STRONGLY SUPPORTED
+  mid: '#8a7a5c',           // AS REPORTED / NOTED
+  soft: '#a07d4a',          // REASONED / DOUBTFUL
+  open: '#5f6b4e',          // OPEN QUESTION
+  out: 'rgba(34,28,20,.42)' // RULED OUT
+};
+
+function AsideRow(props) {
+  const a = props.aside, who = props.who;
+  const [open, setOpen] = useState(false);
+  const color = STAMP_TONE[a.stamp.tone] || STAMP_TONE.mid;
+  const preview = a.text.length > 96 && !open ? a.text.slice(0, 94).replace(/\s+\S*$/, '') + '…' : a.text;
+  return (
+    <div style={{ borderTop: '1px solid rgba(34,28,20,.12)' }}>
+      <button onClick={function () { setOpen(!open); }} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '16px 0', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <span style={{ flexShrink: 0, marginTop: 2, fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: color, border: '1px solid ' + color, borderRadius: 2, padding: '3px 7px', whiteSpace: 'nowrap' }}>{a.stamp.label}</span>
+        <span style={{ flex: 1 }}>
+          <span style={{ fontFamily: LL.serif, fontSize: 15.5, color: a.stamp.tone === 'out' ? 'rgba(34,28,20,.5)' : LL.body2, lineHeight: 1.55 }}>{preview}</span>
+          {who ? <span style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.08em', color: 'rgba(34,28,20,.45)', marginLeft: 8 }}>· {who}</span> : null}
+          {open ? <span style={{ display: 'block', marginTop: 8, fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.04em', color: color, fontStyle: 'normal' }}>{a.stamp.gloss}</span> : null}
+        </span>
+        <span style={{ flexShrink: 0, marginTop: 2, fontFamily: LL.mono, fontSize: 13, color: 'rgba(34,28,20,.4)' }}>{open ? '–' : '+'}</span>
+      </button>
+    </div>
+  );
+}
+
+function Threads() {
+  const conf = window.CASON_CONFIDENCE, data = window.CASON_DATA, mem = window.CASON_MEMORY;
+  const rows = useMemo(function () {
+    if (!conf || !data) return [];
+    // a curated spread of the finds that don't fit the clean story flow —
+    // deliberately across the whole confidence ladder, on the people they
+    // belong to. `possible`-evidence people supply the REASONED tier.
+    const picks = ['ransom-jr', 'casey-ann', 'thadeous', 'ransom-sr', 'carl-columbus', 'james-green', 'moses', 'robert-sr', 'berrien-cason-sr', 'henry-cason-b', 'julia-matilda'];
+    const bucket = { strong: [], mid: [], soft: [], open: [], out: [] };
+    picks.forEach(function (id) {
+      const p = data.people[id]; if (!p) return;
+      conf.asidesForPerson(p, mem).forEach(function (a) {
+        if (a.kind === 'source' && a.text.length < 40) return;
+        (bucket[a.stamp.tone] || bucket.mid).push({ aside: a, who: p.name.replace(/\s*\(.*\)/, '') });
+      });
+    });
+    // quota per tier so every stamp is represented, capped ~2 per person
+    const quota = { strong: 3, mid: 2, soft: 3, open: 4, out: 1 };
+    const seen = {}, out = [];
+    ['strong', 'mid', 'soft', 'open', 'out'].forEach(function (tone) {
+      let n = 0;
+      bucket[tone].forEach(function (r) {
+        if (n >= quota[tone]) return;
+        if ((seen[r.who] || 0) >= 2) return;
+        seen[r.who] = (seen[r.who] || 0) + 1; n++; out.push(r);
+      });
+    });
+    return out;
+  }, []);
+  if (!rows.length) return null;
+  return (
+    <section id="threads" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
+      <SectionHead num="VI" label="THE THREADS" right="TAP TO OPEN · SKIP TO KEEP THE STORY" />
+      <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 28 }}>
+        <h2 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(30px,3.2vw,44px)', lineHeight: 1.1, margin: 0 }}>The things that don&rsquo;t fit the story &mdash; told straight.</h2>
+        <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+          The leads, the loose ends, the finds off to the side. Each carries a stamp for exactly how sure we are &mdash; from <em>on the record</em> to <em>reasoned but not concrete</em> to an <em>open question</em> that may never be settled. Collapsed by default; the story reads clean without them.
+        </p>
+      </div>
+      <div style={{ borderBottom: '1px solid rgba(34,28,20,.12)' }}>
+        {rows.map(function (r, i) { return <AsideRow key={i} aside={r.aside} who={r.who} />; })}
+      </div>
+    </section>
+  );
+}
+
+/* ====================================================================
    Footer
 ==================================================================== */
 function Footer() {
@@ -715,6 +792,7 @@ function LivingLine() {
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
       <TheNumbers />
+      <Threads />
       <Roadmap />
       <Footer />
     </div>
