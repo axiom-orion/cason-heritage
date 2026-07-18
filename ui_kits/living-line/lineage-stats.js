@@ -140,6 +140,42 @@
     return null;
   }
 
+  /* ---- the families that married into the line (widen beyond one descent) ---- */
+  var NAME_STOP = { Ann: 1, Nell: 1, Mae: 1, Lucy: 1, Jr: 1, Sr: 1, II: 1, III: 1, Cason: 1, Casson: 1 };
+  function surnameOf(name) {
+    var m = String(name).match(/n[eé]e\s+([A-Z][A-Za-z'’]+)/);
+    if (m) return m[1];
+    var clean = String(name).replace(/["'‘’][^"'‘’]*["'‘’]/g, ' ').replace(/\([^)]*\)/g, ' ').trim();
+    var toks = clean.split(/\s+/).filter(Boolean);
+    if (toks.length < 2) return null;
+    var last = toks[toks.length - 1];
+    if (last.length < 3 || NAME_STOP[last]) return null;
+    return last;
+  }
+  function marriedFamilies(people) {
+    var fam = {};
+    Object.keys(people).forEach(function (id) {
+      var p = people[id];
+      (p.spouse || []).forEach(function (sid) {
+        var s = people[sid];
+        if (!s || /cason|casson/i.test(s.name)) return;   // born into the line, not married-in
+        var sur = surnameOf(s.name);
+        if (!sur) return;
+        (fam[sur] = fam[sur] || { surname: sur, marriages: [] });
+        fam[sur].marriages.push({ who: s.name, into: p.name });
+      });
+      // Cason women who took a married surname: "Mary Cason Tuck" -> Tuck
+      var mm = String(p.name).match(/Cason\s+([A-Z][A-Za-z'’]+)\b/);
+      if (mm && !NAME_STOP[mm[1]] && mm[1].length >= 3) {
+        var sur2 = mm[1];
+        (fam[sur2] = fam[sur2] || { surname: sur2, marriages: [] });
+        if (!fam[sur2].marriages.some(function (x) { return x.into === p.name; }))
+          fam[sur2].marriages.push({ who: p.name, into: 'married out' });
+      }
+    });
+    return Object.keys(fam).sort().map(function (k) { return fam[k]; });
+  }
+
   function build(data) {
     data = data || (root && root.CASON_DATA) || {};
     var people = data.people || {};
@@ -226,6 +262,9 @@
       byGen: byGen,
       aliveByYear: { known: known, estimated: estimated },
       descendants: rootStats,
+      families: marriedFamilies(people),
+      branchMembers: ids.filter(function (id) { return !people[id].direct; }).length,
+      directMembers: ids.filter(function (id) { return people[id].direct; }).length,
       facts: facts,
       rootId: thomas,
     };
@@ -238,6 +277,8 @@
     childIndex: childIndex,
     descendantsOf: descendantsOf,
     descendantsAtDepth: descendantsAtDepth,
+    surnameOf: surnameOf,
+    marriedFamilies: marriedFamilies,
   };
 
   if (root && root.CASON_DATA) {

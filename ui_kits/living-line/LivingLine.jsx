@@ -621,6 +621,27 @@ function TheNumbers() {
         Counted only where the dates allow it &mdash; shown as met / determinable. Blanks are generations whose records are still too thin to say.
       </p>
       <GenTable stats={s} />
+
+      <div style={{ marginTop: 64, borderTop: '1px solid rgba(34,28,20,.16)', paddingTop: 44 }}>
+        <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 24 }}>
+          <h3 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(28px,3vw,40px)', lineHeight: 1.12, margin: 0 }}>Not one descent &mdash; a whole family.</h3>
+          <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+            The direct line is {s.directMembers} names. Around it stand {s.branchMembers} more &mdash; the brothers and sisters who stayed, the cousins who scattered &mdash; and {s.families.length} families who married into the Casons and became part of the line.
+          </p>
+        </div>
+        <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: 'rgba(34,28,20,.5)', marginBottom: 14 }}>THE FAMILIES THAT MARRIED IN</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {s.families.map(function (f) {
+            return <span key={f.surname} title={f.marriages.map(function (m) { return m.who; }).join(' · ')}
+              style={{ fontFamily: LL.serif, fontSize: 15, padding: '7px 14px', border: '1px solid rgba(34,28,20,.2)', background: LL.card, color: LL.ink, borderRadius: 2 }}>
+              {f.surname}{f.marriages.length > 1 ? <span style={{ color: 'rgba(34,28,20,.45)', fontFamily: LL.mono, fontSize: 11 }}>{' ×' + f.marriages.length}</span> : null}
+            </span>;
+          })}
+        </div>
+        <p style={{ margin: '18px 0 0', fontSize: 14.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 700 }}>
+          Cannon, Poole, Munden, Barrow, McKinney, Douglas, O&rsquo;Steen and the rest &mdash; the Casons are only half of every marriage. Their records are still thin; adding them is how the story gets its full width.
+        </p>
+      </div>
     </section>
   );
 }
