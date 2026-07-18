@@ -2329,6 +2329,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   maxZoom: 12
 }).addTo(map);
 
+// Land highlights sit in a lower pane so the cemetery/homestead markers stay
+// clickable on top of them (the land polygon used to swallow those clicks).
+map.createPane('landpane');
+map.getPane('landpane').style.zIndex = 350;   // below the default overlayPane (400)
+
 // ── DIRECT LINE markers (gold/rust — the path through eleven generations) ──
 const directLine = [
   // ENGLAND
@@ -2359,7 +2364,7 @@ const directLine = [
 
   // Fort White area — precise coordinates
   { lat: 29.9186, lng: -82.6393, title: "Tustenuggee Methodist Cemetery, Fort White", date: "1857–1945", desc: "<b>Thadeous Calhoun Cason</b> (1857-1945) buried here. Married Georgia Quintine McKinney Dec 24, 1882. 12-14 children. 1715 McClinton Rd, Fort White, FL 32038.", color: "#6b1d1d", size: 8 },
-  { lat: 29.888409, lng: -82.655932, title: "Cason Family Property, CR 778, Fort White", date: "1903–Present", desc: "<b>Carl Columbus Cason</b> (1903-1966) raised 13 children on ~$7/month. <b>Robert Sr.</b> (b.1933) born in the farmhouse here (still standing). Moved to Titusville, returned home. Robert Sr. & Mary Nell's ashes rest on this property — stone's throw from the farmhouse. Four of their children reside here today.", color: "#d4a825", size: 12 },
+  { lat: 29.888409, lng: -82.655932, title: "Cason Family Property, CR 778, Fort White", date: "1903–Present", desc: "<b>Carl Columbus Cason</b> (1903-1966) raised 13 children here. <b>Robert Sr.</b> (b.1933) was born in the farmhouse (still standing), moved to Titusville in 1957, and later returned to the Fort White land.", color: "#d4a825", size: 12 },
   { lat: 29.8806, lng: -82.6648, title: "Shiloh Baptist Church Cemetery, Fort White", date: "Modern", desc: "Burial site of Daniel Wyles Cason (1939-2017), Lawrence Milton Cason (1946-2017), Ellen Cason Ross (1954-2014). Carl Columbus's children.", color: "#6b1d1d", size: 6 },
 
   // Brevard
@@ -2419,6 +2424,7 @@ L.polygon([
   [29.84, -82.50], [29.84, -82.42],
   [29.92, -82.42], [29.92, -82.50]
 ], {
+  pane: 'landpane',
   color: '#d4a825', weight: 2, opacity: 0.5,
   fillColor: '#d4a825', fillOpacity: 0.08,
   dashArray: '6,4'
@@ -2433,6 +2439,7 @@ L.polygon([
   [29.86, -82.69], [29.86, -82.62],
   [29.93, -82.62], [29.93, -82.69]
 ], {
+  pane: 'landpane',
   color: '#d4a825', weight: 2, opacity: 0.5,
   fillColor: '#d4a825', fillOpacity: 0.08,
   dashArray: '6,4'
@@ -2447,6 +2454,7 @@ L.polygon([
   [31.15, -81.60], [31.15, -81.48],
   [31.26, -81.48], [31.26, -81.60]
 ], {
+  pane: 'landpane',
   color: '#2d5a4a', weight: 2, opacity: 0.4,
   fillColor: '#2d5a4a', fillOpacity: 0.06,
   dashArray: '6,4'
