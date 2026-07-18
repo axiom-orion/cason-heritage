@@ -162,7 +162,7 @@
         var sur = surnameOf(s.name);
         if (!sur) return;
         (fam[sur] = fam[sur] || { surname: sur, marriages: [] });
-        fam[sur].marriages.push({ who: s.name, into: p.name });
+        fam[sur].marriages.push({ who: s.name, into: p.name, whoId: sid, intoId: id, ev: s.evidence || null, lifespan: s.lifespan || '' });
       });
       // Cason women who took a married surname: "Mary Cason Tuck" -> Tuck
       var mm = String(p.name).match(/Cason\s+([A-Z][A-Za-z'’]+)\b/);

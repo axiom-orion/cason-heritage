@@ -102,13 +102,14 @@ function Nav() {
 ==================================================================== */
 function Hero(props) {
   const s = props.stats;
+  const fam = props.viewer === 'known';   // 2nd voice: the family register for the innermost tier
   const diamond = <span style={{ width: 7, height: 7, background: LL.accent, transform: 'rotate(45deg)' }} />;
   const solid = { display: 'inline-block', padding: '15px 28px', background: LL.accent, color: LL.bg, fontFamily: LL.mono, fontSize: 11, letterSpacing: '.16em' };
   const ghost = { display: 'inline-block', padding: '15px 28px', border: '1px solid rgba(34,28,20,.35)', color: LL.ink, fontFamily: LL.mono, fontSize: 11, letterSpacing: '.16em' };
   return (
     <header style={{ maxWidth: 1240, margin: '0 auto', padding: '110px 32px 0', textAlign: 'center' }}>
       <div className="ll-rise" style={{ animationDelay: '.05s', fontFamily: LL.mono, fontSize: 11, letterSpacing: '.22em', color: LL.accent }}>
-        THE CASON FAMILY, ALIVE &middot; RECORD OF {s.start} &ndash; PRESENT
+        {fam ? 'OUR FAMILY, ALIVE' : 'THE CASON FAMILY, ALIVE'} &middot; RECORD OF {s.start} &ndash; PRESENT
       </div>
       <h1 className="ll-rise" style={{ animationDelay: '.15s', fontFamily: LL.display, fontWeight: 400,
         fontSize: 'clamp(54px,7.4vw,110px)', lineHeight: 1.0, letterSpacing: '-.01em', margin: '30px auto 0', maxWidth: 1000 }}>
@@ -118,7 +119,9 @@ function Hero(props) {
         <span style={{ width: 64, height: 1, background: 'rgba(34,28,20,.3)' }} />{diamond}<span style={{ width: 64, height: 1, background: 'rgba(34,28,20,.3)' }} />
       </div>
       <p className="ll-rise" style={{ animationDelay: '.35s', maxWidth: 640, margin: '32px auto 0', fontSize: 20, lineHeight: 1.65, color: LL.body }}>
-        The Living Line renders {s.personas} ancestors as autonomous personas &mdash; each one bounded by what their generation could actually know. Letters, ledgers, and hearsay go in. Nothing from the future ever does.
+        {fam
+          ? 'These are our people — ' + s.personas + ' of us, rendered as living personas, each bounded by what their generation could know. Our letters, ledgers, and hearsay go in. Nothing from the future ever does.'
+          : 'The Living Line renders ' + s.personas + ' ancestors as autonomous personas — each one bounded by what their generation could actually know. Letters, ledgers, and hearsay go in. Nothing from the future ever does.'}
       </p>
       <div className="ll-rise" style={{ animationDelay: '.45s', display: 'flex', justifyContent: 'center', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>
         <a className="ll-cta" href="#line" style={solid}>EXPLORE THE LINE &darr;</a>
@@ -609,7 +612,51 @@ function GenTable(props) {
   );
 }
 
-function TheNumbers() {
+/* Per-family records — tap a married-in surname to open its marriages into the
+   line, each with a confidence stamp. The stub of a page waiting to be filled. */
+function familyToneColor(tone) {
+  return { strong: LL.accent, mid: '#8a7a5c', soft: '#a07d4a', open: '#5f6b4e', out: 'rgba(34,28,20,.42)' }[tone] || '#8a7a5c';
+}
+function FamiliesPanel(props) {
+  const families = props.families, conf = window.CASON_CONFIDENCE;
+  const [sel, setSel] = useState(null);
+  const selFam = families.filter(function (f) { return f.surname === sel; })[0];
+  return (
+    <div>
+      <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: 'rgba(34,28,20,.5)', marginBottom: 14 }}>THE FAMILIES THAT MARRIED IN &middot; TAP A NAME</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {families.map(function (f) {
+          const on = sel === f.surname;
+          return <button key={f.surname} onClick={function () { setSel(on ? null : f.surname); }}
+            style={{ fontFamily: LL.serif, fontSize: 15, padding: '7px 14px', cursor: 'pointer', borderRadius: 2,
+              border: '1px solid ' + (on ? LL.accent : 'rgba(34,28,20,.2)'), background: on ? LL.accent : LL.card, color: on ? LL.bg : LL.ink }}>
+            {f.surname}{f.marriages.length > 1 ? <span style={{ opacity: .6, fontFamily: LL.mono, fontSize: 11 }}>{' ×' + f.marriages.length}</span> : null}
+          </button>;
+        })}
+      </div>
+      {selFam ? (
+        <div style={{ marginTop: 20, background: LL.card, border: '1px solid rgba(34,28,20,.18)', padding: '22px 24px' }}>
+          <div style={{ fontFamily: LL.display, fontSize: 26, fontWeight: 500 }}>The {selFam.surname} family</div>
+          <div style={{ fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.1em', color: 'rgba(34,28,20,.5)', margin: '4px 0 14px' }}>{selFam.marriages.length} marriage{selFam.marriages.length > 1 ? 's' : ''} into the Cason line</div>
+          {selFam.marriages.map(function (m, i) {
+            const st = conf ? conf.stampFor(m.ev) : null;
+            return <div key={i} style={{ borderTop: i ? '1px solid rgba(34,28,20,.1)' : 'none', padding: '11px 0', display: 'flex', gap: 12, alignItems: 'baseline' }}>
+              {st ? <span style={{ flexShrink: 0, fontFamily: LL.mono, fontSize: 8.5, letterSpacing: '.1em', color: familyToneColor(st.tone), border: '1px solid ' + familyToneColor(st.tone), borderRadius: 2, padding: '2px 6px', whiteSpace: 'nowrap' }}>{st.label}</span> : null}
+              <span style={{ fontFamily: LL.serif, fontSize: 15.5, color: LL.body2, lineHeight: 1.5 }}>
+                <strong style={{ fontWeight: 500, color: LL.ink }}>{m.who}</strong>
+                {m.lifespan ? <span style={{ color: 'rgba(34,28,20,.5)' }}>{' (' + m.lifespan + ')'}</span> : null}
+                {m.into === 'married out' ? ' married a Cason' : <React.Fragment> married <em>{m.into}</em></React.Fragment>}
+              </span>
+            </div>;
+          })}
+          <p style={{ margin: '14px 0 0', fontSize: 13.5, fontStyle: 'italic', color: 'rgba(34,28,20,.55)' }}>The {selFam.surname} family&rsquo;s own story is still thin in the record &mdash; a page waiting to be filled.</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function TheNumbers(props) {
   const s = window.CASON_STATS;
   if (!s || !s.byGen || !s.byGen.length) return null;
   const thomas = s.descendants['thomas-sr'] || { total: 0 };
@@ -641,21 +688,13 @@ function TheNumbers() {
 
       <div style={{ marginTop: 64, borderTop: '1px solid rgba(34,28,20,.16)', paddingTop: 44 }}>
         <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 24 }}>
-          <h3 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(28px,3vw,40px)', lineHeight: 1.12, margin: 0 }}>Not one descent &mdash; a whole family.</h3>
+          <h3 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(28px,3vw,40px)', lineHeight: 1.12, margin: 0 }}>{props.viewer === 'known' ? 'Not one line — all of us.' : 'Not one descent — a whole family.'}</h3>
           <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
             The direct line is {s.directMembers} names. Around it stand {s.branchMembers} more &mdash; the brothers and sisters who stayed, the cousins who scattered &mdash; and {s.families.length} families who married into the Casons and became part of the line.
           </p>
         </div>
-        <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: 'rgba(34,28,20,.5)', marginBottom: 14 }}>THE FAMILIES THAT MARRIED IN</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {s.families.map(function (f) {
-            return <span key={f.surname} title={f.marriages.map(function (m) { return m.who; }).join(' · ')}
-              style={{ fontFamily: LL.serif, fontSize: 15, padding: '7px 14px', border: '1px solid rgba(34,28,20,.2)', background: LL.card, color: LL.ink, borderRadius: 2 }}>
-              {f.surname}{f.marriages.length > 1 ? <span style={{ color: 'rgba(34,28,20,.45)', fontFamily: LL.mono, fontSize: 11 }}>{' ×' + f.marriages.length}</span> : null}
-            </span>;
-          })}
-        </div>
-        <p style={{ margin: '18px 0 0', fontSize: 14.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 700 }}>
+        <FamiliesPanel families={s.families} />
+        <p style={{ margin: '22px 0 0', fontSize: 14.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 700 }}>
           Cannon, Poole, Munden, Barrow, McKinney, Douglas, O&rsquo;Steen and the rest &mdash; the Casons are only half of every marriage. Their records are still thin; adding them is how the story gets its full width.
         </p>
       </div>
@@ -825,12 +864,12 @@ function LivingLine() {
     <div style={{ minHeight: '100vh', fontFamily: LL.serif, fontSize: 18, lineHeight: 1.6, color: LL.ink, background: LL.bg }}>
       <Nav />
       <DepthControl viewer={viewer} onChange={pickViewer} />
-      <Hero stats={stats} />
+      <Hero stats={stats} viewer={viewer} />
       <FamilyLine line={line} showCat={true} viewer={viewer} />
       <Method stats={stats} />
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
-      <TheNumbers />
+      <TheNumbers viewer={viewer} />
       <Threads />
       <Roadmap />
       <Footer />
