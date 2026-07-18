@@ -88,7 +88,7 @@ function Nav() {
           <a className="ll-link" href="#method" style={linkS}>METHOD</a>
           <a className="ll-link" href="#sheets" style={linkS}>SHEETS</a>
           <a className="ll-link" href="#numbers" style={linkS}>NUMBERS</a>
-          <a className="ll-link" href="#roadmap" style={linkS}>ROADMAP</a>
+          <a className="ll-link" href="/archive" style={linkS}>ARCHIVE</a>
           <a className="ll-cta" href={WORLD_URL} style={{ display: 'inline-block', padding: '10px 18px',
             background: LL.accent, color: LL.bg, fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.14em', whiteSpace: 'nowrap' }}>SPEAK WITH AN ANCESTOR</a>
         </div>

@@ -52,9 +52,12 @@ jsxFiles.forEach(function (file) {
 });
 
 /* ---- 2. plain-JS parse check (node --check) ---- */
-const jsFiles = fs.readdirSync(path.join(root, 'ui_kits', 'living-line'))
-  .filter(function (f) { return f.endsWith('.js'); })
-  .map(function (f) { return path.join(root, 'ui_kits', 'living-line', f); });
+const jsDirs = [path.join(root, 'ui_kits', 'living-line'), path.join(root, 'ui_kits', 'archive')];
+const jsFiles = jsDirs.reduce(function (acc, dir) {
+  if (!fs.existsSync(dir)) return acc;
+  fs.readdirSync(dir).forEach(function (f) { if (f.endsWith('.js')) acc.push(path.join(dir, f)); });
+  return acc;
+}, []);
 jsFiles.forEach(function (file) {
   const r = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   if (r.status !== 0) {
