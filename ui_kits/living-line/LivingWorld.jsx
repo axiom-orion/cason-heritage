@@ -34,7 +34,7 @@ const STAGES = [
   { id: 'fw', placeId: 'fort-white', era: 'modern', year: 1910, label: 'Fort White, Columbia Co., Florida', blurb: 'Turpentine & timber · 1900s' },
   { id: 'sc', placeId: 'titusville', era: 'modern', year: 1975, label: 'Titusville · the Space Coast', blurb: 'The full household · rockets on the horizon · 1975' },
 ];
-const MIGRATION = ['digswell', 'jamestown', 'lynnhaven', 'princess', 'beaufort', 'glynn', 'newnansville', 'cason-cem', 'fort-white', 'titusville'];
+const MIGRATION = ['digswell', 'jamestown', 'lynnhaven', 'princess', 'beaufort', 'glynn', 'nassau', 'newnansville', 'cason-cem', 'fort-white', 'titusville'];
 
 function eraHex(era) {
   return { colonial: '#d4a825', frontier: '#2d5a4a', pioneer: '#8b4513', civil: '#6b1d1d', modern: '#9a7b2d' }[era] || '#9a7b2d';
