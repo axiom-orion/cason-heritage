@@ -171,6 +171,8 @@
       text: 'My headstone at Tustenuggee says I married Georgia on 25 December 1883, but the family record keeps it as Christmas Eve 1882. Which year — and which day — is right? The Columbia County marriage return will settle it.' },
     { ownerId: 'carl-columbus', tags: ['parentage', 'land'],
       text: 'The family names Thadeous as my father, but no primary record yet places me in his Fort White household — his gravestone even lists only four children, and I am not among them. There is no homestead patent for the Fort White land (the federal index carries none in Thad\'s name), and no probate estate either (Thad is absent from Columbia\'s 1860-1955 estate index) — so the land was conveyed by deed while he lived, or handed down without paper. The Columbia County deed books, and the 1900-1920 census, are where it must be found now.' },
+    { ownerId: 'ransom-sr', tags: ['burial', 'location'],
+      text: 'Where do I actually lie? The record marks me at Newnansville, where I died, but the family says I rest half a mile from my grandson Ransom at North Pleasant Grove. The two places are nine miles apart — my grave has not truly been found, only guessed. My son James Green\'s resting place is no surer.' },
   ];
 
   /* ============================================================
