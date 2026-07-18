@@ -165,6 +165,23 @@ function GenSelector(props) {
 
 function MemberCard(props) {
   const m = props.m, showCat = props.showCat, cat = props.cat;
+  const T = window.CASON_TIERS;
+  // living family (persona status 'rec') is kept close: outsiders see a
+  // private placeholder; outer/known family see the real card.
+  if (T && m.st === 'rec' && !T.canSee('outer', props.viewer)) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '22px', background: LL.card, border: '1px dashed rgba(34,28,20,.25)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {showCat ? <span style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.16em', color: 'rgba(34,28,20,.4)' }}>{cat}</span> : <span />}
+          <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.14em', color: '#5f6b4e' }}>LIVING &middot; KEPT CLOSE</span>
+        </div>
+        <div style={{ fontFamily: LL.display, fontSize: 24, fontWeight: 500, color: 'rgba(34,28,20,.5)' }}>A living Cason</div>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'rgba(34,28,20,.5)', fontStyle: 'italic', flex: 1 }}>
+          The living generations are held close. If you&rsquo;re family, switch your view to <em>Outer family</em> or <em>Known family</em> to see them.
+        </p>
+      </div>
+    );
+  }
   return (
     <a className="ll-card" href={WORLD_URL}
       style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '22px 22px 18px', background: LL.card,
@@ -227,7 +244,7 @@ function FamilyLine(props) {
       <p style={{ fontStyle: 'italic', fontSize: 19, color: LL.body, margin: '0 0 36px', maxWidth: 680 }}>{g.sum}</p>
       <div className="ll-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 18 }}>
         {g.members.map(function (m) {
-          return <MemberCard key={m.id} m={m} showCat={props.showCat} cat={'CAT. ' + String(catOf[m.id]).padStart(3, '0')} />;
+          return <MemberCard key={m.id} m={m} showCat={props.showCat} cat={'CAT. ' + String(catOf[m.id]).padStart(3, '0')} viewer={props.viewer} />;
         })}
       </div>
     </section>
@@ -758,9 +775,30 @@ function Footer() {
 /* ====================================================================
    Root
 ==================================================================== */
+/* the story-depth control — soft, client-side; dials how personal the
+   telling gets. Fixed to the corner so it follows the reader. */
+function DepthControl(props) {
+  const T = window.CASON_TIERS;
+  if (!T) return null;
+  return (
+    <div style={{ position: 'fixed', right: 14, bottom: 14, zIndex: 80, background: 'rgba(23,19,16,.94)', borderRadius: 999,
+      padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 22px rgba(0,0,0,.28)' }}>
+      <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: 'rgba(239,230,208,.55)', padding: '0 8px' }}>VIEWING AS</span>
+      {T.TIERS.map(function (t) {
+        const on = props.viewer === t.key;
+        return <button key={t.key} onClick={function () { props.onChange(t.key); }} title={t.blurb}
+          style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.05em', padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: on ? LL.gold : 'transparent', color: on ? '#171310' : 'rgba(239,230,208,.85)' }}>{t.label}</button>;
+      })}
+    </div>
+  );
+}
+
 function LivingLine() {
   useOnce(LL_CSS);
   const line = window.CASON_LINE;
+  const [viewer, setViewerState] = useState(function () { return window.CASON_TIERS ? window.CASON_TIERS.viewer() : 'outsider'; });
+  function pickViewer(key) { if (window.CASON_TIERS) window.CASON_TIERS.setViewer(key); setViewerState(key); }
 
   if (!line || !line.gens || !line.gens.length) {
     return (
@@ -786,8 +824,9 @@ function LivingLine() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: LL.serif, fontSize: 18, lineHeight: 1.6, color: LL.ink, background: LL.bg }}>
       <Nav />
+      <DepthControl viewer={viewer} onChange={pickViewer} />
       <Hero stats={stats} />
-      <FamilyLine line={line} showCat={true} />
+      <FamilyLine line={line} showCat={true} viewer={viewer} />
       <Method stats={stats} />
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
