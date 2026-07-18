@@ -87,7 +87,7 @@ function Nav() {
           <a className="ll-link" href="#line" style={linkS}>THE LINE</a>
           <a className="ll-link" href="#method" style={linkS}>METHOD</a>
           <a className="ll-link" href="#sheets" style={linkS}>SHEETS</a>
-          <a className="ll-link" href={WORLD_URL} style={linkS}>GRAPH</a>
+          <a className="ll-link" href="#numbers" style={linkS}>NUMBERS</a>
           <a className="ll-link" href="#roadmap" style={linkS}>ROADMAP</a>
           <a className="ll-cta" href={WORLD_URL} style={{ display: 'inline-block', padding: '10px 18px',
             background: LL.accent, color: LL.bg, fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.14em', whiteSpace: 'nowrap' }}>SPEAK WITH AN ANCESTOR</a>
@@ -485,7 +485,7 @@ function Roadmap() {
   return (
     <section id="roadmap" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 12 }}>
-        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>V &mdash; ROADMAP</span>
+        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>VI &mdash; ROADMAP</span>
         <span style={{ flex: 1, height: 1, background: 'rgba(34,28,20,.16)' }} />
       </div>
       <RoadRow phase="PHASE I" title="The Record" badge={{ style: complete, text: 'COMPLETE · 2025' }}>
@@ -497,6 +497,130 @@ function Roadmap() {
       <RoadRow phase="PHASE III" title="The Parlor" badge={{ style: ahead, text: 'AHEAD · 2027' }}>
         Personas in conversation with each other across generations &mdash; and a portal for the living to deposit their own memories into the line, one evening a week.
       </RoadRow>
+    </section>
+  );
+}
+
+/* ====================================================================
+   Section VI — The Numbers (lineage statistics)
+==================================================================== */
+function StatTile(props) {
+  return (
+    <div style={{ background: LL.card, border: '1px solid rgba(34,28,20,.18)', padding: '20px 22px' }}>
+      <div style={{ fontFamily: LL.display, fontSize: 42, fontWeight: 500, lineHeight: 1, color: LL.accent }}>{props.n}</div>
+      <div style={{ marginTop: 8, fontFamily: LL.mono, fontSize: 10, letterSpacing: '.12em', color: 'rgba(34,28,20,.6)', lineHeight: 1.5 }}>{props.label}</div>
+    </div>
+  );
+}
+
+function AliveChart(props) {
+  const s = props.stats;
+  const est = s.aliveByYear.estimated, known = s.aliveByYear.known;
+  const [hover, setHover] = useState(null);
+  const W = 1000, H = 340, padL = 48, padR = 20, padT = 20, padB = 38;
+  const x0 = s.start, x1 = s.present;
+  const maxC = Math.max(1, est.reduce(function (m, p) { return Math.max(m, p.count); }, 0));
+  const X = function (yr) { return padL + (yr - x0) / (x1 - x0) * (W - padL - padR); };
+  const Y = function (c) { return H - padB - c / maxC * (H - padT - padB); };
+  const areaPath = 'M' + X(x0) + ' ' + Y(0) + est.map(function (p) { return 'L' + X(p.year).toFixed(1) + ' ' + Y(p.count).toFixed(1); }).join('') + 'L' + X(x1) + ' ' + Y(0) + 'Z';
+  const linePath = known.map(function (p, i) { return (i ? 'L' : 'M') + X(p.year).toFixed(1) + ' ' + Y(p.count).toFixed(1); }).join('');
+  const peak = est.reduce(function (a, p) { return p.count > a.count ? p : a; }, { count: 0, year: x0 });
+  const gridYears = [1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
+  const gridCounts = [10, 20, 30].filter(function (c) { return c <= maxC; });
+
+  function onMove(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    const yr = Math.round(x0 + (px - padL) / (W - padL - padR) * (x1 - x0));
+    const i = yr - x0;
+    if (i >= 0 && i < est.length) setHover({ year: est[i].year, est: est[i].count, known: known[i].count });
+  }
+  return (
+    <div style={{ position: 'relative' }}>
+      <svg viewBox={'0 0 ' + W + ' ' + H} style={{ width: '100%', height: 'auto', display: 'block' }} onMouseMove={onMove} onMouseLeave={function () { setHover(null); }}>
+        {gridCounts.map(function (c) {
+          return <g key={'gc' + c}>
+            <line x1={padL} y1={Y(c)} x2={W - padR} y2={Y(c)} stroke="rgba(34,28,20,.1)" strokeWidth="1" />
+            <text x={padL - 8} y={Y(c) + 3} textAnchor="end" fontFamily={LL.mono} fontSize="10" fill="rgba(34,28,20,.5)">{c}</text>
+          </g>;
+        })}
+        {gridYears.map(function (yr) {
+          return <text key={'gy' + yr} x={X(yr)} y={H - padB + 16} textAnchor="middle" fontFamily={LL.mono} fontSize="10" fill="rgba(34,28,20,.5)">{yr}</text>;
+        })}
+        <path d={areaPath} fill="rgba(138,59,36,.14)" stroke="none" />
+        <path d={linePath} fill="none" stroke={LL.accent} strokeWidth="2" />
+        <circle cx={X(peak.year)} cy={Y(peak.count)} r="3.5" fill={LL.accent} />
+        <text x={X(peak.year)} y={Y(peak.count) - 8} textAnchor="middle" fontFamily={LL.mono} fontSize="10" letterSpacing=".06em" fill={LL.accent}>PEAK ~{peak.count} · {peak.year}</text>
+        {hover ? <line x1={X(hover.year)} y1={padT} x2={X(hover.year)} y2={H - padB} stroke="rgba(34,28,20,.35)" strokeWidth="1" /> : null}
+      </svg>
+      {hover ? (
+        <div style={{ position: 'absolute', top: 6, left: (X(hover.year) / W * 100) + '%', transform: 'translateX(-50%)', pointerEvents: 'none',
+          background: LL.dark, color: '#efe6d0', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.06em', padding: '6px 9px', whiteSpace: 'nowrap', borderRadius: 2 }}>
+          {hover.year} &middot; ~{hover.est} alive{hover.known !== hover.est ? ' (' + hover.known + ' recorded)' : ''}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GenTable(props) {
+  const rows = props.stats.byGen;
+  const th = { fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(34,28,20,.55)', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(34,28,20,.2)', fontWeight: 400 };
+  const td = { fontFamily: LL.serif, fontSize: 14, color: LL.body2, padding: '8px 10px', borderBottom: '1px solid rgba(34,28,20,.1)' };
+  const num = { fontFamily: LL.mono, fontSize: 12 };
+  function frac(o) { return o.determinable ? o.met + ' / ' + o.determinable : '—'; }
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 440 }}>
+        <thead><tr>
+          <th style={th}>GEN</th><th style={th}>PEOPLE</th><th style={th}>BECAME PARENTS</th>
+          <th style={th}>MET A GRANDCHILD</th><th style={th}>MET A GREAT-GRANDCHILD</th>
+        </tr></thead>
+        <tbody>
+          {rows.map(function (r) {
+            return <tr key={r.gen}>
+              <td style={Object.assign({}, td, { fontFamily: LL.display, fontStyle: 'italic', fontSize: 16 })}>{r.roman}</td>
+              <td style={Object.assign({}, td, num)}>{r.total}</td>
+              <td style={Object.assign({}, td, num)}>{r.parents}</td>
+              <td style={Object.assign({}, td, num)}>{frac(r.grand)}</td>
+              <td style={Object.assign({}, td, num)}>{frac(r.great)}</td>
+            </tr>;
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function TheNumbers() {
+  const s = window.CASON_STATS;
+  if (!s || !s.byGen || !s.byGen.length) return null;
+  const thomas = s.descendants['thomas-sr'] || { total: 0 };
+  const ransom = s.descendants['ransom-sr'] || { total: 0 };
+  return (
+    <section id="numbers" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
+      <SectionHead num="V" label="THE NUMBERS" right="THE WHOLE TREE, COUNTED" />
+      <div className="ll-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 44 }}>
+        <StatTile n={thomas.total} label={'DESCENDANTS OF THOMAS CASSON\n(the 1635 immigrant)'} />
+        <StatTile n={ransom.total} label={'DESCENDANTS OF RANSOM SR.\n(the 1823 Florida crossing)'} />
+        <StatTile n={s.totals.parents} label={'CARRIED THE LINE ON\n(became parents on record)'} />
+        <StatTile n={s.totals.living} label={'LIVING TODAY\n(on the record)'} />
+      </div>
+      <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 28 }}>
+        <h2 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(30px,3.2vw,44px)', lineHeight: 1.1, margin: 0 }}>The family, alive across four centuries.</h2>
+        <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+          How many Casons were living in any given year. The solid line counts only members with a birth <em>and</em> death on record; the shaded field estimates the rest from their generation and kin &mdash; a reconstruction, not a census.
+        </p>
+      </div>
+      <AliveChart stats={s} />
+      <p style={{ margin: '10px 0 44px', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.08em', color: 'rgba(34,28,20,.5)' }}>
+        FIG. 2 &mdash; CASON FAMILY MEMBERS ALIVE BY YEAR, {s.start}&ndash;{s.present} &middot; SOLID = RECORDED, SHADED = ESTIMATED
+      </p>
+      <h3 style={{ fontFamily: LL.display, fontSize: 28, fontWeight: 500, margin: '0 0 6px' }}>Who lived to see the next branches.</h3>
+      <p style={{ margin: '0 0 22px', fontSize: 15.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 680 }}>
+        Counted only where the dates allow it &mdash; shown as met / determinable. Blanks are generations whose records are still too thin to say.
+      </p>
+      <GenTable stats={s} />
     </section>
   );
 }
@@ -569,6 +693,7 @@ function LivingLine() {
       <Method stats={stats} />
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
+      <TheNumbers />
       <Roadmap />
       <Footer />
     </div>
