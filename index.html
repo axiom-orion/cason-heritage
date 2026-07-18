@@ -2575,8 +2575,10 @@ navObserver.observe(hero);
 // Smooth scroll for nav links
 stickyNav.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', (e) => {
+    const href = a.getAttribute('href');
+    if (!href || href.charAt(0) !== '#') return; // route/external link — let it navigate
     e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
+    const target = document.querySelector(href);
     if (target) {
       const offset = 50;
       const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
@@ -2607,10 +2609,10 @@ window.addEventListener('scroll', () => {
 
 // ── Nav active state ──
 const navLinks = stickyNav.querySelectorAll('a');
-const navSections = Array.from(navLinks).map(a => ({
-  link: a,
-  target: document.querySelector(a.getAttribute('href'))
-})).filter(s => s.target);
+const navSections = Array.from(navLinks).map(a => {
+  const href = a.getAttribute('href');
+  return { link: a, target: (href && href.charAt(0) === '#') ? document.querySelector(href) : null };
+}).filter(s => s.target);
 
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {

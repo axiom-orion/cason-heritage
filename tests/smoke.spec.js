@@ -268,6 +268,18 @@ test('The Family Archive loads, accepts an upload, and persists it', async ({ pa
   expect(errors, 'console/page errors on /archive:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The hub organizes the surfaces with live counts, zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/hub');
+  await expect(page.getByRole('heading', { name: 'The Living Line.' })).toBeVisible({ timeout: 25000 });
+  await expect(page.getByRole('heading', { name: "Where it's kept." })).toBeVisible();       // the archive compartment
+  await expect(page.getByRole('link', { name: /The Family Archive/ })).toBeVisible();
+  // the status counts are computed live from the record (no more drift)
+  await expect(page.locator('#stat-gens')).toHaveText('14');
+  await expect(page.locator('#stat-records')).toHaveText('100');
+  expect(errors, 'console/page errors on /hub:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The heritage landing responds', async ({ page }) => {
   const res = await page.goto('/');
   expect(res.status()).toBeLessThan(400);
