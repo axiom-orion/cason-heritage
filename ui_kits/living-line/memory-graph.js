@@ -166,7 +166,13 @@
     { ownerId: 'james-green', tags: ['naming', 'maternal'],
       text: 'My middle name is Green — but whose people were the Greens? It has the look of a mother’s maiden name, and I cannot yet say which line carried it down to me.' },
     { ownerId: 'casey-ann', tags: ['endogamy', 'cason'],
-      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. None of it is yet proven on paper.' },
+      text: 'They say my own name was Cason before ever I married one — that Ransom and I were cousins, and my father was a Berrien Cason. Now there is paper: a Berrien Cason and I hold a bounty-land patent together in 1860, in Alachua. It does not yet say in so many words that he is my father, nor which Berrien he was — the warrant papers still must.' },
+    { ownerId: 'thadeous', tags: ['marriage', 'discrepancy'],
+      text: 'My headstone at Tustenuggee says I married Georgia on 25 December 1883, but the family record keeps it as Christmas Eve 1882. Which year — and which day — is right? The Columbia County marriage return will settle it.' },
+    { ownerId: 'carl-columbus', tags: ['land'],
+      text: 'My father Thadeous is proven now — the 1910 and 1920 census both set me among his children in the Fort White household (the 1910 taker misheard our name as "Caron," which is why the record hid so long). What is still unwritten is the land: there is no homestead patent and no probate in Thad\'s name, so the Fort White ground passed by deed or by hand. Only the Columbia County deed books can still show how it came from Thad to me, and from me to Robert.' },
+    { ownerId: 'ransom-sr', tags: ['burial', 'location'],
+      text: 'Where do I actually lie? The record marks me at Newnansville, where I died, but the family says I rest half a mile from my grandson Ransom at North Pleasant Grove. The two places are nine miles apart — my grave has not truly been found, only guessed. My son James Green\'s resting place is no surer.' },
   ];
 
   /* ============================================================
