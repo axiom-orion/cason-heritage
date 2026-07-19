@@ -111,11 +111,19 @@
       var path = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8) + '-' + safe;
       return sb.storage.from('proof').upload(path, file, { upsert: false }).then(function (up) {
         if (up.error) throw up.error;
-        return sb.from('cason_artifacts').insert({
+        var row = {
           person_id: meta.personId || null, title: meta.title, kind: meta.kind || 'document',
           storage_path: path, evidence: meta.evidence || 'possible', note: meta.note || null,
           doc_date: meta.docDate || meta.date || null,
           visibility: meta.visibility || 'public', author_email: state.email, author_name: state.name,
+        };
+        // Insert with doc_date; if the column isn't there yet (migration not run),
+        // retry without it so uploads never fail on account of the new field. The
+        // date is simply dropped until the one-line migration is applied.
+        return sb.from('cason_artifacts').insert(row).then(function (ins) {
+          if (!ins.error) return ins;
+          var bare = Object.assign({}, row); delete bare.doc_date;
+          return sb.from('cason_artifacts').insert(bare);
         });
       }).then(function (ins) { if (ins.error) throw ins.error; return { ok: true, url: artifactUrl(path) }; });
     });
