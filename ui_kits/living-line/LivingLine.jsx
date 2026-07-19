@@ -819,25 +819,94 @@ function Footer() {
 function DepthControl(props) {
   const T = window.CASON_TIERS;
   if (!T) return null;
+  const maxLvl = T.level(props.authMax || 'outsider');
   return (
-    <div style={{ position: 'fixed', right: 14, bottom: 14, zIndex: 80, background: 'rgba(23,19,16,.94)', borderRadius: 999,
-      padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 22px rgba(0,0,0,.28)' }}>
-      <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: 'rgba(239,230,208,.55)', padding: '0 8px' }}>VIEWING AS</span>
-      {T.TIERS.map(function (t) {
-        const on = props.viewer === t.key;
-        return <button key={t.key} onClick={function () { props.onChange(t.key); }} title={t.blurb}
-          style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.05em', padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: on ? LL.gold : 'transparent', color: on ? '#171310' : 'rgba(239,230,208,.85)' }}>{t.label}</button>;
-      })}
+    <div style={{ position: 'fixed', right: 14, bottom: 14, zIndex: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {props.msg ? <div style={{ background: 'rgba(23,19,16,.94)', color: '#efe6d0', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.04em', padding: '8px 12px', borderRadius: 8, maxWidth: 260, textAlign: 'right' }}>{props.msg}</div> : null}
+      <div style={{ background: 'rgba(23,19,16,.94)', borderRadius: 999, padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 22px rgba(0,0,0,.28)' }}>
+        <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: 'rgba(239,230,208,.55)', padding: '0 8px' }}>VIEWING AS</span>
+        {T.TIERS.map(function (t) {
+          const locked = T.level(t.key) > maxLvl;
+          const on = props.viewer === t.key;
+          return <button key={t.key} title={locked ? 'Sign in as family to unlock' : t.blurb}
+            onClick={function () { if (locked) props.onSignIn(); else props.onChange(t.key); }}
+            style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.05em', padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: on ? LL.gold : 'transparent', color: on ? '#171310' : (locked ? 'rgba(239,230,208,.4)' : 'rgba(239,230,208,.85)') }}>{locked ? '🔒 ' : ''}{t.label}</button>;
+        })}
+        {props.signedIn ? <button onClick={props.onSignOut} title={'Signed in as ' + (props.memberName || 'family')} style={{ fontFamily: LL.mono, fontSize: 9, color: 'rgba(217,164,65,.95)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 8px' }}>&#10003; {(props.memberName || 'family').split(' ')[0]}</button> : null}
+      </div>
     </div>
+  );
+}
+
+/* Private, RLS-gated story content — arrives only for a signed-in member whose
+   tier is deep enough. If you can see it, the server sent it; an outsider's
+   browser never receives these rows at all. */
+function PrivatePanel(props) {
+  if (!props.notes || !props.notes.length) return null;
+  return (
+    <section style={{ maxWidth: 1240, margin: '44px auto 0', padding: '0 32px' }}>
+      <div style={{ border: '1px solid #5f6b4e', background: '#f1efe4', borderRadius: 4, padding: '24px 28px' }}>
+        <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: '#5f6b4e', marginBottom: 14 }}>KEPT FOR FAMILY &middot; SERVED TO YOU BECAUSE YOU&rsquo;RE SIGNED IN</div>
+        {props.notes.map(function (n) {
+          return (
+            <div key={n.id} style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: LL.display, fontSize: 21, fontWeight: 500, color: LL.ink }}>{n.label}</div>
+              <p style={{ margin: '4px 0 0', fontSize: 16, color: LL.body2, lineHeight: 1.55 }}>{n.body}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
 function LivingLine() {
   useOnce(LL_CSS);
+  const T = window.CASON_TIERS;
   const line = window.CASON_LINE;
-  const [viewer, setViewerState] = useState(function () { return window.CASON_TIERS ? window.CASON_TIERS.viewer() : 'outsider'; });
-  function pickViewer(key) { if (window.CASON_TIERS) window.CASON_TIERS.setViewer(key); setViewerState(key); }
+  const [viewer, setViewerState] = useState(function () { return T ? T.viewer() : 'outsider'; });
+  const [authMax, setAuthMax] = useState('outsider');
+  const [priv, setPriv] = useState([]);
+  const [signedIn, setSignedIn] = useState(false);
+  const [memberName, setMemberName] = useState('');
+  const [msg, setMsg] = useState('');
+
+  useEffect(function () {
+    const A = window.CASON_AUTH;
+    if (!A || !A.enabled) return;
+    function apply() {
+      setAuthMax(A.myTier());
+      const st = A.getState();
+      const isMember = !!(st && st.verified);
+      setSignedIn(isMember);
+      setMemberName(st && st.name ? st.name : '');
+      if (isMember) { A.fetchPrivate().then(setPriv); setMsg(''); } else setPriv([]);
+    }
+    return A.onChange(function () { apply(); });
+  }, []);
+
+  function pickViewer(key) { if (T) T.setViewer(key); setViewerState(key); }
+  function onSignIn() {
+    const A = window.CASON_AUTH;
+    if (!A || !A.enabled) { setMsg('Family sign-in is not configured yet.'); return; }
+    const email = window.prompt('Family? Enter your email and we will send a one-time sign-in link:');
+    if (!email) return;
+    setMsg('Sending a sign-in link to ' + email.trim() + '…');
+    A.signIn(email.trim()).then(function () { setMsg('Check your email for the sign-in link, then come back here.'); })
+      .catch(function (e) { setMsg('Could not send the link: ' + (e && e.message ? e.message : 'error')); });
+  }
+  function onSignOut() { const A = window.CASON_AUTH; if (A) A.signOut(); setMsg(''); }
+
+  const stats = useMemo(function () {
+    if (!line || !line.gens) return { personas: 0, generations: 0, years: 0, start: 0, present: 0 };
+    var personas = 0;
+    line.gens.forEach(function (g) { personas += g.members.length; });
+    return { personas: personas, generations: line.gens.length, years: line.present - line.start, start: line.start, present: line.present };
+  }, [line]);
+
+  // the viewer only ever sees content up to the tier they are ENTITLED to.
+  const effViewer = (T && T.level(viewer) <= T.level(authMax)) ? viewer : authMax;
 
   if (!line || !line.gens || !line.gens.length) {
     return (
@@ -848,28 +917,17 @@ function LivingLine() {
     );
   }
 
-  const stats = useMemo(function () {
-    var personas = 0;
-    line.gens.forEach(function (g) { personas += g.members.length; });
-    return {
-      personas: personas,
-      generations: line.gens.length,
-      years: line.present - line.start,
-      start: line.start,
-      present: line.present
-    };
-  }, [line]);
-
   return (
     <div style={{ minHeight: '100vh', fontFamily: LL.serif, fontSize: 18, lineHeight: 1.6, color: LL.ink, background: LL.bg }}>
       <Nav />
-      <DepthControl viewer={viewer} onChange={pickViewer} />
-      <Hero stats={stats} viewer={viewer} />
-      <FamilyLine line={line} showCat={true} viewer={viewer} />
+      <DepthControl viewer={effViewer} authMax={authMax} signedIn={signedIn} memberName={memberName} msg={msg} onChange={pickViewer} onSignIn={onSignIn} onSignOut={onSignOut} />
+      <Hero stats={stats} viewer={effViewer} />
+      <PrivatePanel notes={priv} />
+      <FamilyLine line={line} showCat={true} viewer={effViewer} />
       <Method stats={stats} />
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
-      <TheNumbers viewer={viewer} />
+      <TheNumbers viewer={effViewer} />
       <Threads />
       <Roadmap />
       <Footer />
