@@ -60,7 +60,7 @@ ok('almanac: parses "D Month YYYY" and "Month D, YYYY"', ALMANAC.extractDates('m
 const cal = ALMANAC.build({ data: DATA });
 ok('almanac: builds a calendar with day-precise and year-only events', ALMANAC.stats(cal).dayPrecise > 0 && ALMANAC.stats(cal).mainLine > 0);
 ok('almanac: finds Ransom Sr.\'s passing on 12 November 1853', cal.some(function (e) { return e.person === 'ransom-sr' && e.kind === 'died' && e.month === 11 && e.day === 12 && e.year === 1853; }));
-ok('almanac: honor(Nov 12) surfaces it as today\'s anniversary', ALMANAC.honor(cal, new Date('2026-11-12')).today.some(function (e) { return e.person === 'ransom-sr'; }));
+ok('almanac: honor(Nov 12) surfaces it as today\'s anniversary', ALMANAC.honor(cal, new Date(2026, 10, 12)).today.some(function (e) { return e.person === 'ransom-sr'; })); // local-time constructor: honor() reads local calendar date, and 'YYYY-MM-DD' parses as UTC (off-by-one in any behind-UTC timezone)
 ok('almanac: the honor roster is main-line births & passings only', ALMANAC.mainLineDates(cal).every(function (e) { return e.direct && (e.kind === 'born' || e.kind === 'died'); }));
 ok('almanac: public-only — no living-tagged date in the honor roster', ALMANAC.mainLineDates(cal).every(function (e) { return !e.living; }));
 ok('almanac: every event flags its precision (day vs year)', cal.every(function (e) { return e.precision === 'day' || e.precision === 'year'; }));
