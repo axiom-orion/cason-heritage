@@ -92,6 +92,7 @@ function UploadPanel({ onAdded }) {
   const [title, setTitle] = useState('');
   const [kind, setKind] = useState('document');
   const [personId, setPersonId] = useState('');
+  const [docDate, setDocDate] = useState('');
   const [evidence, setEvidence] = useState('confirmed');
   const [visibility, setVisibility] = useState('public');
   const [note, setNote] = useState('');
@@ -104,9 +105,9 @@ function UploadPanel({ onAdded }) {
     if (!file) { setErr('Choose a file first.'); return; }
     if (!title.trim()) { setErr('Give it a title.'); return; }
     setBusy(true);
-    AUTH.uploadArtifact(file, { title: title.trim(), kind: kind, personId: personId || null, evidence: evidence, visibility: visibility, note: note.trim() || null })
+    AUTH.uploadArtifact(file, { title: title.trim(), kind: kind, personId: personId || null, docDate: docDate.trim() || null, evidence: evidence, visibility: visibility, note: note.trim() || null })
       .then(function () {
-        setBusy(false); setFile(null); setTitle(''); setNote(''); if (fileRef.current) fileRef.current.value = '';
+        setBusy(false); setFile(null); setTitle(''); setNote(''); setDocDate(''); if (fileRef.current) fileRef.current.value = '';
         onAdded();
       })
       .catch(function (e) { setBusy(false); setErr((e && e.message) || 'Upload failed.'); });
@@ -127,6 +128,10 @@ function UploadPanel({ onAdded }) {
             <option value="">— the line in general —</option>
             {PEOPLE.map(function (p) { return <option key={p.id} value={p.id}>{p.name}{p.gen ? ' (gen ' + p.gen + ')' : ''}</option>; })}
           </select>
+        </div>
+        <div><label>Date of the document</label>
+          <input value={docDate} onChange={function (e) { setDocDate(e.target.value); }} placeholder="e.g. 1962, 1962-08, or Aug 1962" />
+          <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 3, lineHeight: 1.35 }}>Year is enough. A dated item attached to a person becomes part of their memory from that year on.</div>
         </div>
         <div><label>Evidence tier</label><select value={evidence} onChange={function (e) { setEvidence(e.target.value); }}>{['confirmed', 'secondary', 'leading', 'possible'].map(function (t) { return <option key={t} value={t}>{t}</option>; })}</select></div>
         <div><label>Visibility</label><select value={visibility} onChange={function (e) { setVisibility(e.target.value); }}><option value="public">public</option><option value="family">family only</option></select></div>
