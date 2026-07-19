@@ -1986,6 +1986,21 @@ function LivingWorld() {
     return off;
   }, []);
 
+  // document self-awareness — fold the family's dated, person-attached pictures
+  // and papers (from the Archive) into each persona's horizon-bounded memory, so
+  // a persona can speak to a photo or deed about them, but only from its year on.
+  useEffect(function () {
+    if (!(window.CASON_MEDIA && window.CASON_DOCS && window.CASON_MEMORY)) return;
+    window.CASON_MEDIA.ready()
+      .then(function () { return window.CASON_MEDIA.all(); })
+      .then(function (docs) {
+        const attached = (docs || []).filter(function (d) { return d.personId && d.date; });
+        const added = window.CASON_DOCS.ingestInto(window.CASON_MEMORY, attached, DATA.people);
+        if (added) rerender();
+      })
+      .catch(function () {});
+  }, []);
+
   const isMember = !!(role && role.mode === 'member');
 
   // embody / un-embody the member's avatar in the 3-D scene
