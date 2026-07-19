@@ -76,13 +76,32 @@
 
   // ---- Proof surface: artifacts (pics, letters, records) in Supabase Storage ----
   function artifactUrl(path) { return cfg.url ? (cfg.url.replace(/\/$/, '') + '/storage/v1/object/public/proof/' + path) : ''; }
+  var ART_COLS = 'id,person_id,title,kind,storage_path,evidence,note,visibility,author_name,created_at';
+  function shapeArtifacts(r) {
+    // include persona-documents-shaped fields (personId/date/source) so a dated,
+    // person-attached Proof artifact can fold into horizon-bounded persona memory.
+    return (r && r.data || []).map(function (a) {
+      return Object.assign({}, a, {
+        url: artifactUrl(a.storage_path),
+        personId: a.person_id, date: a.doc_date || null,
+        source: 'Proof: ' + (a.author_name || 'family archive'),
+      });
+    });
+  }
   function loadArtifacts() {
     if (!enabled) return Promise.resolve([]);
+    // Try with doc_date; if the column isn't there yet (migration not run), the
+    // query errors — fall back to the base columns so the Proof surface never
+    // goes dark. Deploy order and migration order are thus independent.
     return loadSb().then(function () {
-      return sb.from('cason_artifacts').select('id,person_id,title,kind,storage_path,evidence,note,visibility,author_name,created_at').order('created_at', { ascending: false });
+      return sb.from('cason_artifacts').select(ART_COLS + ',doc_date').order('created_at', { ascending: false });
     }).then(function (r) {
-      return (r.data || []).map(function (a) { return Object.assign({}, a, { url: artifactUrl(a.storage_path) }); });
-    }).catch(function () { return []; });
+      if (r && r.error) throw r.error;
+      return shapeArtifacts(r);
+    }).catch(function () {
+      return sb.from('cason_artifacts').select(ART_COLS).order('created_at', { ascending: false })
+        .then(shapeArtifacts).catch(function () { return []; });
+    });
   }
   function uploadArtifact(file, meta) {
     meta = meta || {};
@@ -95,6 +114,7 @@
         return sb.from('cason_artifacts').insert({
           person_id: meta.personId || null, title: meta.title, kind: meta.kind || 'document',
           storage_path: path, evidence: meta.evidence || 'possible', note: meta.note || null,
+          doc_date: meta.docDate || meta.date || null,
           visibility: meta.visibility || 'public', author_email: state.email, author_name: state.name,
         });
       }).then(function (ins) { if (ins.error) throw ins.error; return { ok: true, url: artifactUrl(path) }; });

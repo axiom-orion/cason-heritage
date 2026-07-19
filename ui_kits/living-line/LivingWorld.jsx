@@ -217,6 +217,38 @@ function MemoryTiers({ personId, simNow }) {
   );
 }
 
+/* "Meet them at an age" — a dial that pins the horizon to any year of a
+   person's life. Overrides simNow; null = the app's own default moment. */
+function AgeDial({ person, value, onChange }) {
+  if (!person) return null;
+  var b = H.birthYearOf(person);
+  if (b == null) return null;
+  var died = H.deathYearOf(person);
+  var top = (died != null) ? died : Math.min(new Date().getFullYear(), b + 95); // living/unknown: cap at present or ~95
+  if (top <= b) top = b + 1;
+  var cur = (value != null) ? value : top;
+  if (cur < b) cur = b; if (cur > top) cur = top;
+  var age = cur - b;
+  return (
+    <div style={{ margin: '2px 0 12px', padding: '9px 11px', borderRadius: 8, background: 'rgba(45,90,74,0.06)', border: '1px solid rgba(45,90,74,0.18)', fontFamily: 'var(--font-sans)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
+        <span style={{ fontWeight: 700, fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--pine, #2d5a4a)' }}>Meet {first(person.name)} at</span>
+        <span style={{ fontSize: 12, color: 'var(--faded)' }}>
+          <strong style={{ color: 'var(--ink)', fontSize: 14 }}>{cur}</strong> · age {age >= 0 ? age : 0}
+          {value != null ? <button onClick={function () { onChange(null); }} style={{ marginLeft: 8, fontSize: 10, background: 'none', border: 'none', color: 'var(--rust, #9a4a2d)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>live moment</button> : null}
+        </span>
+      </div>
+      <input type="range" min={b} max={top} step={1} value={cur}
+        onChange={function (e) { onChange(parseInt(e.target.value, 10)); }}
+        style={{ width: '100%', accentColor: '#9a4a2d', cursor: 'pointer' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--faded)', marginTop: 1 }}>
+        <span>born {b}</span>
+        <span>{died != null ? 'died ' + died : 'today'}</span>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- current moment + glass-box ---------------- */
 function CurrentMoment({ snap, personId }) {
   const me = snap.agents.find(function (a) { return a.id === personId; });
@@ -1986,6 +2018,57 @@ function LivingWorld() {
     return off;
   }, []);
 
+  // document self-awareness — fold the family's dated, person-attached pictures
+  // and papers (from the Archive) into each persona's horizon-bounded memory, so
+  // a persona can speak to a photo or deed about them, but only from its year on.
+  useEffect(function () {
+    if (!(window.CASON_MEDIA && window.CASON_DOCS && window.CASON_MEMORY)) return;
+    window.CASON_MEDIA.ready()
+      .then(function () { return window.CASON_MEDIA.all(); })
+      .then(function (docs) {
+        const attached = (docs || []).filter(function (d) { return d.personId && d.date; });
+        const added = window.CASON_DOCS.ingestInto(window.CASON_MEMORY, attached, DATA.people);
+        if (added) rerender();
+      })
+      .catch(function () {});
+  }, []);
+
+  // research self-awareness — fold the genealogical record-search memos
+  // (research/*.md, ingested by corpus.js) into each persona's horizon-bounded
+  // memory as REFERENCE nodes: what the record says ABOUT them, dated to the
+  // fact's year so it stays sealed until then, and never asserted as lived fact.
+  useEffect(function () {
+    if (!(window.CASON_CORPUS && window.CASON_CORPUS_MEMORY && window.CASON_MEMORY)) return;
+    // only the genealogical record-search memos — engineering/governance memos
+    // carry no person+year facts and are deliberately left out of persona memory.
+    const MEMOS = ['fort-white-cason-record-search.md', 'bloodhound.md'];
+    Promise.all(MEMOS.map(function (name) {
+      return fetch('/research/' + name)
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .then(function (text) { return { id: name, path: 'research/' + name, title: name, text: text }; })
+        .catch(function () { return { id: name, path: 'research/' + name, title: name, text: '' }; });
+    })).then(function (docs) {
+      const usable = docs.filter(function (d) { return d.text; });
+      if (!usable.length) return;
+      const corpus = window.CASON_CORPUS.build(usable, DATA.people);
+      const added = window.CASON_CORPUS_MEMORY.ingestCorpusInto(window.CASON_MEMORY, corpus.nodes, DATA.people);
+      if (added) rerender();
+    }).catch(function () {});
+  }, []);
+
+  // Proof self-awareness — dated, person-attached artifacts in the shared Proof
+  // (Supabase) fold into persona memory the same way the local Archive does, so a
+  // document known to the whole family is knowable to the persona from its date on.
+  useEffect(function () {
+    if (!(window.CASON_AUTH && window.CASON_AUTH.loadArtifacts && window.CASON_DOCS && window.CASON_MEMORY)) return;
+    window.CASON_AUTH.loadArtifacts().then(function (arts) {
+      const attached = (arts || []).filter(function (a) { return a.personId && a.date; });
+      if (!attached.length) return;
+      const added = window.CASON_DOCS.ingestInto(window.CASON_MEMORY, attached, DATA.people);
+      if (added) rerender();
+    }).catch(function () {});
+  }, []);
+
   const isMember = !!(role && role.mode === 'member');
 
   // embody / un-embody the member's avatar in the 3-D scene
@@ -1998,6 +2081,10 @@ function LivingWorld() {
   const selSimNow = selPresent ? stage.year : undefined; // present ⇒ live moment; browsing ⇒ full-life horizon
   const sheet = sel ? PERS.byId[sel] : null;
   const person = sel ? DATA.people[sel] : null;
+  // "meet them at an age" — override the horizon to any year of their life
+  const [asOfYear, setAsOfYear] = useState(null);
+  useEffect(function () { setAsOfYear(null); }, [sel]);
+  const effSimNow = (asOfYear != null) ? asOfYear : selSimNow;
 
   function advance() {
     const w = worldRef.current; if (!w) return;
@@ -2120,7 +2207,10 @@ function LivingWorld() {
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--ink)', marginBottom: 4 }}>{person.name} — Memory Hearth</h2>
               <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--faded)', marginBottom: 16 }}>Three tiers of knowledge, ringed around the self; the future faint beyond the horizon.</p>
               <MemoryHearth personId={sel} />
-              <div style={{ marginTop: 22, maxWidth: 560 }}><MemoryTiers personId={sel} simNow={selSimNow} /></div>
+              <div style={{ marginTop: 22, maxWidth: 560 }}>
+                <AgeDial person={person} value={asOfYear} onChange={setAsOfYear} />
+                <MemoryTiers personId={sel} simNow={effSimNow} />
+              </div>
             </div>
           )}
 
@@ -2170,7 +2260,8 @@ function LivingWorld() {
               {sheet && person && memOpen && (
                 <div style={{ flex: '1 1 0', minWidth: narrow ? 0 : 300 }}>
                   {snap && selPresent && <div style={{ marginBottom: 16 }}><TracePanel snap={snap} personId={sel} /></div>}
-                  <MemoryTiers personId={sel} simNow={selSimNow} />
+                  <AgeDial person={person} value={asOfYear} onChange={setAsOfYear} />
+                  <MemoryTiers personId={sel} simNow={effSimNow} />
                 </div>
               )}
               </div>
