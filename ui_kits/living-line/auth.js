@@ -40,9 +40,9 @@
   function resolveSession(session) {
     if (!session || !session.user) { narrator({ signedIn: false }); return; }
     var email = session.user.email;
-    sb.from('cason_members').select('display_name,generation,approved').eq('email', email).maybeSingle()
+    sb.from('cason_members').select('display_name,generation,approved,tier').eq('email', email).maybeSingle()
       .then(function (r) {
-        if (r.data && r.data.approved) set({ mode: 'member', name: r.data.display_name, generation: r.data.generation, email: email, verified: true, signedIn: true });
+        if (r.data && r.data.approved) set({ mode: 'member', name: r.data.display_name, generation: r.data.generation, tier: r.data.tier || 'outer', email: email, verified: true, signedIn: true });
         else narrator({ email: email, signedIn: true });
       })
       .catch(function () { narrator({ email: email, signedIn: true }); });
@@ -162,12 +162,24 @@
     }).then(function (r) { if (r.error) throw r.error; return r.data; });
   }
 
+  // ---- Hard tier gate: the signed-in member's granted tier + the private,
+  // RLS-protected story content they are allowed to see. Content above the
+  // caller's tier never leaves Supabase (enforced by the policy, not the client). ----
+  function myTier() { return (state.mode === 'member' && state.verified && state.tier) ? state.tier : 'outsider'; }
+  function fetchPrivate() {
+    if (!enabled) return Promise.resolve([]);
+    return loadSb().then(function () {
+      return sb.from('cason_private').select('id,person_id,label,body,min_tier').order('created_at', { ascending: true });
+    }).then(function (r) { return r.data || []; }).catch(function () { return []; });
+  }
+
   if (enabled) loadSb().catch(function () {});
 
   root.CASON_AUTH = {
     enabled: enabled,
     getState: function () { return state; },
     onChange: onChange,
+    myTier: myTier, fetchPrivate: fetchPrivate,
     signIn: signIn, signOut: signOut,
     previewMember: previewMember, clearPreview: function () { narrator(); },
     addContribution: addContribution, loadContributions: loadContributions,

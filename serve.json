@@ -8,6 +8,7 @@
     { "source": "/living/world", "destination": "/ui_kits/living-line/world.html" },
     { "source": "/living", "destination": "/ui_kits/living-line/index.html" },
     { "source": "/proof", "destination": "/ui_kits/proof/index.html" },
+    { "source": "/archive", "destination": "/ui_kits/archive/index.html" },
     { "source": "/deck", "destination": "/slides/index.html" }
   ]
 }

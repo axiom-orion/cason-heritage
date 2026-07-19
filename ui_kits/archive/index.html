@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Family Archive — Cason Heritage</title>
+<meta name="description" content="The Cason family archive — load and organize photographs and documents (deeds, census, wills, letters, portraits), filed by category and attached to the ancestors they belong to. Stored privately on your device.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../../assets/favicon.svg" />
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--parchment); color: var(--ink); }
+  body { font-family: var(--font-serif); }
+  button, input, select, textarea { font-family: inherit; }
+  a { color: var(--rust); }
+  ::selection { background: #e8d6b4; }
+  img { max-width: 100%; }
+  @media (max-width: 800px) { .ar-cols { grid-template-columns: 1fr !important; } }
+  .ar-boot { font-family: var(--font-display); font-size: 24px; text-align: center; padding: 80px 24px; color: var(--faded); }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"><div class="ar-boot">Opening the archive&hellip;</div></div>
+
+<!-- the record (for attaching items to people) + the media store -->
+<script src="/ui_kits/family-tree-app/data.js"></script>
+<script src="/ui_kits/archive/media-store.js"></script>
+
+<!-- the archive app (JSX) -->
+<script type="text/babel" src="/ui_kits/archive/Archive.jsx"></script>
+<script type="text/babel" data-presets="env,react">
+  ReactDOM.createRoot(document.getElementById('root')).render(<Archive />);
+</script>
+</body>
+</html>

@@ -247,6 +247,39 @@ test('The Proof page loads with zero console errors', async ({ page }) => {
   expect(errors, 'console/page errors on /proof:\n' + errors.join('\n')).toEqual([]);
 });
 
+test('The Family Archive loads, accepts an upload, and persists it', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/archive');
+  await expect(page.getByRole('heading', { name: 'The Family Archive' })).toBeVisible({ timeout: 25000 });
+
+  // a 1x1 PNG, uploaded via the (hidden) file input
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c636060606000000005000109cfb5b4b40000000049454e44ae426082', 'hex');
+  await page.setInputFiles('input[type=file][accept*="image"]', { name: 'test.png', mimeType: 'image/png', buffer: png });
+  await page.fill('input[placeholder*="Thadeous"]', 'Deed scan — Fort White');
+  await page.selectOption('select >> nth=0', 'deed');
+  await page.getByRole('button', { name: 'Add to archive' }).click();
+  await expect(page.getByText('Deed scan — Fort White')).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(/Deed \/ Land · 1/)).toBeVisible();
+
+  // survives a reload (IndexedDB persistence)
+  await page.reload();
+  await expect(page.getByText('Deed scan — Fort White')).toBeVisible({ timeout: 25000 });
+
+  expect(errors, 'console/page errors on /archive:\n' + errors.join('\n')).toEqual([]);
+});
+
+test('The hub organizes the surfaces with live counts, zero console errors', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/hub');
+  await expect(page.getByRole('heading', { name: 'The Living Line.' })).toBeVisible({ timeout: 25000 });
+  await expect(page.getByRole('heading', { name: "Where it's kept." })).toBeVisible();       // the archive compartment
+  await expect(page.getByRole('link', { name: /The Family Archive/ })).toBeVisible();
+  // the status counts are computed live from the record (no more drift)
+  await expect(page.locator('#stat-gens')).toHaveText('14');
+  await expect(page.locator('#stat-records')).toHaveText('100');
+  expect(errors, 'console/page errors on /hub:\n' + errors.join('\n')).toEqual([]);
+});
+
 test('The heritage landing responds', async ({ page }) => {
   const res = await page.goto('/');
   expect(res.status()).toBeLessThan(400);

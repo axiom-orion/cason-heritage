@@ -87,8 +87,8 @@ function Nav() {
           <a className="ll-link" href="#line" style={linkS}>THE LINE</a>
           <a className="ll-link" href="#method" style={linkS}>METHOD</a>
           <a className="ll-link" href="#sheets" style={linkS}>SHEETS</a>
-          <a className="ll-link" href={WORLD_URL} style={linkS}>GRAPH</a>
-          <a className="ll-link" href="#roadmap" style={linkS}>ROADMAP</a>
+          <a className="ll-link" href="#numbers" style={linkS}>NUMBERS</a>
+          <a className="ll-link" href="/archive" style={linkS}>ARCHIVE</a>
           <a className="ll-cta" href={WORLD_URL} style={{ display: 'inline-block', padding: '10px 18px',
             background: LL.accent, color: LL.bg, fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.14em', whiteSpace: 'nowrap' }}>SPEAK WITH AN ANCESTOR</a>
         </div>
@@ -102,13 +102,14 @@ function Nav() {
 ==================================================================== */
 function Hero(props) {
   const s = props.stats;
+  const fam = props.viewer === 'known';   // 2nd voice: the family register for the innermost tier
   const diamond = <span style={{ width: 7, height: 7, background: LL.accent, transform: 'rotate(45deg)' }} />;
   const solid = { display: 'inline-block', padding: '15px 28px', background: LL.accent, color: LL.bg, fontFamily: LL.mono, fontSize: 11, letterSpacing: '.16em' };
   const ghost = { display: 'inline-block', padding: '15px 28px', border: '1px solid rgba(34,28,20,.35)', color: LL.ink, fontFamily: LL.mono, fontSize: 11, letterSpacing: '.16em' };
   return (
     <header style={{ maxWidth: 1240, margin: '0 auto', padding: '110px 32px 0', textAlign: 'center' }}>
       <div className="ll-rise" style={{ animationDelay: '.05s', fontFamily: LL.mono, fontSize: 11, letterSpacing: '.22em', color: LL.accent }}>
-        THE CASON FAMILY, ALIVE &middot; RECORD OF {s.start} &ndash; PRESENT
+        {fam ? 'OUR FAMILY, ALIVE' : 'THE CASON FAMILY, ALIVE'} &middot; RECORD OF {s.start} &ndash; PRESENT
       </div>
       <h1 className="ll-rise" style={{ animationDelay: '.15s', fontFamily: LL.display, fontWeight: 400,
         fontSize: 'clamp(54px,7.4vw,110px)', lineHeight: 1.0, letterSpacing: '-.01em', margin: '30px auto 0', maxWidth: 1000 }}>
@@ -118,7 +119,9 @@ function Hero(props) {
         <span style={{ width: 64, height: 1, background: 'rgba(34,28,20,.3)' }} />{diamond}<span style={{ width: 64, height: 1, background: 'rgba(34,28,20,.3)' }} />
       </div>
       <p className="ll-rise" style={{ animationDelay: '.35s', maxWidth: 640, margin: '32px auto 0', fontSize: 20, lineHeight: 1.65, color: LL.body }}>
-        The Living Line renders {s.personas} ancestors as autonomous personas &mdash; each one bounded by what their generation could actually know. Letters, ledgers, and hearsay go in. Nothing from the future ever does.
+        {fam
+          ? 'These are our people — ' + s.personas + ' of us, rendered as living personas, each bounded by what their generation could know. Our letters, ledgers, and hearsay go in. Nothing from the future ever does.'
+          : 'The Living Line renders ' + s.personas + ' ancestors as autonomous personas — each one bounded by what their generation could actually know. Letters, ledgers, and hearsay go in. Nothing from the future ever does.'}
       </p>
       <div className="ll-rise" style={{ animationDelay: '.45s', display: 'flex', justifyContent: 'center', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>
         <a className="ll-cta" href="#line" style={solid}>EXPLORE THE LINE &darr;</a>
@@ -165,6 +168,23 @@ function GenSelector(props) {
 
 function MemberCard(props) {
   const m = props.m, showCat = props.showCat, cat = props.cat;
+  const T = window.CASON_TIERS;
+  // living family (persona status 'rec') is kept close: outsiders see a
+  // private placeholder; outer/known family see the real card.
+  if (T && m.st === 'rec' && !T.canSee('outer', props.viewer)) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '22px', background: LL.card, border: '1px dashed rgba(34,28,20,.25)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {showCat ? <span style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.16em', color: 'rgba(34,28,20,.4)' }}>{cat}</span> : <span />}
+          <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.14em', color: '#5f6b4e' }}>LIVING &middot; KEPT CLOSE</span>
+        </div>
+        <div style={{ fontFamily: LL.display, fontSize: 24, fontWeight: 500, color: 'rgba(34,28,20,.5)' }}>A living Cason</div>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'rgba(34,28,20,.5)', fontStyle: 'italic', flex: 1 }}>
+          The living generations are held close. If you&rsquo;re family, switch your view to <em>Outer family</em> or <em>Known family</em> to see them.
+        </p>
+      </div>
+    );
+  }
   return (
     <a className="ll-card" href={WORLD_URL}
       style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '22px 22px 18px', background: LL.card,
@@ -227,7 +247,7 @@ function FamilyLine(props) {
       <p style={{ fontStyle: 'italic', fontSize: 19, color: LL.body, margin: '0 0 36px', maxWidth: 680 }}>{g.sum}</p>
       <div className="ll-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 18 }}>
         {g.members.map(function (m) {
-          return <MemberCard key={m.id} m={m} showCat={props.showCat} cat={'CAT. ' + String(catOf[m.id]).padStart(3, '0')} />;
+          return <MemberCard key={m.id} m={m} showCat={props.showCat} cat={'CAT. ' + String(catOf[m.id]).padStart(3, '0')} viewer={props.viewer} />;
         })}
       </div>
     </section>
@@ -485,7 +505,7 @@ function Roadmap() {
   return (
     <section id="roadmap" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 12 }}>
-        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>V &mdash; ROADMAP</span>
+        <span style={{ fontFamily: LL.mono, fontSize: 11, letterSpacing: '.2em', color: LL.accent, whiteSpace: 'nowrap' }}>VII &mdash; ROADMAP</span>
         <span style={{ flex: 1, height: 1, background: 'rgba(34,28,20,.16)' }} />
       </div>
       <RoadRow phase="PHASE I" title="The Record" badge={{ style: complete, text: 'COMPLETE · 2025' }}>
@@ -497,6 +517,264 @@ function Roadmap() {
       <RoadRow phase="PHASE III" title="The Parlor" badge={{ style: ahead, text: 'AHEAD · 2027' }}>
         Personas in conversation with each other across generations &mdash; and a portal for the living to deposit their own memories into the line, one evening a week.
       </RoadRow>
+    </section>
+  );
+}
+
+/* ====================================================================
+   Section VI — The Numbers (lineage statistics)
+==================================================================== */
+function StatTile(props) {
+  return (
+    <div style={{ background: LL.card, border: '1px solid rgba(34,28,20,.18)', padding: '20px 22px' }}>
+      <div style={{ fontFamily: LL.display, fontSize: 42, fontWeight: 500, lineHeight: 1, color: LL.accent }}>{props.n}</div>
+      <div style={{ marginTop: 8, fontFamily: LL.mono, fontSize: 10, letterSpacing: '.12em', color: 'rgba(34,28,20,.6)', lineHeight: 1.5 }}>{props.label}</div>
+    </div>
+  );
+}
+
+function AliveChart(props) {
+  const s = props.stats;
+  const est = s.aliveByYear.estimated, known = s.aliveByYear.known;
+  const [hover, setHover] = useState(null);
+  const W = 1000, H = 340, padL = 48, padR = 20, padT = 20, padB = 38;
+  const x0 = s.start, x1 = s.present;
+  const maxC = Math.max(1, est.reduce(function (m, p) { return Math.max(m, p.count); }, 0));
+  const X = function (yr) { return padL + (yr - x0) / (x1 - x0) * (W - padL - padR); };
+  const Y = function (c) { return H - padB - c / maxC * (H - padT - padB); };
+  const areaPath = 'M' + X(x0) + ' ' + Y(0) + est.map(function (p) { return 'L' + X(p.year).toFixed(1) + ' ' + Y(p.count).toFixed(1); }).join('') + 'L' + X(x1) + ' ' + Y(0) + 'Z';
+  const linePath = known.map(function (p, i) { return (i ? 'L' : 'M') + X(p.year).toFixed(1) + ' ' + Y(p.count).toFixed(1); }).join('');
+  const peak = est.reduce(function (a, p) { return p.count > a.count ? p : a; }, { count: 0, year: x0 });
+  const gridYears = [1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
+  const gridCounts = [10, 20, 30].filter(function (c) { return c <= maxC; });
+
+  function onMove(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    const yr = Math.round(x0 + (px - padL) / (W - padL - padR) * (x1 - x0));
+    const i = yr - x0;
+    if (i >= 0 && i < est.length) setHover({ year: est[i].year, est: est[i].count, known: known[i].count });
+  }
+  return (
+    <div style={{ position: 'relative' }}>
+      <svg viewBox={'0 0 ' + W + ' ' + H} style={{ width: '100%', height: 'auto', display: 'block' }} onMouseMove={onMove} onMouseLeave={function () { setHover(null); }}>
+        {gridCounts.map(function (c) {
+          return <g key={'gc' + c}>
+            <line x1={padL} y1={Y(c)} x2={W - padR} y2={Y(c)} stroke="rgba(34,28,20,.1)" strokeWidth="1" />
+            <text x={padL - 8} y={Y(c) + 3} textAnchor="end" fontFamily={LL.mono} fontSize="10" fill="rgba(34,28,20,.5)">{c}</text>
+          </g>;
+        })}
+        {gridYears.map(function (yr) {
+          return <text key={'gy' + yr} x={X(yr)} y={H - padB + 16} textAnchor="middle" fontFamily={LL.mono} fontSize="10" fill="rgba(34,28,20,.5)">{yr}</text>;
+        })}
+        <path d={areaPath} fill="rgba(138,59,36,.14)" stroke="none" />
+        <path d={linePath} fill="none" stroke={LL.accent} strokeWidth="2" />
+        <circle cx={X(peak.year)} cy={Y(peak.count)} r="3.5" fill={LL.accent} />
+        <text x={X(peak.year)} y={Y(peak.count) - 8} textAnchor="middle" fontFamily={LL.mono} fontSize="10" letterSpacing=".06em" fill={LL.accent}>PEAK ~{peak.count} · {peak.year}</text>
+        {hover ? <line x1={X(hover.year)} y1={padT} x2={X(hover.year)} y2={H - padB} stroke="rgba(34,28,20,.35)" strokeWidth="1" /> : null}
+      </svg>
+      {hover ? (
+        <div style={{ position: 'absolute', top: 6, left: (X(hover.year) / W * 100) + '%', transform: 'translateX(-50%)', pointerEvents: 'none',
+          background: LL.dark, color: '#efe6d0', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.06em', padding: '6px 9px', whiteSpace: 'nowrap', borderRadius: 2 }}>
+          {hover.year} &middot; ~{hover.est} alive{hover.known !== hover.est ? ' (' + hover.known + ' recorded)' : ''}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GenTable(props) {
+  const rows = props.stats.byGen;
+  const th = { fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(34,28,20,.55)', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(34,28,20,.2)', fontWeight: 400 };
+  const td = { fontFamily: LL.serif, fontSize: 14, color: LL.body2, padding: '8px 10px', borderBottom: '1px solid rgba(34,28,20,.1)' };
+  const num = { fontFamily: LL.mono, fontSize: 12 };
+  function frac(o) { return o.determinable ? o.met + ' / ' + o.determinable : '—'; }
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 440 }}>
+        <thead><tr>
+          <th style={th}>GEN</th><th style={th}>PEOPLE</th><th style={th}>BECAME PARENTS</th>
+          <th style={th}>MET A GRANDCHILD</th><th style={th}>MET A GREAT-GRANDCHILD</th>
+        </tr></thead>
+        <tbody>
+          {rows.map(function (r) {
+            return <tr key={r.gen}>
+              <td style={Object.assign({}, td, { fontFamily: LL.display, fontStyle: 'italic', fontSize: 16 })}>{r.roman}</td>
+              <td style={Object.assign({}, td, num)}>{r.total}</td>
+              <td style={Object.assign({}, td, num)}>{r.parents}</td>
+              <td style={Object.assign({}, td, num)}>{frac(r.grand)}</td>
+              <td style={Object.assign({}, td, num)}>{frac(r.great)}</td>
+            </tr>;
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* Per-family records — tap a married-in surname to open its marriages into the
+   line, each with a confidence stamp. The stub of a page waiting to be filled. */
+function familyToneColor(tone) {
+  return { strong: LL.accent, mid: '#8a7a5c', soft: '#a07d4a', open: '#5f6b4e', out: 'rgba(34,28,20,.42)' }[tone] || '#8a7a5c';
+}
+function FamiliesPanel(props) {
+  const families = props.families, conf = window.CASON_CONFIDENCE;
+  const [sel, setSel] = useState(null);
+  const selFam = families.filter(function (f) { return f.surname === sel; })[0];
+  return (
+    <div>
+      <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: 'rgba(34,28,20,.5)', marginBottom: 14 }}>THE FAMILIES THAT MARRIED IN &middot; TAP A NAME</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {families.map(function (f) {
+          const on = sel === f.surname;
+          return <button key={f.surname} onClick={function () { setSel(on ? null : f.surname); }}
+            style={{ fontFamily: LL.serif, fontSize: 15, padding: '7px 14px', cursor: 'pointer', borderRadius: 2,
+              border: '1px solid ' + (on ? LL.accent : 'rgba(34,28,20,.2)'), background: on ? LL.accent : LL.card, color: on ? LL.bg : LL.ink }}>
+            {f.surname}{f.marriages.length > 1 ? <span style={{ opacity: .6, fontFamily: LL.mono, fontSize: 11 }}>{' ×' + f.marriages.length}</span> : null}
+          </button>;
+        })}
+      </div>
+      {selFam ? (
+        <div style={{ marginTop: 20, background: LL.card, border: '1px solid rgba(34,28,20,.18)', padding: '22px 24px' }}>
+          <div style={{ fontFamily: LL.display, fontSize: 26, fontWeight: 500 }}>The {selFam.surname} family</div>
+          <div style={{ fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.1em', color: 'rgba(34,28,20,.5)', margin: '4px 0 14px' }}>{selFam.marriages.length} marriage{selFam.marriages.length > 1 ? 's' : ''} into the Cason line</div>
+          {selFam.marriages.map(function (m, i) {
+            const st = conf ? conf.stampFor(m.ev) : null;
+            return <div key={i} style={{ borderTop: i ? '1px solid rgba(34,28,20,.1)' : 'none', padding: '11px 0', display: 'flex', gap: 12, alignItems: 'baseline' }}>
+              {st ? <span style={{ flexShrink: 0, fontFamily: LL.mono, fontSize: 8.5, letterSpacing: '.1em', color: familyToneColor(st.tone), border: '1px solid ' + familyToneColor(st.tone), borderRadius: 2, padding: '2px 6px', whiteSpace: 'nowrap' }}>{st.label}</span> : null}
+              <span style={{ fontFamily: LL.serif, fontSize: 15.5, color: LL.body2, lineHeight: 1.5 }}>
+                <strong style={{ fontWeight: 500, color: LL.ink }}>{m.who}</strong>
+                {m.lifespan ? <span style={{ color: 'rgba(34,28,20,.5)' }}>{' (' + m.lifespan + ')'}</span> : null}
+                {m.into === 'married out' ? ' married a Cason' : <React.Fragment> married <em>{m.into}</em></React.Fragment>}
+              </span>
+            </div>;
+          })}
+          <p style={{ margin: '14px 0 0', fontSize: 13.5, fontStyle: 'italic', color: 'rgba(34,28,20,.55)' }}>The {selFam.surname} family&rsquo;s own story is still thin in the record &mdash; a page waiting to be filled.</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function TheNumbers(props) {
+  const s = window.CASON_STATS;
+  if (!s || !s.byGen || !s.byGen.length) return null;
+  const thomas = s.descendants['thomas-sr'] || { total: 0 };
+  const ransom = s.descendants['ransom-sr'] || { total: 0 };
+  return (
+    <section id="numbers" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
+      <SectionHead num="V" label="THE NUMBERS" right="THE WHOLE TREE, COUNTED" />
+      <div className="ll-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 44 }}>
+        <StatTile n={thomas.total} label={'DESCENDANTS OF THOMAS CASSON\n(the 1635 immigrant)'} />
+        <StatTile n={ransom.total} label={'DESCENDANTS OF RANSOM SR.\n(the 1823 Florida crossing)'} />
+        <StatTile n={s.totals.parents} label={'CARRIED THE LINE ON\n(became parents on record)'} />
+        <StatTile n={s.totals.living} label={'LIVING TODAY\n(on the record)'} />
+      </div>
+      <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 28 }}>
+        <h2 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(30px,3.2vw,44px)', lineHeight: 1.1, margin: 0 }}>The family, alive across four centuries.</h2>
+        <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+          How many Casons were living in any given year. The solid line counts only members with a birth <em>and</em> death on record; the shaded field estimates the rest from their generation and kin &mdash; a reconstruction, not a census.
+        </p>
+      </div>
+      <AliveChart stats={s} />
+      <p style={{ margin: '10px 0 44px', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.08em', color: 'rgba(34,28,20,.5)' }}>
+        FIG. 2 &mdash; CASON FAMILY MEMBERS ALIVE BY YEAR, {s.start}&ndash;{s.present} &middot; SOLID = RECORDED, SHADED = ESTIMATED
+      </p>
+      <h3 style={{ fontFamily: LL.display, fontSize: 28, fontWeight: 500, margin: '0 0 6px' }}>Who lived to see the next branches.</h3>
+      <p style={{ margin: '0 0 22px', fontSize: 15.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 680 }}>
+        Counted only where the dates allow it &mdash; shown as met / determinable. Blanks are generations whose records are still too thin to say.
+      </p>
+      <GenTable stats={s} />
+
+      <div style={{ marginTop: 64, borderTop: '1px solid rgba(34,28,20,.16)', paddingTop: 44 }}>
+        <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 24 }}>
+          <h3 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(28px,3vw,40px)', lineHeight: 1.12, margin: 0 }}>{props.viewer === 'known' ? 'Not one line — all of us.' : 'Not one descent — a whole family.'}</h3>
+          <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+            The direct line is {s.directMembers} names. Around it stand {s.branchMembers} more &mdash; the brothers and sisters who stayed, the cousins who scattered &mdash; and {s.families.length} families who married into the Casons and became part of the line.
+          </p>
+        </div>
+        <FamiliesPanel families={s.families} />
+        <p style={{ margin: '22px 0 0', fontSize: 14.5, color: 'rgba(34,28,20,.6)', fontStyle: 'italic', maxWidth: 700 }}>
+          Cannon, Poole, Munden, Barrow, McKinney, Douglas, O&rsquo;Steen and the rest &mdash; the Casons are only half of every marriage. Their records are still thin; adding them is how the story gets its full width.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ====================================================================
+   Section VI — The Threads (evidence-stamped asides, collapsed by default)
+==================================================================== */
+const STAMP_TONE = {
+  strong: LL.accent,        // ON THE RECORD / STRONGLY SUPPORTED
+  mid: '#8a7a5c',           // AS REPORTED / NOTED
+  soft: '#a07d4a',          // REASONED / DOUBTFUL
+  open: '#5f6b4e',          // OPEN QUESTION
+  out: 'rgba(34,28,20,.42)' // RULED OUT
+};
+
+function AsideRow(props) {
+  const a = props.aside, who = props.who;
+  const [open, setOpen] = useState(false);
+  const color = STAMP_TONE[a.stamp.tone] || STAMP_TONE.mid;
+  const preview = a.text.length > 96 && !open ? a.text.slice(0, 94).replace(/\s+\S*$/, '') + '…' : a.text;
+  return (
+    <div style={{ borderTop: '1px solid rgba(34,28,20,.12)' }}>
+      <button onClick={function () { setOpen(!open); }} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '16px 0', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <span style={{ flexShrink: 0, marginTop: 2, fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: color, border: '1px solid ' + color, borderRadius: 2, padding: '3px 7px', whiteSpace: 'nowrap' }}>{a.stamp.label}</span>
+        <span style={{ flex: 1 }}>
+          <span style={{ fontFamily: LL.serif, fontSize: 15.5, color: a.stamp.tone === 'out' ? 'rgba(34,28,20,.5)' : LL.body2, lineHeight: 1.55 }}>{preview}</span>
+          {who ? <span style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.08em', color: 'rgba(34,28,20,.45)', marginLeft: 8 }}>· {who}</span> : null}
+          {open ? <span style={{ display: 'block', marginTop: 8, fontFamily: LL.mono, fontSize: 10.5, letterSpacing: '.04em', color: color, fontStyle: 'normal' }}>{a.stamp.gloss}</span> : null}
+        </span>
+        <span style={{ flexShrink: 0, marginTop: 2, fontFamily: LL.mono, fontSize: 13, color: 'rgba(34,28,20,.4)' }}>{open ? '–' : '+'}</span>
+      </button>
+    </div>
+  );
+}
+
+function Threads() {
+  const conf = window.CASON_CONFIDENCE, data = window.CASON_DATA, mem = window.CASON_MEMORY;
+  const rows = useMemo(function () {
+    if (!conf || !data) return [];
+    // a curated spread of the finds that don't fit the clean story flow —
+    // deliberately across the whole confidence ladder, on the people they
+    // belong to. `possible`-evidence people supply the REASONED tier.
+    const picks = ['ransom-jr', 'casey-ann', 'thadeous', 'ransom-sr', 'carl-columbus', 'james-green', 'moses', 'robert-sr', 'berrien-cason-sr', 'henry-cason-b', 'julia-matilda'];
+    const bucket = { strong: [], mid: [], soft: [], open: [], out: [] };
+    picks.forEach(function (id) {
+      const p = data.people[id]; if (!p) return;
+      conf.asidesForPerson(p, mem).forEach(function (a) {
+        if (a.kind === 'source' && a.text.length < 40) return;
+        (bucket[a.stamp.tone] || bucket.mid).push({ aside: a, who: p.name.replace(/\s*\(.*\)/, '') });
+      });
+    });
+    // quota per tier so every stamp is represented, capped ~2 per person
+    const quota = { strong: 3, mid: 2, soft: 3, open: 4, out: 1 };
+    const seen = {}, out = [];
+    ['strong', 'mid', 'soft', 'open', 'out'].forEach(function (tone) {
+      let n = 0;
+      bucket[tone].forEach(function (r) {
+        if (n >= quota[tone]) return;
+        if ((seen[r.who] || 0) >= 2) return;
+        seen[r.who] = (seen[r.who] || 0) + 1; n++; out.push(r);
+      });
+    });
+    return out;
+  }, []);
+  if (!rows.length) return null;
+  return (
+    <section id="threads" style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 32px 0' }}>
+      <SectionHead num="VI" label="THE THREADS" right="TAP TO OPEN · SKIP TO KEEP THE STORY" />
+      <div className="ll-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'end', marginBottom: 28 }}>
+        <h2 style={{ fontFamily: LL.display, fontWeight: 400, fontSize: 'clamp(30px,3.2vw,44px)', lineHeight: 1.1, margin: 0 }}>The things that don&rsquo;t fit the story &mdash; told straight.</h2>
+        <p style={{ margin: 0, fontSize: 16.5, color: LL.body }}>
+          The leads, the loose ends, the finds off to the side. Each carries a stamp for exactly how sure we are &mdash; from <em>on the record</em> to <em>reasoned but not concrete</em> to an <em>open question</em> that may never be settled. Collapsed by default; the story reads clean without them.
+        </p>
+      </div>
+      <div style={{ borderBottom: '1px solid rgba(34,28,20,.12)' }}>
+        {rows.map(function (r, i) { return <AsideRow key={i} aside={r.aside} who={r.who} />; })}
+      </div>
     </section>
   );
 }
@@ -536,9 +814,99 @@ function Footer() {
 /* ====================================================================
    Root
 ==================================================================== */
+/* the story-depth control — soft, client-side; dials how personal the
+   telling gets. Fixed to the corner so it follows the reader. */
+function DepthControl(props) {
+  const T = window.CASON_TIERS;
+  if (!T) return null;
+  const maxLvl = T.level(props.authMax || 'outsider');
+  return (
+    <div style={{ position: 'fixed', right: 14, bottom: 14, zIndex: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {props.msg ? <div style={{ background: 'rgba(23,19,16,.94)', color: '#efe6d0', fontFamily: LL.mono, fontSize: 10, letterSpacing: '.04em', padding: '8px 12px', borderRadius: 8, maxWidth: 260, textAlign: 'right' }}>{props.msg}</div> : null}
+      <div style={{ background: 'rgba(23,19,16,.94)', borderRadius: 999, padding: '5px 6px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 22px rgba(0,0,0,.28)' }}>
+        <span style={{ fontFamily: LL.mono, fontSize: 9, letterSpacing: '.12em', color: 'rgba(239,230,208,.55)', padding: '0 8px' }}>VIEWING AS</span>
+        {T.TIERS.map(function (t) {
+          const locked = T.level(t.key) > maxLvl;
+          const on = props.viewer === t.key;
+          return <button key={t.key} title={locked ? 'Sign in as family to unlock' : t.blurb}
+            onClick={function () { if (locked) props.onSignIn(); else props.onChange(t.key); }}
+            style={{ fontFamily: LL.mono, fontSize: 9.5, letterSpacing: '.05em', padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: on ? LL.gold : 'transparent', color: on ? '#171310' : (locked ? 'rgba(239,230,208,.4)' : 'rgba(239,230,208,.85)') }}>{locked ? '🔒 ' : ''}{t.label}</button>;
+        })}
+        {props.signedIn ? <button onClick={props.onSignOut} title={'Signed in as ' + (props.memberName || 'family')} style={{ fontFamily: LL.mono, fontSize: 9, color: 'rgba(217,164,65,.95)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 8px' }}>&#10003; {(props.memberName || 'family').split(' ')[0]}</button> : null}
+      </div>
+    </div>
+  );
+}
+
+/* Private, RLS-gated story content — arrives only for a signed-in member whose
+   tier is deep enough. If you can see it, the server sent it; an outsider's
+   browser never receives these rows at all. */
+function PrivatePanel(props) {
+  if (!props.notes || !props.notes.length) return null;
+  return (
+    <section style={{ maxWidth: 1240, margin: '44px auto 0', padding: '0 32px' }}>
+      <div style={{ border: '1px solid #5f6b4e', background: '#f1efe4', borderRadius: 4, padding: '24px 28px' }}>
+        <div style={{ fontFamily: LL.mono, fontSize: 10, letterSpacing: '.14em', color: '#5f6b4e', marginBottom: 14 }}>KEPT FOR FAMILY &middot; SERVED TO YOU BECAUSE YOU&rsquo;RE SIGNED IN</div>
+        {props.notes.map(function (n) {
+          return (
+            <div key={n.id} style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: LL.display, fontSize: 21, fontWeight: 500, color: LL.ink }}>{n.label}</div>
+              <p style={{ margin: '4px 0 0', fontSize: 16, color: LL.body2, lineHeight: 1.55 }}>{n.body}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function LivingLine() {
   useOnce(LL_CSS);
+  const T = window.CASON_TIERS;
   const line = window.CASON_LINE;
+  const [viewer, setViewerState] = useState(function () { return T ? T.viewer() : 'outsider'; });
+  const [authMax, setAuthMax] = useState('outsider');
+  const [priv, setPriv] = useState([]);
+  const [signedIn, setSignedIn] = useState(false);
+  const [memberName, setMemberName] = useState('');
+  const [msg, setMsg] = useState('');
+
+  useEffect(function () {
+    const A = window.CASON_AUTH;
+    if (!A || !A.enabled) return;
+    function apply() {
+      setAuthMax(A.myTier());
+      const st = A.getState();
+      const isMember = !!(st && st.verified);
+      setSignedIn(isMember);
+      setMemberName(st && st.name ? st.name : '');
+      if (isMember) { A.fetchPrivate().then(setPriv); setMsg(''); } else setPriv([]);
+    }
+    return A.onChange(function () { apply(); });
+  }, []);
+
+  function pickViewer(key) { if (T) T.setViewer(key); setViewerState(key); }
+  function onSignIn() {
+    const A = window.CASON_AUTH;
+    if (!A || !A.enabled) { setMsg('Family sign-in is not configured yet.'); return; }
+    const email = window.prompt('Family? Enter your email and we will send a one-time sign-in link:');
+    if (!email) return;
+    setMsg('Sending a sign-in link to ' + email.trim() + '…');
+    A.signIn(email.trim()).then(function () { setMsg('Check your email for the sign-in link, then come back here.'); })
+      .catch(function (e) { setMsg('Could not send the link: ' + (e && e.message ? e.message : 'error')); });
+  }
+  function onSignOut() { const A = window.CASON_AUTH; if (A) A.signOut(); setMsg(''); }
+
+  const stats = useMemo(function () {
+    if (!line || !line.gens) return { personas: 0, generations: 0, years: 0, start: 0, present: 0 };
+    var personas = 0;
+    line.gens.forEach(function (g) { personas += g.members.length; });
+    return { personas: personas, generations: line.gens.length, years: line.present - line.start, start: line.start, present: line.present };
+  }, [line]);
+
+  // the viewer only ever sees content up to the tier they are ENTITLED to.
+  const effViewer = (T && T.level(viewer) <= T.level(authMax)) ? viewer : authMax;
 
   if (!line || !line.gens || !line.gens.length) {
     return (
@@ -549,26 +917,18 @@ function LivingLine() {
     );
   }
 
-  const stats = useMemo(function () {
-    var personas = 0;
-    line.gens.forEach(function (g) { personas += g.members.length; });
-    return {
-      personas: personas,
-      generations: line.gens.length,
-      years: line.present - line.start,
-      start: line.start,
-      present: line.present
-    };
-  }, [line]);
-
   return (
     <div style={{ minHeight: '100vh', fontFamily: LL.serif, fontSize: 18, lineHeight: 1.6, color: LL.ink, background: LL.bg }}>
       <Nav />
-      <Hero stats={stats} />
-      <FamilyLine line={line} showCat={true} />
+      <DepthControl viewer={effViewer} authMax={authMax} signedIn={signedIn} memberName={memberName} msg={msg} onChange={pickViewer} onSignIn={onSignIn} onSignOut={onSignOut} />
+      <Hero stats={stats} viewer={effViewer} />
+      <PrivatePanel notes={priv} />
+      <FamilyLine line={line} showCat={true} viewer={effViewer} />
       <Method stats={stats} />
       <Sheets line={line} stats={stats} />
       <GraphTeaser line={line} />
+      <TheNumbers viewer={effViewer} />
+      <Threads />
       <Roadmap />
       <Footer />
     </div>
