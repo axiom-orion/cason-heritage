@@ -26,9 +26,9 @@
   'use strict';
 
   var TIERS = [
-    { key: 'outsider', level: 0, label: 'Outsiders',    blurb: 'the public story — nothing personal about the living' },
-    { key: 'outer',    level: 1, label: 'Outer family', blurb: 'the wider family — living kin named, kept plain' },
-    { key: 'known',    level: 2, label: 'Known family', blurb: 'closest in — the personal telling' },
+    { key: 'outsider', level: 0, label: 'Public',          blurb: 'the public story — nothing personal about the living' },
+    { key: 'outer',    level: 1, label: 'Extended family', blurb: 'the wider family — living kin named, kept plain' },
+    { key: 'known',    level: 2, label: 'Close family',    blurb: 'closest in — the personal telling' },
   ];
   var BY_KEY = {}; TIERS.forEach(function (t) { BY_KEY[t.key] = t; });
   var DEFAULT = 'outsider';

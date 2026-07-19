@@ -180,7 +180,7 @@ function MemberCard(props) {
         </div>
         <div style={{ fontFamily: LL.display, fontSize: 24, fontWeight: 500, color: 'rgba(34,28,20,.5)' }}>A living Cason</div>
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'rgba(34,28,20,.5)', fontStyle: 'italic', flex: 1 }}>
-          The living generations are held close. If you&rsquo;re family, switch your view to <em>Outer family</em> or <em>Known family</em> to see them.
+          The living generations are held close. If you&rsquo;re family, switch your view to <em>Extended family</em> or <em>Close family</em> to see them.
         </p>
       </div>
     );
