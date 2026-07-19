@@ -79,9 +79,17 @@
   function loadArtifacts() {
     if (!enabled) return Promise.resolve([]);
     return loadSb().then(function () {
-      return sb.from('cason_artifacts').select('id,person_id,title,kind,storage_path,evidence,note,visibility,author_name,created_at').order('created_at', { ascending: false });
+      return sb.from('cason_artifacts').select('id,person_id,title,kind,storage_path,evidence,note,visibility,author_name,created_at,doc_date').order('created_at', { ascending: false });
     }).then(function (r) {
-      return (r.data || []).map(function (a) { return Object.assign({}, a, { url: artifactUrl(a.storage_path) }); });
+      // include persona-documents-shaped fields (personId/date/source) so a dated,
+      // person-attached Proof artifact can fold into horizon-bounded persona memory.
+      return (r.data || []).map(function (a) {
+        return Object.assign({}, a, {
+          url: artifactUrl(a.storage_path),
+          personId: a.person_id, date: a.doc_date || null,
+          source: 'Proof: ' + (a.author_name || 'family archive'),
+        });
+      });
     }).catch(function () { return []; });
   }
   function uploadArtifact(file, meta) {
@@ -95,6 +103,7 @@
         return sb.from('cason_artifacts').insert({
           person_id: meta.personId || null, title: meta.title, kind: meta.kind || 'document',
           storage_path: path, evidence: meta.evidence || 'possible', note: meta.note || null,
+          doc_date: meta.docDate || meta.date || null,
           visibility: meta.visibility || 'public', author_email: state.email, author_name: state.name,
         });
       }).then(function (ins) { if (ins.error) throw ins.error; return { ok: true, url: artifactUrl(path) }; });
