@@ -69,10 +69,13 @@ jobs:
           if [ "${{ github.event.inputs.mode || 'per-persona' }}" = "per-persona" ]; then FLAG="--per-persona"; fi
           node scripts/keeper.js --max "${{ github.event.inputs.max || '3' }}" $FLAG
 
-      - name: Open a proposal PR
+      - name: Push the dossier branch and open a proposal PR
         if: steps.guard.outputs.open == '0'
+        # Prefer a user PAT (KEEPER_PAT) so the PR opens even though this org
+        # disables "Actions can create pull requests"; fall back to the default
+        # token (which can push the branch but not open the PR here).
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
         run: |
           if [ -z "$(git status --porcelain research/proposals)" ]; then
             echo "No new dossier — nothing to propose."; exit 0
@@ -85,7 +88,13 @@ jobs:
           git add research/proposals
           git commit -m "Keeper: research dossier $date"
           git push -u origin "$branch"
-          gh pr create \
+          # Opening the PR may be blocked by org policy on the default token.
+          # Don't fail the run over it — the dossier is safely on the branch.
+          if gh pr create \
             --title "Keeper: research dossier $date" \
             --body $'Autonomous research pass over the open lines.\n\n**Propose, not publish** — every item is an honestly-tiered *lead*, not proof. Model consensus is corroboration, never a primary source: nothing here is `confirmed`. Quarantined myths are caught, not repeated.\n\nReview the dossier, then **merge to accept** the leads as a documented research thread, or **close to reject**. Approved leads can then be promoted into `data.js` at their tier.\n\nSee `research/KEEPER.md` for how the pipeline works.' \
-            --base main --head "$branch"
+            --base main --head "$branch"; then
+            echo "Opened proposal PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically (org disables Actions PR-create). The dossier is pushed to branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret (a user PAT with pull-request write) for fully-autonomous PRs."
+          fi
