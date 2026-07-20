@@ -10,7 +10,7 @@
      XAI_API_KEY        (+ XAI_MODEL,     default grok-4)        // OpenAI-compatible
      GEMINI_API_KEY     (+ GEMINI_MODEL,  default gemini-2.5-flash)
    The Claude adjudicator needs ANTHROPIC_API_KEY. Raw fetch, no deps. */
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'; // override via CLAUDE_MODEL
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5'; // override via CLAUDE_MODEL
 const XAI_MODEL = process.env.XAI_MODEL || 'grok-4';            // set to a model your xAI key supports
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'; // set to a model your Gemini key supports
 
