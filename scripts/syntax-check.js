@@ -8,8 +8,11 @@
 
    This script fails fast instead:
      1. esbuild parse (loader: jsx) over ui_kits/**\/*.jsx
-     2. node --check over ui_kits/living-line/*.js
-     3. no regex lookbehind anywhere in those files — lookbehind
+     2. node --check over ui_kits/living-line/*.js + ui_kits/archive/*.js
+     3. esbuild parse of the inline <script type="text/babel"> blocks
+        in *.html (proof/world/archive/family-tree pages) — invisible
+        to steps 1-2, but they ship JSX to a blank page just the same.
+     4. no regex lookbehind anywhere in those files/blocks — lookbehind
         is a parse-time SyntaxError on iOS Safari < 16.4, which
         kills the entire file on older iPhones/iPads.
 
@@ -67,7 +70,49 @@ jsFiles.forEach(function (file) {
   }
 });
 
-/* ---- 3. no regex lookbehind in browser-shipped code ---- */
+/* ---- 3. inline JSX in .html (esbuild) ----
+   The pages also ship JSX inline via <script type="text/babel">…</script>,
+   compiled by in-browser Babel. A typo there is invisible to steps 1-2 (they
+   only scan standalone .jsx/.js) and ships straight to a blank page. Extract
+   each inline block and parse it exactly like a .jsx file. Also collect the
+   blocks so the lookbehind scan (step 4) covers them too. */
+const SKIP_DIRS = { node_modules: 1, '.git': 1, 'playwright-report': 1, 'test-results': 1 };
+function walkHtml(dir, out) {
+  fs.readdirSync(dir, { withFileTypes: true }).forEach(function (ent) {
+    if (ent.isDirectory()) { if (!SKIP_DIRS[ent.name]) walkHtml(path.join(dir, ent.name), out); }
+    else if (ent.name.endsWith('.html')) out.push(path.join(dir, ent.name));
+  });
+  return out;
+}
+// match a babel <script> and capture its opening-tag attrs + inline body
+const BABEL_RE = /<script\b([^>]*\btype=["']text\/babel["'][^>]*)>([\s\S]*?)<\/script>/gi;
+const htmlFiles = walkHtml(root, []);
+const inlineBlocks = []; // { file, startLine, code } — for the lookbehind pass
+let inlineBlockCount = 0;
+htmlFiles.forEach(function (file) {
+  const src = fs.readFileSync(file, 'utf8');
+  let m;
+  BABEL_RE.lastIndex = 0;
+  while ((m = BABEL_RE.exec(src)) !== null) {
+    const attrs = m[1] || '';
+    if (/\bsrc=/.test(attrs)) continue;          // external babel src -> it's a .jsx already checked in step 1
+    const code = m[2] || '';
+    if (!code.trim()) continue;                  // empty block, nothing to parse
+    inlineBlockCount++;
+    const startLine = src.slice(0, m.index).split('\n').length; // 1-based line of the <script> tag
+    inlineBlocks.push({ file: file, startLine: startLine, code: code });
+    try {
+      esbuild.transformSync(code, { loader: 'jsx' });
+    } catch (e) {
+      const first = (e.errors && e.errors[0]) || null;
+      // esbuild line is relative to the block; offset to the file's real line
+      const fileLine = first && first.location ? (startLine + first.location.line) : startLine;
+      failures.push(rel(file) + ':~' + fileLine + ' (inline babel) — ' + (first ? first.text : String(e.message).split('\n')[0]));
+    }
+  }
+});
+
+/* ---- 4. no regex lookbehind in browser-shipped code ---- */
 const lookbehind = /\(\?<[=!]/;
 jsxFiles.concat(jsFiles).forEach(function (file) {
   const lines = fs.readFileSync(file, 'utf8').split('\n');
@@ -78,12 +123,21 @@ jsxFiles.concat(jsFiles).forEach(function (file) {
     }
   });
 });
+inlineBlocks.forEach(function (b) {
+  b.code.split('\n').forEach(function (line, i) {
+    if (lookbehind.test(line)) {
+      failures.push(rel(b.file) + ':' + (b.startLine + i) +
+        ' (inline babel) — regex lookbehind: SyntaxError on iOS Safari < 16.4 (kills the whole file on older devices)');
+    }
+  });
+});
 
-const checked = jsxFiles.length + jsFiles.length;
+const checked = jsxFiles.length + jsFiles.length + inlineBlockCount;
 if (failures.length) {
   console.error('syntax-check FAILED (' + failures.length + ' problem' + (failures.length === 1 ? '' : 's') + '):');
   failures.forEach(function (f) { console.error('  ' + f); });
   process.exit(1);
 }
-console.log('syntax-check OK — ' + jsxFiles.length + ' .jsx (esbuild) + ' + jsFiles.length +
-  ' .js (node --check) parsed clean, no lookbehind (' + checked + ' files).');
+console.log('syntax-check OK — ' + jsxFiles.length + ' .jsx + ' + inlineBlockCount + ' inline-babel block' +
+  (inlineBlockCount === 1 ? '' : 's') + ' (esbuild) + ' + jsFiles.length +
+  ' .js (node --check) parsed clean, no lookbehind (' + checked + ' checks).');

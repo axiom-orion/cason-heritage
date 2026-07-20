@@ -5,6 +5,7 @@
   "description": "The Cason Line — heritage narrative + audit-verified lineage ledger + family-tree-app variants + research prompt. Static site, deployed to Vercel.",
   "scripts": {
     "dev": "npx serve . -p 4000",
+    "prepare": "git config core.hooksPath scripts/hooks || true",
     "check:syntax": "node scripts/syntax-check.js",
     "pretest": "npm run check:syntax",
     "test": "playwright test",

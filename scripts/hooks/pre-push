@@ -1,0 +1,23 @@
+#!/bin/sh
+# ============================================================
+# Pre-push gate for the no-build site.
+# Runs the fast checks that protect production before code ever
+# leaves the machine:
+#   1. check:syntax  — esbuild/node-parse all JSX (files + inline
+#                      babel blocks) and reject iOS-fatal lookbehind
+#   2. selftest:all  — the headless Node selftests over the real modules
+# Playwright smoke is left to CI (too slow for a push gate).
+#
+# Activated by `git config core.hooksPath scripts/hooks`, which the
+# `prepare` npm script sets automatically on `npm install`.
+# Bypass in a genuine emergency with:  git push --no-verify
+# ============================================================
+set -e
+
+echo "pre-push: syntax gate…"
+npm run --silent check:syntax
+
+echo "pre-push: node selftests…"
+npm run --silent selftest:all >/dev/null
+
+echo "pre-push: OK"
