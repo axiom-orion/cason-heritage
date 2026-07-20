@@ -12,9 +12,15 @@ on:
   workflow_dispatch:
     inputs:
       max:
-        description: 'How many open questions to research this run'
+        description: 'How many questions this run (per-persona: how many personas)'
         required: false
         default: '3'
+      mode:
+        description: 'Selection: per-persona (each persona its own top question) or global (top-N overall)'
+        required: false
+        type: choice
+        options: [per-persona, global]
+        default: per-persona
 
 permissions:
   contents: write
@@ -54,7 +60,14 @@ jobs:
           # Set repo variable KEEPER_PROPOSE_URL (e.g. https://flcason.com/api/propose) and secret KEEPER_INGEST_TOKEN.
           KEEPER_PROPOSE_URL: ${{ vars.KEEPER_PROPOSE_URL }}
           KEEPER_INGEST_TOKEN: ${{ secrets.KEEPER_INGEST_TOKEN }}
-        run: node scripts/keeper.js --max "${{ github.event.inputs.max || '3' }}"
+        # Default (incl. the weekly cron, where inputs are empty) is per-persona:
+        # each persona pursues its OWN top open question. Same cost as before
+        # (still --max questions), just spread across the family instead of
+        # clustering on one line. Pass mode=global on demand for the old behavior.
+        run: |
+          FLAG=""
+          if [ "${{ github.event.inputs.mode || 'per-persona' }}" = "per-persona" ]; then FLAG="--per-persona"; fi
+          node scripts/keeper.js --max "${{ github.event.inputs.max || '3' }}" $FLAG
 
       - name: Open a proposal PR
         if: steps.guard.outputs.open == '0'

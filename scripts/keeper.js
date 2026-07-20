@@ -33,10 +33,14 @@
    It does not touch data.js and it does not publish. The dossier is a
    proposal; merging the PR is the human approval gate.
 
-   Flags:  --max <n>   how many questions this run (default 3)
-           --dry-run    select + print the queue, no network, no files
-           --out <dir>  proposals dir (default research/proposals)
+   Flags:  --max <n>       how many questions this run (default 3)
+           --per-persona   pick each persona's OWN top question (horizon-bounded),
+                           one per persona, instead of the global top-N. Same cost,
+                           spread across the family. (env: KEEPER_PER_PERSONA=1)
+           --dry-run       select + print the queue, no network, no files
+           --out <dir>     proposals dir (default research/proposals)
    Env:    KEEPER_CONSENSUS_URL  default https://flcason.com/api/consensus
+           KEEPER_PER_PERSONA    '1' to enable per-persona mode from the cron
    ============================================================ */
 'use strict';
 const fs = require('fs');
@@ -49,6 +53,11 @@ const args = process.argv.slice(2);
 function flag(name, def) { const i = args.indexOf('--' + name); return i !== -1 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : def; }
 const MAX = parseInt(flag('max', '3'), 10) || 3;
 const DRY = !!flag('dry-run', false);
+// per-persona mode: instead of the global top-N gaps (which can all be one
+// person), pick each persona's OWN top open question, horizon-bounded — so a
+// research pass spreads across the family. Same cost (still MAX questions),
+// diverse coverage. Env KEEPER_PER_PERSONA=1 lets the cron enable it.
+const PER_PERSONA = !!flag('per-persona', false) || process.env.KEEPER_PER_PERSONA === '1' || process.env.KEEPER_PER_PERSONA === 'true';
 const OUT = path.join(ROOT, String(flag('out', 'research/proposals')));
 const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus';
 // the typed governance gate + NDJSON trace (governed-agents contract, ported).
@@ -78,20 +87,56 @@ function loadGraph() {
 }
 
 /* ---- 2. rank the open questions ---- */
+// one scoring rule, shared by both selection modes.
+function scoreGap(n, p) {
+  let score = 0;
+  if (n.evidence === 'possible') score += 4;              // authored family thread (specific)
+  if (n.ownerId === 'james-1727') score += 4;             // the load-bearing Gen-5 link
+  if (p && p.direct) score += 2;
+  if ((n.tags || []).indexOf('open-question') !== -1) score += 1;
+  return score;
+}
+function questionFrom(n, p, pid) {
+  return { ownerId: pid, name: (p && p.name) || pid, lifespan: (p && p.lifespan) || '', text: n.text, tags: n.tags || [], score: scoreGap(n, p) };
+}
+// a persona the Keeper should not research: ruled-out, disproven, or an unfilled placeholder.
+function personBlocked(p) {
+  if (!p) return true;
+  if (p.evidence === 'eliminated' || p.evidence === 'disproven') return true;
+  const tags = p.tags || [];
+  if (tags.indexOf('eliminated') !== -1 || tags.indexOf('disproven') !== -1) return true;
+  if (/UNFILLED|alleged/i.test(String(p.name || ''))) return true;
+  return false;
+}
+
+// GLOBAL: the top-N open questions across the whole record.
 function selectQuestions(g) {
   const seen = {};
-  const gaps = g.MEM.nodes.filter(function (n) { return n.kind === 'gap'; });
-  const scored = gaps.map(function (n) {
-    const p = g.DATA.people[n.ownerId] || {};
-    let score = 0;
-    if (n.evidence === 'possible') score += 4;            // authored family thread (specific)
-    if (n.ownerId === 'james-1727') score += 4;           // the load-bearing Gen-5 link
-    if (p.direct) score += 2;
-    if ((n.tags || []).indexOf('open-question') !== -1) score += 1;
-    return { ownerId: n.ownerId, name: p.name || n.ownerId, lifespan: p.lifespan || '', text: n.text, tags: n.tags || [], score: score };
-  }).filter(function (q) { const k = q.ownerId + '|' + q.text; if (seen[k]) return false; seen[k] = 1; return true; });
-  scored.sort(function (a, b) { return b.score - a.score; });
-  return scored.slice(0, MAX);
+  return g.MEM.nodes
+    .filter(function (n) { return n.kind === 'gap'; })
+    .map(function (n) { return questionFrom(n, g.DATA.people[n.ownerId] || {}, n.ownerId); })
+    .filter(function (q) { const k = q.ownerId + '|' + q.text; if (seen[k]) return false; seen[k] = 1; return true; })
+    .sort(function (a, b) { return b.score - a.score; })
+    .slice(0, MAX);
+}
+
+// PER-PERSONA: each persona's OWN top open question, horizon-bounded to its
+// life (MEM.access) — one question per persona, then the top MAX personas. This
+// is the autonomous "each persona explores its own questions" pass.
+function selectPerPersona(g) {
+  const picks = [];
+  Object.keys(g.DATA.people).forEach(function (pid) {
+    const p = g.DATA.people[pid];
+    if (personBlocked(p)) return;
+    const sub = g.MEM.access(pid);                         // horizon-bounded to this persona
+    const gaps = sub.individual.filter(function (n) { return n.kind === 'gap'; });
+    if (!gaps.length) return;
+    const top = gaps.map(function (n) { return questionFrom(n, p, pid); })
+      .sort(function (a, b) { return b.score - a.score; })[0];
+    picks.push(top);                                       // one top question for this persona
+  });
+  picks.sort(function (a, b) { return b.score - a.score; });
+  return picks.slice(0, MAX);
 }
 
 /* ---- 3. ask the consensus endpoint ---- */
@@ -322,10 +367,12 @@ function dossier(runs, memNote) {
   return { date: date, md: md, corroborated: corroborated, caught: caught, graphResolved: graphResolved, gate: gate };
 }
 
-(async function main() {
+async function main() {
   const g = loadGraph();
-  const qs = selectQuestions(g);
-  console.log('Keeper: ' + g.MEM.nodes.filter(function (n) { return n.kind === 'gap'; }).length + ' open lines; researching top ' + qs.length + '.');
+  const qs = PER_PERSONA ? selectPerPersona(g) : selectQuestions(g);
+  const totalGaps = g.MEM.nodes.filter(function (n) { return n.kind === 'gap'; }).length;
+  console.log('Keeper [' + (PER_PERSONA ? 'per-persona' : 'global') + ']: ' + totalGaps + ' open lines; researching ' +
+    (PER_PERSONA ? qs.length + ' persona(s), one question each.' : 'top ' + qs.length + '.'));
   qs.forEach(function (q) {
     let mark = '';
     if (g.KIN) {
@@ -396,7 +443,7 @@ function dossier(runs, memNote) {
     d.gate.allow + '/' + d.gate.review + '/' + d.gate.block + ' (allow/approve/block); memory ' + memNote + '.');
 
   await postToQueue(runs);
-})().catch(function (e) { console.error('Keeper failed:', e); process.exit(1); });
+}
 
 // Push the needs-approval leads straight into the in-app review queue (/api/propose),
 // so they show up on the Desk for approval without a GitHub round-trip. Env-gated:
@@ -417,3 +464,12 @@ async function postToQueue(runs) {
     console.log(r.ok ? ('Pushed ' + (j.inserted || proposals.length) + ' lead(s) to the in-app review queue.') : ('In-app push failed (' + r.status + '): ' + (j.error || '')));
   } catch (e) { console.log('In-app push error: ' + (e && e.message || e)); }
 }
+
+// Run only when invoked directly (`node scripts/keeper.js`); exported for tests.
+if (require.main === module) {
+  main().catch(function (e) { console.error('Keeper failed:', e); process.exit(1); });
+}
+module.exports = {
+  loadGraph: loadGraph, selectQuestions: selectQuestions, selectPerPersona: selectPerPersona,
+  scoreGap: scoreGap, personBlocked: personBlocked, gate: gate,
+};
