@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-06-10",
-  "digest": "att:b0585dde",
+  "generatedAt": "2026-07-20",
+  "digest": "att:e4450d42",
   "counts": {
     "people": 101,
     "tiers": {
-      "confirmed": 19,
+      "confirmed": 21,
       "eliminated": 3,
       "unsolved": 2,
-      "possible": 45,
+      "possible": 42,
       "leading": 3,
-      "secondary": 28,
+      "secondary": 29,
       "unlikely": 1
     },
-    "sources": 32,
-    "gaps": 40,
-    "quarantine": 19,
+    "sources": 42,
+    "gaps": 41,
+    "quarantine": 22,
     "refDangling": 0,
     "personas": 101
   },
@@ -30,7 +30,7 @@
     "carl-columbus": "f4318865",
     "carol": "20a673af",
     "carrie-mae": "c54892d5",
-    "casey-ann": "6472e891",
+    "casey-ann": "111f8a69",
     "cassandra-weeks": "9b11d8cb",
     "clementine": "9a11d738",
     "dorsey": "d4336286",
@@ -116,7 +116,7 @@
     "william-cason-b": "9b11d8cb",
     "william-jr": "9c11da5e",
     "william-leighton": "11828d71",
-    "wilma-douglas": "4bcdb562",
+    "wilma-douglas": "57b822fa",
     "woodhouse": "0e8288b8",
     "wyles": "d4336286",
     "zeke": "d4336286"
@@ -156,7 +156,7 @@
     },
     "carl-columbus": {
       "t": "confirmed",
-      "s": 0
+      "s": 3
     },
     "carol": {
       "t": "secondary",
@@ -168,7 +168,7 @@
     },
     "casey-ann": {
       "t": "secondary",
-      "s": 0
+      "s": 1
     },
     "cassandra-weeks": {
       "t": "secondary",
@@ -347,8 +347,8 @@
       "s": 0
     },
     "moses": {
-      "t": "possible",
-      "s": 0
+      "t": "confirmed",
+      "s": 1
     },
     "munden-father": {
       "t": "unsolved",
@@ -387,8 +387,8 @@
       "s": 1
     },
     "ransom-jr": {
-      "t": "possible",
-      "s": 0
+      "t": "confirmed",
+      "s": 3
     },
     "ransom-sr": {
       "t": "confirmed",
@@ -420,7 +420,7 @@
     },
     "robert-sr": {
       "t": "confirmed",
-      "s": 0
+      "s": 1
     },
     "roberts": {
       "t": "secondary",
@@ -460,7 +460,7 @@
     },
     "thadeous": {
       "t": "confirmed",
-      "s": 0
+      "s": 1
     },
     "thomas-3": {
       "t": "possible",
@@ -511,7 +511,7 @@
       "s": 0
     },
     "wilma-douglas": {
-      "t": "possible",
+      "t": "secondary",
       "s": 0
     },
     "woodhouse": {
