@@ -249,6 +249,107 @@ function AgeDial({ person, value, onChange }) {
   );
 }
 
+/* ---------------- interview a persona, age-bounded ----------------
+   Sits under the Age dial + Memory tiers: dial to a year, then interview
+   the persona AS THEY WERE that year. Questions are grounded in what they
+   can actually know by then (documents & events within the horizon); the
+   answer is bounded to the same year (personaRespond({simNow})). */
+function InterviewPanel({ personId, person, simNow }) {
+  const IV = window.CASON_INTERVIEW;
+  const [log, setLog] = useState([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState('templated'); // offline-safe default; live needs the API
+  const logRef = useRef(null);
+
+  const frame = useMemo(function () { return IV ? IV.frameFor(personId, simNow) : null; }, [personId, simNow]);
+  const qs = useMemo(function () { return IV ? IV.questionsFor(personId, simNow) : []; }, [personId, simNow]);
+
+  useEffect(function () { setLog(IV && personId ? IV.loadTranscript(personId) : []); }, [personId]); // resume the saved interview
+  useEffect(function () {                                       // persist as we go
+    if (IV && personId && log.length) IV.saveTranscript(personId, log);
+  }, [log, personId]);
+  useEffect(function () { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [log]);
+
+  function ask(q) {
+    const t = String(q == null ? input : q).trim();
+    if (!t || busy || !window.CASON_AI) return;
+    setInput('');
+    const yr = (simNow != null) ? simNow : null;
+    setLog(function (l) { return l.concat([{ role: 'q', text: t, year: yr }]); });
+    setBusy(true);
+    window.CASON_AI.personaRespond({ personId: personId, userMessage: t, history: [], mode: mode, simNow: yr })
+      .then(function (out) { setLog(function (l) { return l.concat([{ role: 'a', text: out.text, mode: out.mode, year: yr }]); }); })
+      .catch(function () { const off = window.CASON_AI.templated(personId, t, yr); setLog(function (l) { return l.concat([{ role: 'a', text: off.text, mode: 'templated', year: yr }]); }); })
+      .then(function () { setBusy(false); });
+  }
+
+  function download() {
+    if (!(IV && log.length)) return;
+    try {
+      const blob = new Blob([IV.toText(personId, log)], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'interview-' + personId + '.txt';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    } catch (e) {}
+  }
+
+  if (!IV || !frame) return null;
+  const nmFirst = frame.name.split(' ')[0];
+  return (
+    <div style={{ marginTop: 18, borderTop: '1px solid rgba(45,90,74,0.2)', paddingTop: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pine, #2d5a4a)' }}>Interview {nmFirst}</div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button onClick={function () { setMode('templated'); }} style={ctlBtn(mode === 'templated')}>Offline</button>
+          <button onClick={function () { setMode('live'); }} style={ctlBtn(mode === 'live')}>Live Claude</button>
+        </div>
+      </div>
+      <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12.5, color: 'var(--faded)', margin: '4px 0 10px' }}>
+        {frame.alive
+          ? <span>{frame.name} in <strong>{frame.year}</strong>{frame.age != null ? ', age ' + frame.age : ''} — knows <strong>{frame.known}</strong> {frame.known === 1 ? 'memory' : 'memories'}, {frame.sealed} still sealed beyond the horizon.</span>
+          : <span>{frame.name} is not living in {frame.year} — dial within {frame.birth || '?'}–{frame.death || '?'} to speak with them.</span>}
+      </div>
+
+      {frame.alive && qs.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+          {qs.map(function (item, i) {
+            const tone = item.kind === 'document' ? 'var(--rust,#9a4a2d)' : item.kind === 'gap' ? 'var(--faded)' : 'var(--pine,#2d5a4a)';
+            return <button key={i} onClick={function () { ask(item.q); }} disabled={busy} title={item.basis || ''}
+              style={{ fontFamily: 'var(--font-sans)', fontSize: 11, padding: '4px 9px', borderRadius: 20, cursor: busy ? 'default' : 'pointer', border: '1px solid ' + tone, background: 'transparent', color: tone, opacity: busy ? 0.5 : 1, textAlign: 'left' }}>
+              {item.kind === 'document' ? '📄 ' : ''}{item.q}</button>;
+          })}
+        </div>
+      )}
+
+      {log.length > 0 && (
+        <div ref={logRef} style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {log.map(function (m, i) {
+            if (m.role === 'q') return <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '85%', background: 'rgba(45,90,74,0.1)', borderRadius: '10px 10px 2px 10px', padding: '6px 10px', fontFamily: 'var(--font-sans)', fontSize: 12.5 }}>{m.text}</div>;
+            return <div key={i} style={{ alignSelf: 'flex-start', maxWidth: '90%', background: 'var(--cream,#f7f2ea)', border: '1px solid rgba(139,69,19,0.14)', borderRadius: '10px 10px 10px 2px', padding: '7px 11px', fontFamily: 'var(--font-serif)', fontSize: 13.5, lineHeight: 1.5 }}>
+              {m.text}
+              <span style={{ display: 'block', marginTop: 4, fontFamily: 'var(--font-sans)', fontSize: 9.5, color: 'var(--faded)' }}>{nmFirst}{m.year != null ? ', ' + m.year : ''} · {m.mode === 'live' ? 'Claude' : 'offline voice'}</span>
+            </div>;
+          })}
+        </div>
+      )}
+
+      {frame.alive && (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input value={input} onChange={function (e) { setInput(e.target.value); }}
+            onKeyDown={function (e) { if (e.key === 'Enter') ask(); }}
+            placeholder={'Ask ' + nmFirst + ' about ' + (frame.year) + '…'} disabled={busy}
+            style={{ flex: 1, padding: '7px 10px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12.5 }} />
+          <button onClick={function () { ask(); }} disabled={busy} style={Object.assign(ctlBtn(true), { padding: '7px 13px' })}>{busy ? '…' : 'Ask'}</button>
+          {log.length > 0 && <button onClick={download} title="Download this interview as a text file" style={ctlBtn(false)}>Save</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------------- current moment + glass-box ---------------- */
 function CurrentMoment({ snap, personId }) {
   const me = snap.agents.find(function (a) { return a.id === personId; });
@@ -2210,6 +2311,7 @@ function LivingWorld() {
               <div style={{ marginTop: 22, maxWidth: 560 }}>
                 <AgeDial person={person} value={asOfYear} onChange={setAsOfYear} />
                 <MemoryTiers personId={sel} simNow={effSimNow} />
+                <InterviewPanel personId={sel} person={person} simNow={effSimNow} />
               </div>
             </div>
           )}

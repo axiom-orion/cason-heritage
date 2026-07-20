@@ -21,9 +21,12 @@
   function hash(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return (h >>> 0).toString(16); }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
-  /* the horizon-bounded context handed to the live model */
-  function contextFor(personId) {
-    const sub = MEM().access(personId);
+  /* the horizon-bounded context handed to the live model.
+     simNow (optional) pins the persona to a year of their life -- the
+     "interview them at age N" seam: at 1823 a 60-yr-old Ransom anticipates
+     the Florida move; at 1848 an 85-yr-old Ransom has lived it. */
+  function contextFor(personId, simNow) {
+    const sub = MEM().access(personId, (simNow != null) ? { simNow: simNow } : undefined);
     const per = PERS().byId[personId];
     const p = DATA().people[personId];
     const facts = [];
@@ -33,15 +36,18 @@
     const gaps = sub.individual.filter(function (n) { return n.kind === 'gap'; }).map(function (n) { return n.text; });
     const forbidden = (MEM().byOwner[personId] || []).filter(function (n) { return n.evidence === 'disproven' || n.evidence === 'eliminated'; }).map(function (n) { return n.text; });
     return {
-      name: p.name, lifespan: p.lifespan, era: per.era, year: (H().deathYearOf(p) || H().birthYearOf(p)),
+      name: p.name, lifespan: p.lifespan, era: per.era,
+      year: (simNow != null) ? simNow : (H().deathYearOf(p) || H().birthYearOf(p)),
+      asOfYear: (simNow != null) ? simNow : null,   // the interview horizon, if pinned
       occupation: per.occupation, voice: per.voice.register, personality: per.personality.join(', '),
       facts: facts, gaps: gaps, forbidden: forbidden,
     };
   }
 
-  /* deterministic, offline voice — always available */
-  function templated(personId, msg) {
-    const sub = MEM().access(personId);
+  /* deterministic, offline voice — always available. simNow (optional)
+     bounds the voice to a year of the persona's life, same as the live seam. */
+  function templated(personId, msg, simNow) {
+    const sub = MEM().access(personId, (simNow != null) ? { simNow: simNow } : undefined);
     const per = PERS().byId[personId];
     const p = DATA().people[personId];
     const q = (msg || '').toLowerCase();
@@ -71,11 +77,12 @@
   function personaRespond(opts) {
     opts = opts || {};
     const personId = opts.personId, userMessage = opts.userMessage || '';
-    if ((opts.mode || 'templated') !== 'live') return Promise.resolve(templated(personId, userMessage));
-    const ck = 'cason-ai-' + hash(personId + '|' + userMessage + '|' + (opts.history || []).map(function (m) { return m.content; }).join('|'));
+    const simNow = (opts.simNow != null) ? opts.simNow : null;   // interview horizon (optional)
+    if ((opts.mode || 'templated') !== 'live') return Promise.resolve(templated(personId, userMessage, simNow));
+    const ck = 'cason-ai-' + hash(personId + '|' + (simNow != null ? simNow : '') + '|' + userMessage + '|' + (opts.history || []).map(function (m) { return m.content; }).join('|'));
     const cached = mem[ck] || lsGet(ck);
     if (cached) { try { return Promise.resolve(Object.assign({ cached: true }, JSON.parse(cached))); } catch (e) {} }
-    const ctx = contextFor(personId);
+    const ctx = contextFor(personId, simNow);
     ctx.userMessage = userMessage; ctx.history = opts.history || [];
     return fetch('/api/persona', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ctx) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
