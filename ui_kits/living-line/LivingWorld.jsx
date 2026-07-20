@@ -350,6 +350,76 @@ function InterviewPanel({ personId, person, simNow }) {
   );
 }
 
+/* ---------------- a persona's own open questions ----------------
+   The gaps in a persona's OWN record, surfaced from inside its horizon.
+   "Pursue this" researches the question via the 3-model consensus and
+   (for a signed-in member) routes the finding to the Review queue — the
+   same governed path a human question takes. Autonomy to ASK; the WRITE
+   stays supervised. */
+function InquiryPanel({ personId, person, simNow, member }) {
+  const IQ = window.CASON_INQUIRY;
+  const [res, setRes] = useState({}); // idx -> { status:'busy'|'done'|'error'|'proposed', data, error }
+  const qs = useMemo(function () { return IQ ? IQ.openQuestionsFor(personId, simNow) : []; }, [personId, simNow]);
+  useEffect(function () { setRes({}); }, [personId, simNow]);
+
+  function set(i, patch) { setRes(function (m) { const n = Object.assign({}, m); n[i] = Object.assign({}, m[i], patch); return n; }); }
+
+  function pursue(i, q) {
+    if (!window.CASON_AI || (res[i] && res[i].status === 'busy')) return;
+    set(i, { status: 'busy', error: null });
+    window.CASON_AI.researchConsensus(q.question, IQ.researchContext(personId, simNow))
+      .then(function (data) { set(i, { status: 'done', data: data }); })
+      .catch(function (e) { set(i, { status: 'error', error: String((e && e.message) || e) }); });
+  }
+  function propose(i, q, data) {
+    if (!(window.CASON_AUTH && window.CASON_AUTH.submitProposal && data && data.consensus)) return;
+    const c = data.consensus;
+    const ev = c.confidence === 'high' ? 'leading' : 'possible'; // model consensus caps at 'leading'
+    window.CASON_AUTH.submitProposal({ personId: personId, summary: c.answer, evidence: ev, source: 'AI consensus (Grok · Gemini · Claude)', justification: q.question, origin: 'self-inquiry' })
+      .then(function () { set(i, { status: 'proposed' }); })
+      .catch(function (e) { set(i, { error: String((e && e.message) || e) }); });
+  }
+
+  if (!IQ || !qs.length) return null;
+  const nmFirst = person ? person.name.split(' ')[0] : nm(personId);
+  return (
+    <div style={{ marginTop: 18, borderTop: '1px solid rgba(122,110,98,0.3)', paddingTop: 14 }}>
+      <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--faded)', marginBottom: 3 }}>{nmFirst}&rsquo;s own open questions</div>
+      <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 12, color: 'var(--faded)', marginBottom: 10 }}>The gaps in {nmFirst}&rsquo;s own record. Pursue one to research it &mdash; the finding goes to the review queue, never straight to the record.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {qs.map(function (q, i) {
+          const r = res[i];
+          const done = r && (r.status === 'done' || r.status === 'proposed') && r.data && r.data.consensus;
+          return (
+            <div key={i} style={{ borderLeft: '2px solid rgba(154,74,45,0.4)', paddingLeft: 10 }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink)' }}>{q.question}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5 }}>
+                <button onClick={function () { pursue(i, q); }} disabled={r && r.status === 'busy'} style={ctlBtn(false)}>
+                  {r && r.status === 'busy' ? 'Researching…' : done ? 'Re-research' : 'Pursue this'}</button>
+                {q.evidence && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)' }}>{q.evidence}</span>}
+              </div>
+              {r && r.status === 'error' && <div style={{ fontSize: 11.5, color: 'var(--blood,#7a1f1f)', marginTop: 5 }}>Research unavailable ({r.error}) &mdash; the 3-model consensus needs server keys.</div>}
+              {done && (
+                <div style={{ marginTop: 6, background: 'var(--cream,#f7f2ea)', border: '1px solid rgba(139,69,19,0.14)', borderRadius: 6, padding: '8px 11px' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: 13, lineHeight: 1.5 }}>{r.data.consensus.answer}</div>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--faded)', marginTop: 4 }}>
+                    {r.data.consensus.corroborated ? '✓ corroborated' : 'single-source'} &middot; confidence {r.data.consensus.confidence || 'low'}</div>
+                  {r.status === 'proposed'
+                    ? <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--pine,#2d5a4a)', marginTop: 6 }}>&#10003; Sent to the review queue &mdash; a keeper approves it under Governance.</div>
+                    : member
+                      ? <button onClick={function () { propose(i, q, r.data); }} style={Object.assign({}, ctlBtn(true), { marginTop: 6 })}>Send to review queue</button>
+                      : <div style={{ fontFamily: 'var(--font-sans)', fontSize: 10.5, color: 'var(--faded)', marginTop: 6 }}>Sign in as family to propose this finding to the record.</div>}
+                  {r.error && <div style={{ fontSize: 11, color: 'var(--blood,#7a1f1f)', marginTop: 5 }}>{r.error}</div>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- current moment + glass-box ---------------- */
 function CurrentMoment({ snap, personId }) {
   const me = snap.agents.find(function (a) { return a.id === personId; });
@@ -2311,6 +2381,7 @@ function LivingWorld() {
               <div style={{ marginTop: 22, maxWidth: 560 }}>
                 <AgeDial person={person} value={asOfYear} onChange={setAsOfYear} />
                 <MemoryTiers personId={sel} simNow={effSimNow} />
+                <InquiryPanel personId={sel} person={person} simNow={effSimNow} member={isMember ? role.name : null} />
                 <InterviewPanel personId={sel} person={person} simNow={effSimNow} />
               </div>
             </div>
