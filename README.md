@@ -89,6 +89,8 @@ npm run keeper -- --dry-run     # the conductor: show the queue it would researc
 npm run keeper -- --max 3       # research 3 open lines, gate them, write a dossier + trace
 npm run drift-audit             # the self-audit: re-run invariants + attest the governed state
 npm test                        # the Playwright browser smoke suite (the live site + glass box)
+npm run check:syntax            # parse-gate all JSX (files + inline babel in .html) + ban iOS lookbehind
+npm run selftest:all            # every Node selftest in one shot
 
 # the agent/governance self-tests (Node, no deps):
 npm run selftest                # living-line invariants (horizon, no-leak)
@@ -133,8 +135,11 @@ visual system (parchment, gold leaf, rust, deep navy; Playfair Display + Source 
 Source Sans 3) is inlined under `:root`. The friendly routes (`/living`, `/dashboard`,
 `/tree`, `/proof`, `/deck`) are defined in `vercel.json` / `serve.json`.
 
-**Deploy.** Connected to Vercel (project `cason-heritage`, `vorion` team): every push to
+**Deploy.** Connected to Vercel (project `cason-heritage`, `vorion` team): a merge to
 `main` ships a production deploy; PRs get a preview URL. By hand: `vercel --prod`.
+`main` is branch-protected — no direct pushes; open a PR, let CI (`.github/workflows/ci.yml`)
+go green, then merge. A `pre-push` hook (`scripts/hooks/pre-push`, auto-wired by `npm install`)
+runs the syntax gate + selftests locally first.
 
 **Contribute.** The footer's **"Submit a correction or document"** button is wired to a
 GitHub Issue Form ([`.github/ISSUE_TEMPLATE/correction.yml`](.github/ISSUE_TEMPLATE/correction.yml)) —
