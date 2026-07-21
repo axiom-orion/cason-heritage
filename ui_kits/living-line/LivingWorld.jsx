@@ -1664,6 +1664,13 @@ function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
     const action = { kind: kind, payload: { personId: p.person_id, evidence: tier || p.evidence, text: p.summary }, justification: p.justification || 'proposal', provenance: p.source ? [{ sourceId: 'src', snippet: p.source, score: /consensus|model/i.test(p.source) ? 0.5 : 0.8 }] : [] };
     return GOV.evaluatePolicy(action, policy);
   }
+  // DB-as-record: on approval, persist the tenant's tree so the record lives in
+  // the database (cason_trees), not git. Best-effort, signed-in keepers only.
+  function persistTree() {
+    if (window.CASON_AUTH && window.CASON_AUTH.saveTree && window.CASON_DATA) {
+      try { window.CASON_AUTH.saveTree({ name: 'The Cason Line', tree: window.CASON_DATA }); } catch (e) {}
+    }
+  }
   function approve(p) {
     const tier = tiers[p.id] || (PROP_TIERS.indexOf(p.evidence) !== -1 ? p.evidence : 'possible');
     const d = decisionFor(p, tier);
@@ -1674,7 +1681,7 @@ function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
     // It is NOT a note on the anchor, so skip addUserMemory.
     if (p.kind === 'new_person') {
       window.CASON_AUTH.decideProposal(p.id, 'approved', notes[p.id] || '', tier)
-        .then(function () { setMsg('Approved — append the discovered person’s record to data.js to make it permanent.'); reload && reload(); })
+        .then(function () { persistTree(); setMsg('Approved and written to the record.'); reload && reload(); })
         .catch(function (e) { setMsg('Could not approve: ' + (e && e.message || e)); })
         .then(function () { setBusy(false); });
       return;
@@ -1683,7 +1690,7 @@ function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
     if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) { try { window.CASON_MEMORY.addUserMemory(rec); } catch (e) {} }
     (window.CASON_AUTH.addContribution ? window.CASON_AUTH.addContribution(rec) : Promise.resolve())
       .then(function () { return window.CASON_AUTH.decideProposal(p.id, 'approved', notes[p.id] || '', tier); })
-      .then(function () { reload && reload(); })
+      .then(function () { persistTree(); reload && reload(); })
       .catch(function (e) { setMsg('Could not approve: ' + (e && e.message || e)); })
       .then(function () { setBusy(false); });
   }

@@ -201,6 +201,31 @@
     }).then(function (r) { return r.data || []; }).catch(function () { return []; });
   }
 
+  // ---- the family's own tree (cason_trees) — DB-as-record, one row per account,
+  //      RLS-isolated. Approval/edits persist here, not to git. ----
+  function saveTree(t) {
+    t = t || {};
+    if (!(enabled && state.verified)) return Promise.resolve({ ok: false, reason: 'sign-in' });
+    return loadSb().then(function () {
+      return sb.from('cason_trees').upsert({
+        owner_email: state.email, name: t.name || null, gedcom: t.gedcom || null, tree: t.tree || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'owner_email' });
+    }).then(function (r) { if (r.error) throw r.error; return { ok: true }; })
+      .catch(function (e) { return { ok: false, reason: String((e && e.message) || e) }; });
+  }
+  function loadTree() {
+    if (!(enabled && state.verified)) return Promise.resolve(null);
+    return loadSb().then(function () {
+      return sb.from('cason_trees').select('name,gedcom,tree,updated_at').eq('owner_email', state.email).maybeSingle();
+    }).then(function (r) { return (r && r.data) ? r.data : null; }).catch(function () { return null; });
+  }
+  function deleteTree() {
+    if (!(enabled && state.verified)) return Promise.resolve({ ok: false });
+    return loadSb().then(function () { return sb.from('cason_trees').delete().eq('owner_email', state.email); })
+      .then(function () { return { ok: true }; }).catch(function () { return { ok: false }; });
+  }
+
   if (enabled) loadSb().catch(function () {});
 
   root.CASON_AUTH = {
@@ -214,5 +239,6 @@
     loadArtifacts: loadArtifacts, uploadArtifact: uploadArtifact, artifactUrl: artifactUrl,
     loadAppeals: loadAppeals, fileAppeal: fileAppeal, resolveAppeal: resolveAppeal,
     loadProposals: loadProposals, submitProposal: submitProposal, decideProposal: decideProposal,
+    saveTree: saveTree, loadTree: loadTree, deleteTree: deleteTree,
   };
 })(typeof window !== 'undefined' ? window : this);
