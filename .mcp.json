@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cason": {
+      "command": "node",
+      "args": ["scripts/mcp-server.js"]
+    }
+  }
+}
