@@ -57,6 +57,10 @@
 <script src="/ui_kits/living-line/ai-client.js"></script>
 <script src="/ui_kits/living-line/llm-byok.js"></script>
 <script src="/ui_kits/living-line/family-store.js"></script>
+<!-- optional account sync: sign in to save your tree across devices (DB-as-record) -->
+<script src="/ui_kits/living-line/supabase-config.js"></script>
+<script src="/ui_kits/living-line/auth.js"></script>
+<script src="/ui_kits/living-line/family-cloud.js"></script>
 
 <script type="text/babel" data-presets="env,react">
 const { useState, useMemo, useRef } = React;
@@ -201,6 +205,28 @@ function LLMSettings(){
   );
 }
 
+/* ---------------- account sync (optional) ---------------- */
+function CloudSync(){
+  const A = window.CASON_AUTH;
+  const [st,setSt] = useState(()=> (A&&A.getState&&A.getState())||{});
+  const [msg,setMsg] = useState('');
+  React.useEffect(function(){ if(!A||!A.onChange) return; return A.onChange(function(){ setSt(Object.assign({},A.getState())); }); },[]);
+  if(!A || !A.enabled) return null;
+  if(st.verified) return <span className="mono" style={{fontSize:11,color:'var(--good)',whiteSpace:'nowrap'}}>&#9679; Synced &middot; {(st.name||st.email||'you').split('@')[0]}</span>;
+  function signIn(){
+    const email = prompt('Sync across your devices — enter your email for a one-time sign-in link:');
+    if(!email) return;
+    setMsg('Sending a link to ' + email.trim() + '…');
+    A.signIn(email.trim()).then(function(){ setMsg('Check your email, then return here.'); }).catch(function(e){ setMsg('Could not send: ' + (e&&e.message||e)); });
+  }
+  return (
+    <span style={{position:'relative'}}>
+      <button className="btn ghost sm" onClick={signIn}>Sync across devices</button>
+      {msg && <span style={{position:'absolute',right:0,top:'calc(100% + 4px)',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:6,padding:'5px 9px',zIndex:20}}>{msg}</span>}
+    </span>
+  );
+}
+
 /* ---------------- explorer ---------------- */
 function Explorer({ data, stats, saved, tooLarge, onReset, onForget }){
   const people = data.people;
@@ -223,6 +249,7 @@ function Explorer({ data, stats, saved, tooLarge, onReset, onForget }){
             </div>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <CloudSync />
             <LLMSettings />
             <button className="btn ghost sm" onClick={onReset}>Import another</button>
             {onForget && saved && <button className="btn ghost sm" onClick={function(){ if(confirm('Forget this family from this device? Your GEDCOM file is untouched.')) onForget(); }} style={{color:'var(--rust)',borderColor:'var(--line)'}}>Forget</button>}
@@ -369,11 +396,36 @@ function App(){
   function doImport(text){
     const { data, out } = buildFrom(text);
     if(!Object.keys(data.people).length){ alert('No people found in that file. Is it a GEDCOM (.ged) export?'); return; }
-    const saved = window.CASON_FAMILY ? window.CASON_FAMILY.save(familyName(data.people), text) : { ok:false };
+    const nm = familyName(data.people);
+    const saved = window.CASON_FAMILY ? window.CASON_FAMILY.save(nm, text) : { ok:false };
+    // account sync: persist the tree to the DB (DB-as-record) when signed in
+    if(window.CASON_CLOUD && window.CASON_CLOUD.configured()) window.CASON_CLOUD.push({ name:nm, gedcom:text, tree:data }).catch(function(){});
     setState({ data, stats: out.stats, saved: !!(saved && saved.ok), tooLarge: !!(saved && saved.reason==='too-large') });
     window.scrollTo(0,0);
   }
   function forget(){ if(window.CASON_FAMILY) window.CASON_FAMILY.clear(); setState(null); }
+
+  // when a signed-in account is present, reconcile local <-> cloud (newest wins)
+  React.useEffect(function(){
+    const C = window.CASON_CLOUD, A = window.CASON_AUTH; if(!C) return;
+    let done = false;
+    function reconcile(){
+      if(done || !C.configured()) return;
+      C.pull().then(function(cloud){
+        if(done) return;
+        const local = window.CASON_FAMILY && window.CASON_FAMILY.load();
+        const win = C.pickNewest(local, cloud);
+        if(!win || !win.gedcom) return;
+        if(win.source === 'cloud'){
+          try { const b = buildFrom(win.gedcom); if(Object.keys(b.data.people).length){ if(window.CASON_FAMILY) window.CASON_FAMILY.save(win.name, win.gedcom); setState({ data:b.data, stats:b.out.stats, saved:true }); } } catch(e){}
+        } else if(!cloud && local){ C.push({ name:local.name, gedcom:local.gedcom, tree:null }).catch(function(){}); }
+      }).catch(function(){});
+    }
+    reconcile();
+    const off = (A && A.onChange) ? A.onChange(reconcile) : null;   // re-run after sign-in
+    return function(){ done = true; if(off) off(); };
+  }, []);
+
   return state
     ? <Explorer data={state.data} stats={state.stats} saved={state.saved} tooLarge={state.tooLarge} onReset={()=>setState(null)} onForget={forget} />
     : <Intro onImport={doImport} />;
