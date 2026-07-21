@@ -56,6 +56,7 @@
 <script src="/ui_kits/living-line/encounters.js"></script>
 <script src="/ui_kits/living-line/ai-client.js"></script>
 <script src="/ui_kits/living-line/llm-byok.js"></script>
+<script src="/ui_kits/living-line/family-store.js"></script>
 
 <script type="text/babel" data-presets="env,react">
 const { useState, useMemo, useRef } = React;
@@ -201,7 +202,7 @@ function LLMSettings(){
 }
 
 /* ---------------- explorer ---------------- */
-function Explorer({ data, stats, onReset }){
+function Explorer({ data, stats, saved, tooLarge, onReset, onForget }){
   const people = data.people;
   const ids = Object.keys(people);
   const [sel, setSel] = useState(ids[0] || null);
@@ -218,12 +219,13 @@ function Explorer({ data, stats, onReset }){
           <div>
             <div style={{fontFamily:'var(--serif)',fontSize:22,color:'var(--ink)'}}>{fam}</div>
             <div className="mono" style={{fontSize:11.5,color:'var(--muted)',letterSpacing:'.06em',marginTop:2}}>
-              {stats.people} PEOPLE &middot; {stats.generations} GENERATIONS &middot; {stats.withBirthYear} DATED &middot; STAYS ON YOUR DEVICE
+              {stats.people} PEOPLE &middot; {stats.generations} GENERATIONS &middot; {stats.withBirthYear} DATED &middot; <span style={saved?{color:'var(--good)'}:{}}>{tooLarge ? 'TOO LARGE TO SAVE HERE' : saved ? 'SAVED ON THIS DEVICE' : 'ON YOUR DEVICE'}</span>
             </div>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
             <LLMSettings />
             <button className="btn ghost sm" onClick={onReset}>Import another</button>
+            {onForget && saved && <button className="btn ghost sm" onClick={function(){ if(confirm('Forget this family from this device? Your GEDCOM file is untouched.')) onForget(); }} style={{color:'var(--rust)',borderColor:'var(--line)'}}>Forget</button>}
           </div>
         </div>
       </div>
@@ -358,15 +360,22 @@ function Panel({title,note,items}){
 }
 
 function App(){
-  const [state, setState] = useState(null); // { data, stats }
+  // come back to the family saved on this device, if any
+  const [state, setState] = useState(function(){
+    const saved = window.CASON_FAMILY && window.CASON_FAMILY.load();
+    if(saved && saved.gedcom){ try { const b = buildFrom(saved.gedcom); if(Object.keys(b.data.people).length) return { data:b.data, stats:b.out.stats, saved:true }; } catch(e){} }
+    return null;
+  });
   function doImport(text){
     const { data, out } = buildFrom(text);
     if(!Object.keys(data.people).length){ alert('No people found in that file. Is it a GEDCOM (.ged) export?'); return; }
-    setState({ data, stats: out.stats });
+    const saved = window.CASON_FAMILY ? window.CASON_FAMILY.save(familyName(data.people), text) : { ok:false };
+    setState({ data, stats: out.stats, saved: !!(saved && saved.ok), tooLarge: !!(saved && saved.reason==='too-large') });
     window.scrollTo(0,0);
   }
+  function forget(){ if(window.CASON_FAMILY) window.CASON_FAMILY.clear(); setState(null); }
   return state
-    ? <Explorer data={state.data} stats={state.stats} onReset={()=>setState(null)} />
+    ? <Explorer data={state.data} stats={state.stats} saved={state.saved} tooLarge={state.tooLarge} onReset={()=>setState(null)} onForget={forget} />
     : <Intro onImport={doImport} />;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
