@@ -57,6 +57,8 @@
 <script src="/ui_kits/living-line/ai-client.js"></script>
 <script src="/ui_kits/living-line/llm-byok.js"></script>
 <script src="/ui_kits/living-line/family-store.js"></script>
+<!-- real records: search the Library of Congress newspaper archive (via /api/records) -->
+<script src="/ui_kits/living-line/record-connectors.js"></script>
 <!-- optional account sync: sign in to save your tree across devices (DB-as-record) -->
 <script src="/ui_kits/living-line/supabase-config.js"></script>
 <script src="/ui_kits/living-line/auth.js"></script>
@@ -290,6 +292,13 @@ function Detail({ id, people }){
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rec, setRec] = useState(null);
+  const [recBusy, setRecBusy] = useState(false);
+  function findRecords(){
+    if(recBusy || !window.CASON_RECORDS) return;
+    setRecBusy(true); setRec(null);
+    window.CASON_RECORDS.search(p).then(function(o){ setRec(o); }).catch(function(){ setRec({items:[],error:'unreachable'}); }).then(function(){ setRecBusy(false); });
+  }
 
   const sub = useMemo(()=>MEM.access(id, asOf!=null?{simNow:asOf}:undefined),[id,asOf]);
   const facts = sub.individual.filter(n=>n.kind!=='gap'&&n.evidence!=='disproven'&&n.evidence!=='eliminated').map(n=>n.text);
@@ -344,6 +353,30 @@ function Detail({ id, people }){
         <Panel title={'What ' + first(p.name) + ' still wonders'} note="the open questions in their record"
           items={questions.slice(0,4).map((q)=><span style={{fontStyle:'italic'}}>{q}</span>)} />
       )}
+
+      <div style={{marginTop:20}}>
+        <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',borderBottom:'1.5px solid var(--line-strong)',paddingBottom:6,gap:10,flexWrap:'wrap'}}>
+          <span style={{fontWeight:700,fontSize:13,letterSpacing:'.03em',color:'var(--ink)',textTransform:'uppercase'}}>Find records for {first(p.name)}</span>
+          <button className="btn ghost sm" onClick={findRecords} disabled={recBusy}>{recBusy?'Searching the archive…':'Search the archive'}</button>
+        </div>
+        {!rec && <div style={{fontSize:12,color:'var(--faint)',marginTop:8,fontStyle:'italic'}}>Search the Library of Congress historic-newspaper archive for {first(p.name)} — real records to check, cited to LOC. Leads, not facts.</div>}
+        {rec && rec.error && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:10}}>Couldn&rsquo;t reach the archive ({rec.error}).</div>}
+        {rec && !rec.error && rec.items.length===0 && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:10}}>No newspaper matches in {first(p.name)}&rsquo;s window. That&rsquo;s an honest &ldquo;not found&rdquo; — not a dead end.</div>}
+        {rec && !rec.error && rec.items.length>0 && (
+          <div style={{marginTop:10}}>
+            <div style={{fontSize:11.5,color:'var(--faint)',fontStyle:'italic',marginBottom:9}}>{rec.note}</div>
+            <ul style={{listStyle:'none',margin:0,padding:0,display:'flex',flexDirection:'column',gap:10}}>
+              {rec.items.slice(0,8).map(function(it,i){ return (
+                <li key={i} style={{borderLeft:'2px solid var(--gold)',paddingLeft:11}}>
+                  <a href={it.url} target="_blank" rel="noopener" style={{fontSize:13.5,color:'var(--ink)',fontWeight:600,textDecoration:'none',borderBottom:'1px solid var(--line-strong)'}}>{it.title}</a>
+                  <div style={{fontSize:11,color:'var(--faint)',fontFamily:'var(--mono)',marginTop:3}}>{it.date} &middot; {it.source}</div>
+                  {it.snippet && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:3}}>{it.snippet}</div>}
+                </li>
+              ); })}
+            </ul>
+          </div>
+        )}
+      </div>
 
       <div style={{marginTop:22,borderTop:'1px solid var(--line)',paddingTop:16}}>
         <div className="mono" style={{fontSize:11,letterSpacing:'.1em',color:'var(--faint)',textTransform:'uppercase',marginBottom:10}}>Speak with {first(p.name)}</div>
