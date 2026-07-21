@@ -349,9 +349,75 @@
       }
     } catch (e) {}
 
+    // --- new-entity creation (a person DISCOVERED through research or an
+    //     encounter) — the governed way to add someone who was never entered.
+    //     Mints an id, wires the kin BOTH ways to an existing anchor, and
+    //     materializes the graph nodes/edges exactly as buildMemoryGraph would.
+    //     Always PROVISIONAL + capped below primary (never `confirmed`); the
+    //     durable record is a data.js append a keeper still approves. ---
+    const REL = { child: 1, parent: 1, spouse: 1, sibling: 1 };
+    function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+    function ingestPerson(rec) {
+      rec = rec || {};
+      const name = String(rec.name || '').trim();
+      if (!name) return { error: 'A name is required.' };
+      const relation = rec.relation, anchorId = rec.anchor, anchor = anchorId ? people[anchorId] : null;
+      if (!anchor) return { error: 'A known relative (anchor) is required to place the new person.' };
+      if (!REL[relation]) return { error: 'relation must be child, parent, spouse, or sibling.' };
+
+      let id = slugify(name) || ('person-' + contentId([name]));
+      if (people[id]) return { id: id, existing: true, node: byId[identityOf[id]] || null };
+
+      const gen = (typeof anchor.generation === 'number')
+        ? anchor.generation + (relation === 'child' ? 1 : relation === 'parent' ? -1 : 0) : null;
+      const evidence = rec.source ? 'secondary' : 'possible'; // discovery never asserts primary/confirmed
+      const person = {
+        id: id, generation: gen, name: name, direct: false, evidence: evidence,
+        narrative: rec.note ? String(rec.note) : null,
+        sources: rec.source ? [String(rec.source)] : [],
+        tags: ['provisional', 'contributed', 'discovered'],
+        parents: [], spouse: [], children: [], siblings: [],
+      };
+      if (rec.bornYear) person.born = { year: parseInt(rec.bornYear, 10) || null, place: rec.place || null };
+      else if (rec.place) person.place = rec.place;
+
+      if (relation === 'child') { person.parents = [anchorId]; anchor.children = (anchor.children || []).concat(id); }
+      else if (relation === 'parent') { person.children = [anchorId]; anchor.parents = (anchor.parents || []).concat(id); }
+      else if (relation === 'spouse') { person.spouse = [anchorId]; anchor.spouse = (anchor.spouse || []).concat(id); }
+      else { person.siblings = [anchorId]; anchor.siblings = (anchor.siblings || []).concat(id); if ((anchor.parents || []).length) person.parents = anchor.parents.slice(); }
+
+      people[id] = person;
+
+      const era = eraForGen(data, gen), place = placeOf(data, person), birth = birthYearOf(person);
+      const idNode = {
+        id: 'mem:' + id + ':identity', ownerId: id, scope: 'family', generation: gen, year: birth,
+        era: era, place: place, kind: 'fact', evidence: evidence,
+        text: name + ' — ' + relation + ' of ' + anchor.name,
+        derivedFrom: ['person.identity', 'discovery'], sources: person.sources.slice(), tags: person.tags.slice(),
+      };
+      nodes.push(idNode); byId[idNode.id] = idNode; (byOwner[id] = byOwner[id] || []).push(idNode); identityOf[id] = idNode.id;
+
+      if (person.narrative || person.sources.length) {
+        const ev = {
+          id: 'mem:' + id + ':note', ownerId: id, scope: 'individual', generation: gen, year: birth,
+          era: era, place: place, kind: 'fact', evidence: evidence,
+          text: person.narrative || ('On the record: ' + person.sources[0]),
+          derivedFrom: ['discovery'], sources: person.sources.slice(), tags: ['discovered', 'contributed'],
+        };
+        nodes.push(ev); byId[ev.id] = ev; (byOwner[id] = byOwner[id] || []).push(ev);
+      }
+
+      const meId = idNode.id, aId = identityOf[anchorId];
+      if (aId && relation === 'child') edges.push({ from: aId, to: meId, type: 'kin', rel: 'parent_of', weight: 1 });
+      else if (aId && relation === 'parent') edges.push({ from: meId, to: aId, type: 'kin', rel: 'parent_of', weight: 1 });
+      else if (aId && relation === 'spouse') edges.push({ from: aId, to: meId, type: 'kin', rel: 'spouse_of', weight: 0.8 });
+
+      return { id: id, node: idNode, record: person };
+    }
+
     return {
       nodes: nodes, edges: edges, byId: byId, byOwner: byOwner, identityOf: identityOf,
-      addUserMemory: ingestUserMemory,
+      addUserMemory: ingestUserMemory, addPerson: ingestPerson,
       meta: { built: 'derived from CASON_DATA + contributions', get nodeCount() { return nodes.length; }, edgeCount: edges.length },
     };
   }
