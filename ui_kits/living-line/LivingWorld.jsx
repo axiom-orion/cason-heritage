@@ -420,6 +420,69 @@ function InquiryPanel({ personId, person, simNow, member }) {
   );
 }
 
+/* ---------------- record someone a persona knew (discovery) ----------------
+   A signed-in member can add a person the current ancestor knew but who was
+   never entered — an in-law's kin, an unnamed child, a neighbor. It appears at
+   once as a PROVISIONAL entity (capped below confirmed) and is proposed to the
+   keeper for the permanent data.js record. Autonomy to FIND; permanence gated. */
+function DiscoveryForm({ anchorId, anchorName, member, onAdded }) {
+  const D = window.CASON_DISCOVERY;
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [relation, setRelation] = useState('sibling');
+  const [source, setSource] = useState('');
+  const [note, setNote] = useState('');
+  const [msg, setMsg] = useState('');
+  if (!D || !member) return null;
+  const who = anchorName.split(' ')[0];
+  const inp = { padding: '6px 9px', borderRadius: 6, border: '1px solid rgba(139,69,19,0.25)', background: 'var(--cream)', fontSize: 12 };
+
+  function submit() {
+    const nm = name.trim();
+    if (!nm) { setMsg('Name the person.'); return; }
+    const spec = { name: nm, relation: relation, anchor: anchorId, source: source.trim() || null, note: note.trim() || null };
+    const r = D.apply(window.CASON_MEMORY, spec);
+    if (r.error) { setMsg(r.error); return; }
+    if (window.CASON_AUTH && window.CASON_AUTH.submitProposal) {
+      window.CASON_AUTH.submitProposal({ personId: anchorId, kind: 'new_person',
+        summary: nm + ' — ' + relation + ' of ' + anchorName,
+        evidence: (r.record && r.record.evidence) || 'possible',
+        source: spec.source || 'family discovery',
+        justification: 'Discovered person: ' + relation + ' of ' + anchorName + (spec.note ? ('. ' + spec.note) : ''),
+        origin: 'discovery' }).catch(function () {});
+    }
+    setMsg((r.existing ? 'Already recorded: ' : 'Added ') + nm + ' (provisional) — proposed to the keeper.');
+    setName(''); setSource(''); setNote('');
+    if (onAdded) onAdded();
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      {!open
+        ? <button onClick={function () { setOpen(true); }} style={ctlBtn(false)}>+ Record someone {who} knew</button>
+        : (
+          <div style={{ border: '1px solid rgba(45,90,74,0.2)', borderRadius: 8, padding: 11, background: 'rgba(45,90,74,0.04)' }}>
+            <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--pine,#2d5a4a)', marginBottom: 6 }}>Someone {who} knew</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <input value={name} onChange={function (e) { setName(e.target.value); }} placeholder="Their name" style={inp} />
+              <select value={relation} onChange={function (e) { setRelation(e.target.value); }} style={inp}>
+                {D.RELATIONS.map(function (rl) { return <option key={rl} value={rl}>{rl} of {who}</option>; })}
+              </select>
+              <input value={source} onChange={function (e) { setSource(e.target.value); }} placeholder="Source (optional)" style={inp} />
+              <input value={note} onChange={function (e) { setNote(e.target.value); }} placeholder="Note (optional)" style={inp} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+              <button onClick={submit} style={ctlBtn(true)}>Record + propose</button>
+              <button onClick={function () { setOpen(false); setMsg(''); }} style={ctlBtn(false)}>Close</button>
+              {msg && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--faded)' }}>{msg}</span>}
+            </div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 11, color: 'var(--faded)', marginTop: 6 }}>Appears at once as a provisional entity (capped below confirmed); a keeper folds it into the permanent record.</div>
+          </div>
+        )}
+    </div>
+  );
+}
+
 /* ---------------- current moment + glass-box ---------------- */
 function CurrentMoment({ snap, personId }) {
   const me = snap.agents.find(function (a) { return a.id === personId; });
@@ -1596,7 +1659,9 @@ function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
   }, []);
   function decisionFor(p, tier) {
     if (!GOV || !policy) return null;
-    const action = { kind: p.kind || 'write_record', payload: { personId: p.person_id, evidence: tier || p.evidence, text: p.summary }, justification: p.justification || 'proposal', provenance: p.source ? [{ sourceId: 'src', snippet: p.source, score: /consensus|model/i.test(p.source) ? 0.5 : 0.8 }] : [] };
+    // a discovered new person is a write to the record — gate it as write_record.
+    const kind = (p.kind === 'new_person') ? 'write_record' : (p.kind || 'write_record');
+    const action = { kind: kind, payload: { personId: p.person_id, evidence: tier || p.evidence, text: p.summary }, justification: p.justification || 'proposal', provenance: p.source ? [{ sourceId: 'src', snippet: p.source, score: /consensus|model/i.test(p.source) ? 0.5 : 0.8 }] : [] };
     return GOV.evaluatePolicy(action, policy);
   }
   function approve(p) {
@@ -1604,6 +1669,16 @@ function ReviewQueueCard({ member, verified, proposals, loaded, reload }) {
     const d = decisionFor(p, tier);
     if (d && d.decision === 'block') { setMsg('The policy gate blocks this proposal — it cannot be approved into the record.'); return; }
     setBusy(true); setMsg('');
+    // A discovered entity was already minted provisionally when proposed; approving
+    // accepts it for the durable record (a keeper appends the emitted data.js line).
+    // It is NOT a note on the anchor, so skip addUserMemory.
+    if (p.kind === 'new_person') {
+      window.CASON_AUTH.decideProposal(p.id, 'approved', notes[p.id] || '', tier)
+        .then(function () { setMsg('Approved — append the discovered person’s record to data.js to make it permanent.'); reload && reload(); })
+        .catch(function (e) { setMsg('Could not approve: ' + (e && e.message || e)); })
+        .then(function () { setBusy(false); });
+      return;
+    }
     const rec = { personId: p.person_id, text: p.summary, evidence: tier, source: (p.source || 'proposal') + ' · approved by ' + (member || 'a keeper'), when: Date.now() };
     if (window.CASON_MEMORY && window.CASON_MEMORY.addUserMemory) { try { window.CASON_MEMORY.addUserMemory(rec); } catch (e) {} }
     (window.CASON_AUTH.addContribution ? window.CASON_AUTH.addContribution(rec) : Promise.resolve())
@@ -2383,6 +2458,7 @@ function LivingWorld() {
                 <MemoryTiers personId={sel} simNow={effSimNow} />
                 <InquiryPanel personId={sel} person={person} simNow={effSimNow} member={isMember ? role.name : null} />
                 <InterviewPanel personId={sel} person={person} simNow={effSimNow} />
+                <DiscoveryForm anchorId={sel} anchorName={person.name} member={isMember ? role.name : null} onAdded={rerender} />
               </div>
             </div>
           )}
