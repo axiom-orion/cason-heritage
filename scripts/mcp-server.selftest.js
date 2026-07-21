@@ -32,8 +32,9 @@ ok(rpc('notifications/initialized', {}) === null, 'initialized notification gets
 
 /* ---- 2: tools/list ---- */
 var list = rpc('tools/list', {});
-ok(list.result.tools.length >= 4, 'tools/list returns >=4 tools (got ' + list.result.tools.length + ')');
+ok(list.result.tools.length >= 5, 'tools/list returns >=5 tools (got ' + list.result.tools.length + ')');
 ok(list.result.tools.every(function (t) { return t.name && t.inputSchema; }), 'every tool has a name + inputSchema');
+ok(list.result.tools.some(function (t) { return t.name === 'who_they_knew'; }), 'the who_they_knew tool is listed');
 
 /* ---- 3: find_person ---- */
 var fp = callObj('find_person', { query: 'Thadeous' });
@@ -57,6 +58,12 @@ ok(full.facts.every(function (t) { return !/disproven|eliminated/i.test(t); }), 
 var oq = callObj('open_questions', { person: 'thadeous' });
 ok(oq.count > 0 && oq.openQuestions.some(function (q) { return /Georgia|marriage|1882|1883/i.test(q.question); }),
    'open_questions returns Thadeous\'s own marriage-date question');
+
+/* ---- 6b: who_they_knew returns the durable encounter web, time-aware ---- */
+var wk = callObj('who_they_knew', { person: 'thadeous' });
+ok(wk.count > 0 && wk.knew.some(function (e) { return /Georgia/.test(e.who); }), 'who_they_knew lists Thadeous knew Georgia');
+var wkEarly = callObj('who_they_knew', { person: 'thadeous', byYear: 1855 });
+ok(!wkEarly.knew.some(function (e) { return /Georgia/.test(e.who); }), 'byYear bounds it: Georgia not yet met in 1855');
 
 /* ---- 7: error handling ---- */
 var bad = rpc('tools/call', { name: 'no_such_tool', arguments: {} });

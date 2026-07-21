@@ -106,11 +106,11 @@ Durable memory is opt-in and graceful: set `KEEPER_MEMORY_URL` (+ `KEEPER_MEMORY
 to point the Keeper at an `agent-memory-service` deployment; unset, it runs stateless.
 
 **MCP server** (`npm run mcp` → `scripts/mcp-server.js`) exposes the *governed* record to any
-MCP client (Claude Desktop, Claude Code) as four tools — `find_person`, `resolve_kin`,
-`person_memory` (horizon-bounded), `open_questions` — reusing the real modules, so the same
-guarantees hold through the boundary: kin from the curated graph, no facts past a persona's
-horizon, disproven/eliminated claims withheld. Zero-dependency stdio JSON-RPC; register via the
-project `.mcp.json`, or in `claude_desktop_config.json`:
+MCP client (Claude Desktop, Claude Code) as five tools — `find_person`, `resolve_kin`,
+`person_memory` (horizon-bounded), `open_questions`, `who_they_knew` (the durable encounter web) —
+reusing the real modules, so the same guarantees hold through the boundary: kin from the curated
+graph, no facts past a persona's horizon, disproven/eliminated claims withheld. Zero-dependency
+stdio JSON-RPC; register via the project `.mcp.json`, or in `claude_desktop_config.json`:
 ```json
 { "mcpServers": { "cason": { "command": "node", "args": ["<abs-path>/scripts/mcp-server.js"] } } }
 ```
