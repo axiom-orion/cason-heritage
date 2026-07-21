@@ -371,7 +371,9 @@
     if (group.length < 2) return null;
     const a = group[0], b = group[1];
     const pa = world.personas.byId[a], pb = world.personas.byId[b];
-    const subA = world.mem.access(a), subB = world.mem.access(b);
+    // a shared moment: each sees the other as a KNOWN peer, so their private
+    // memory can surface in the exchange (the scope gate, now populated).
+    const subA = world.mem.access(a, { knownPeers: [b] }), subB = world.mem.access(b, { knownPeers: [a] });
     const rel = relationship(data, a, b);
     const env = world.env || {};
     const tod = env.timeOfDay || { phase: 'midday', isNight: false };

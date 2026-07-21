@@ -363,6 +363,28 @@
                            (shared encounters; default: none)
      -> { individual, generational, family, horizonYear, maxGen, blocked, stats }
      ============================================================ */
+  // Who a person KNEW, bidirectionally: their spouse / parents / children /
+  // siblings, plus anyone who names them as such. These are the people whose
+  // private (individual-scope) memory the scope gate will unlock — "who they
+  // knew opens what they know." (Peer memory is still bounded by the VIEWER's
+  // own horizon, so a spouse can only recall what fell within their lifetime.)
+  function kinOf(data, personId) {
+    const people = data.people || {};
+    const self = people[personId];
+    const set = {};
+    function add(id) { if (id && id !== personId && people[id]) set[id] = true; }
+    if (self) {
+      (self.spouse || []).forEach(add); (self.parents || []).forEach(add);
+      (self.children || []).forEach(add); (self.siblings || []).forEach(add);
+    }
+    Object.keys(people).forEach(function (id) {
+      const q = people[id];
+      if ((q.spouse || []).indexOf(personId) !== -1 || (q.children || []).indexOf(personId) !== -1 ||
+          (q.parents || []).indexOf(personId) !== -1 || (q.siblings || []).indexOf(personId) !== -1) add(id);
+    });
+    return Object.keys(set);
+  }
+
   function accessibleSubgraph(graph, data, personId, opts) {
     opts = opts || {};
     const p = (data.people || {})[personId];
@@ -373,7 +395,8 @@
     const maxGen = N + 1;
     const horizon = (opts.simNow != null) ? opts.simNow : lifeYearOf(p);
     const known = {};
-    (opts.knownPeers || []).forEach(function (id) { known[id] = true; });
+    (opts.knownPeers || []).forEach(function (id) { known[id] = true; });   // an explicit encounter (e.g. co-presence)
+    if (opts.includeKin) kinOf(data, personId).forEach(function (id) { known[id] = true; }); // immediate family always known
     known[personId] = true;
 
     const out = { individual: [], generational: [], family: [] };
@@ -403,7 +426,7 @@
     build: buildMemoryGraph,
     access: accessibleSubgraph,
     helpers: { birthYearOf: birthYearOf, deathYearOf: deathYearOf, lifeYearOf: lifeYearOf,
-               eraForGen: eraForGen, placeOf: placeOf, parseLifespan: parseLifespan, contentId: contentId },
+               eraForGen: eraForGen, placeOf: placeOf, parseLifespan: parseLifespan, contentId: contentId, knownPeersOf: kinOf },
     AUTHORED_NODES: AUTHORED_NODES,
   };
 
@@ -416,6 +439,7 @@
     if (root.CASON_DATA) {
       const g = buildMemoryGraph(root.CASON_DATA);
       g.access = function (personId, opts) { return accessibleSubgraph(g, root.CASON_DATA, personId, opts); };
+      g.knownPeersOf = function (personId) { return kinOf(root.CASON_DATA, personId); };
       root.CASON_MEMORY = g;
     }
   }
