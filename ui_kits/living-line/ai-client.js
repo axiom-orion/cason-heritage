@@ -86,11 +86,50 @@
     return { text: String(text).trim(), mode: 'templated', sources: events.slice(0, 3).map(function (n) { return n.id; }) };
   }
 
+  /* build the persona's system prompt + messages client-side (mirrors
+     api/persona.js) so a BYOK model can be called straight from the browser. */
+  function buildPersonaPrompt(ctx, userMessage, history) {
+    function clamp(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) : s; }
+    const facts = (ctx.facts || []).map(function (f) { return '- ' + clamp(f, 300); }).slice(0, 40).join('\n');
+    const shared = (ctx.shared || []).map(function (s) { return '- ' + clamp(s, 300); }).slice(0, 20).join('\n');
+    const gaps = (ctx.gaps || []).map(function (g) { return clamp(g, 200); }).slice(0, 8).join('; ');
+    const forbidden = (ctx.forbidden || []).map(function (f) { return clamp(f, 200); }).slice(0, 8).join('; ');
+    const system = [
+      'You ARE ' + ctx.name + (ctx.lifespan ? ' (' + clamp(ctx.lifespan, 40) + ')' : '') + ', a ' + clamp(ctx.occupation || 'person of the line', 60) + ' of the ' + clamp(ctx.era || 'past', 40) + ' era. The year is about ' + clamp(String(ctx.year || ''), 12) + '. Speak entirely in character, in the first person.',
+      ctx.voice ? 'Voice: ' + clamp(ctx.voice, 200) + '.' : '',
+      ctx.personality ? 'Bearing: ' + clamp(ctx.personality, 200) + '.' : '',
+      'You may speak ONLY to what you could know within your own lifetime. The notes below are the whole of your memory. Never invent names, dates, places, kin, or events that are not in these notes. If asked about something not in your memory, or anything in your future, say plainly and in period words that you cannot know it. Never say you are an AI or break character. Keep replies under about 110 words.',
+      forbidden ? 'You must NEVER assert these discredited claims as true: ' + forbidden + '.' : '',
+      shared ? 'Things you know THROUGH your kin (attribute them to the person named, never as your own firsthand memory):\n' + shared : '',
+      'Your memory:',
+      facts || '(little of your life is written down)',
+      gaps ? 'Questions you yourself wonder about: ' + gaps : '',
+    ].filter(Boolean).join('\n');
+    const messages = (history || []).slice(-6).filter(function (m) { return m && m.role && m.content; })
+      .map(function (m) { return { role: m.role === 'persona' ? 'assistant' : 'user', content: clamp(m.content, 800) }; });
+    messages.push({ role: 'user', content: clamp(userMessage || 'Tell me about yourself.', 800) });
+    return { system: system, messages: messages };
+  }
+
   function personaRespond(opts) {
     opts = opts || {};
     const personId = opts.personId, userMessage = opts.userMessage || '';
     const simNow = (opts.simNow != null) ? opts.simNow : null;   // interview horizon (optional)
     if ((opts.mode || 'templated') !== 'live') return Promise.resolve(templated(personId, userMessage, simNow));
+
+    // BYOK: the user's own model, called straight from the browser (their key
+    // never touches our server). Falls through to the server-key path if unset.
+    if (root.CASON_LLM && root.CASON_LLM.configured()) {
+      const bk = 'cason-ai-byok-' + hash(personId + '|' + (simNow != null ? simNow : '') + '|' + userMessage + '|' + (opts.history || []).map(function (m) { return m.content; }).join('|'));
+      const bc = mem[bk] || lsGet(bk);
+      if (bc) { try { return Promise.resolve(Object.assign({ cached: true }, JSON.parse(bc))); } catch (e) {} }
+      const pctx = contextFor(personId, simNow);
+      const pr = buildPersonaPrompt(pctx, userMessage, opts.history || []);
+      return root.CASON_LLM.chat({ system: pr.system, messages: pr.messages, maxTokens: 420 }).then(function (o) {
+        const out = { text: o.text, mode: 'byok' }; mem[bk] = JSON.stringify(out); lsSet(bk, JSON.stringify(out)); return out;
+      });
+    }
+
     const ck = 'cason-ai-' + hash(personId + '|' + (simNow != null ? simNow : '') + '|' + userMessage + '|' + (opts.history || []).map(function (m) { return m.content; }).join('|'));
     const cached = mem[ck] || lsGet(ck);
     if (cached) { try { return Promise.resolve(Object.assign({ cached: true }, JSON.parse(cached))); } catch (e) {} }
