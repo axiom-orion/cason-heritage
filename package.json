@@ -30,6 +30,7 @@
     "selftest:encounters": "node ui_kits/living-line/encounters.selftest.js",
     "selftest:gedcom": "node ui_kits/living-line/gedcom-import.selftest.js",
     "selftest:llm": "node ui_kits/living-line/llm-byok.selftest.js",
+    "selftest:family-store": "node ui_kits/living-line/family-store.selftest.js",
     "selftest:landing": "node ui_kits/living-line/line-landing-data.selftest.js",
     "selftest:corpus": "node ui_kits/living-line/corpus.selftest.js",
     "selftest:stats": "node ui_kits/living-line/lineage-stats.selftest.js",
@@ -44,7 +45,7 @@
     "selftest:mcp": "node scripts/mcp-server.selftest.js",
     "corpus-audit": "node scripts/corpus-audit.js",
     "selftest:corpus-audit": "node scripts/corpus-audit.selftest.js",
-    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis && npm run selftest:gate-contract && npm run selftest:landing && npm run selftest:corpus && npm run selftest:corpus-audit && npm run selftest:stats && npm run selftest:media && npm run selftest:confidence && npm run selftest:tiers && npm run selftest:docs && npm run selftest:corpus-memory && npm run selftest:interview && npm run selftest:inquiry && npm run selftest:keeper && npm run selftest:mcp && npm run selftest:encounter-gate && npm run selftest:discovery && npm run selftest:encounters && npm run selftest:gedcom && npm run selftest:llm"
+    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis && npm run selftest:gate-contract && npm run selftest:landing && npm run selftest:corpus && npm run selftest:corpus-audit && npm run selftest:stats && npm run selftest:media && npm run selftest:confidence && npm run selftest:tiers && npm run selftest:docs && npm run selftest:corpus-memory && npm run selftest:interview && npm run selftest:inquiry && npm run selftest:keeper && npm run selftest:mcp && npm run selftest:encounter-gate && npm run selftest:discovery && npm run selftest:encounters && npm run selftest:gedcom && npm run selftest:llm && npm run selftest:family-store"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
