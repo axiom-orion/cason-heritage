@@ -15,6 +15,8 @@
     { "source": "/living",    "destination": "/ui_kits/living-line" },
     { "source": "/proof",     "destination": "/ui_kits/proof" },
     { "source": "/archive",   "destination": "/ui_kits/archive" },
+    { "source": "/demo",      "destination": "/ui_kits/onboarding" },
+    { "source": "/try",       "destination": "/ui_kits/onboarding" },
     { "source": "/deck",      "destination": "/slides" },
     { "source": "/system",    "destination": "/README.md" },
     { "source": "/prompt",    "destination": "/research/edge-expansion-prompt.md" }
