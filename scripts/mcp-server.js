@@ -34,11 +34,13 @@ require(path.join(LIVING, 'memory-graph.js'));
 require(path.join(LIVING, 'personas.js'));
 require(path.join(LIVING, 'kinship.js'));
 require(path.join(LIVING, 'self-inquiry.js'));
+require(path.join(LIVING, 'encounters.js'));
 
 const DATA = global.CASON_DATA;
 const MEM = global.CASON_MEMORY;
 const KIN = global.CASON_KINSHIP;
 const IQ = global.CASON_INQUIRY;
+const ENC = global.CASON_ENCOUNTERS;
 
 const SERVER = { name: 'cason-heritage', version: '1.0.0' };
 const DEFAULT_PROTOCOL = '2025-06-18';
@@ -91,6 +93,14 @@ const TOOLS = [
       asOfYear: { type: 'number', description: 'optional; bound to a year of their life' },
     }, required: ['person'] },
   },
+  {
+    name: 'who_they_knew',
+    description: 'Who a person met, and when — the durable encounter web: CERTAIN kin meetings (spouse/parent/child/sibling) and PROBABLE neighbor meetings (same place, overlapping lives). Each with the year they could first have met, the place, and the basis. Optional byYear bounds it to who they had met by then.',
+    inputSchema: { type: 'object', properties: {
+      person: { type: 'string', description: 'person id or name' },
+      byYear: { type: 'number', description: 'optional; only those met by this year' },
+    }, required: ['person'] },
+  },
 ];
 
 const HANDLERS = {
@@ -139,6 +149,20 @@ const HANDLERS = {
     return {
       person: DATA.people[id].name, id: id, count: qs.length,
       openQuestions: qs.map(function (q) { return { question: q.question, evidence: q.evidence, tags: q.tags }; }),
+    };
+  },
+  who_they_knew: function (a) {
+    const id = resolvePerson(a.person);
+    if (!id) return { error: 'No person matches "' + a.person + '". Try find_person first.' };
+    const idx = (MEM && MEM.encounters) || (ENC ? ENC.build(DATA) : null);
+    if (!idx) return { error: 'The encounter index is unavailable.' };
+    let list = ENC.encountersOf(idx, id);
+    if (typeof a.byYear === 'number') list = list.filter(function (e) { return e.year == null || e.year <= a.byYear; });
+    return {
+      person: DATA.people[id].name, id: id, count: list.length,
+      knew: list.slice(0, 60).map(function (e) {
+        return { who: (DATA.people[e.who] || {}).name || e.who, when: e.year, where: e.place, basis: e.basis, certainty: e.certainty };
+      }),
     };
   },
 };
