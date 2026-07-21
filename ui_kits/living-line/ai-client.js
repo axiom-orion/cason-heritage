@@ -26,21 +26,33 @@
      "interview them at age N" seam: at 1823 a 60-yr-old Ransom anticipates
      the Florida move; at 1848 an 85-yr-old Ransom has lived it. */
   function contextFor(personId, simNow) {
-    const sub = MEM().access(personId, (simNow != null) ? { simNow: simNow } : undefined);
+    // includeKin: a persona may draw on what its immediate family shared -- but
+    // those memories are handed over LABELLED (see `shared`), never as its own
+    // firsthand recollection, and still bounded by this persona's own horizon.
+    const opts = { includeKin: true };
+    if (simNow != null) opts.simNow = simNow;
+    const sub = MEM().access(personId, opts);
     const per = PERS().byId[personId];
     const p = DATA().people[personId];
-    const facts = [];
-    sub.individual.forEach(function (n) { if (n.kind !== 'gap' && n.evidence !== 'disproven' && n.evidence !== 'eliminated') facts.push(n.text); });
+    const people = DATA().people;
+    const facts = [], shared = [];
+    sub.individual.forEach(function (n) {
+      if (n.kind === 'gap' || n.evidence === 'disproven' || n.evidence === 'eliminated') return;
+      if (n.ownerId && n.ownerId !== personId) {                      // a kin member's memory, through them
+        const peer = people[n.ownerId];
+        shared.push((peer ? peer.name.split(' ')[0] : 'kin') + ': ' + n.text);
+      } else facts.push(n.text);
+    });
     sub.family.slice(0, 20).forEach(function (n) { facts.push(n.text); });
     sub.generational.slice(0, 8).forEach(function (n) { facts.push(n.text); });
-    const gaps = sub.individual.filter(function (n) { return n.kind === 'gap'; }).map(function (n) { return n.text; });
+    const gaps = sub.individual.filter(function (n) { return n.kind === 'gap' && (!n.ownerId || n.ownerId === personId); }).map(function (n) { return n.text; });
     const forbidden = (MEM().byOwner[personId] || []).filter(function (n) { return n.evidence === 'disproven' || n.evidence === 'eliminated'; }).map(function (n) { return n.text; });
     return {
       name: p.name, lifespan: p.lifespan, era: per.era,
       year: (simNow != null) ? simNow : (H().deathYearOf(p) || H().birthYearOf(p)),
       asOfYear: (simNow != null) ? simNow : null,   // the interview horizon, if pinned
       occupation: per.occupation, voice: per.voice.register, personality: per.personality.join(', '),
-      facts: facts, gaps: gaps, forbidden: forbidden,
+      facts: facts, shared: shared.slice(0, 20), gaps: gaps, forbidden: forbidden,
     };
   }
 

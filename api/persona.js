@@ -5,7 +5,7 @@
    deterministic templated voice otherwise. Raw fetch (no deps) — the repo
    deploys with no npm install. */
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'; // override via CLAUDE_MODEL
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5'; // override via CLAUDE_MODEL
 
 function clamp(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) : s; }
 
@@ -30,6 +30,7 @@ module.exports = async function (req, res) {
   const facts = Array.isArray(p.facts) ? p.facts.map(function (f) { return '- ' + clamp(f, 300); }).slice(0, 40).join('\n') : '';
   const gaps = Array.isArray(p.gaps) ? p.gaps.map(function (g) { return clamp(g, 200); }).slice(0, 8).join('; ') : '';
   const forbidden = Array.isArray(p.forbidden) ? p.forbidden.map(function (f) { return clamp(f, 200); }).slice(0, 8).join('; ') : '';
+  const shared = Array.isArray(p.shared) ? p.shared.map(function (s) { return '- ' + clamp(s, 300); }).slice(0, 20).join('\n') : '';
 
   const system = [
     'You ARE ' + name + (p.lifespan ? ' (' + clamp(p.lifespan, 40) + ')' : '') + ', a ' + clamp(p.occupation || 'person of the line', 60) + ' of the ' + clamp(p.era || 'past', 40) + ' era. The year is about ' + clamp(String(p.year || ''), 12) + '. Speak entirely in character, in the first person.',
@@ -39,6 +40,7 @@ module.exports = async function (req, res) {
     forbidden ? 'You must NEVER assert these discredited claims as true: ' + forbidden + '.' : '',
     'Your memory:',
     facts || '(little of your life is written down)',
+    shared ? 'Things you know THROUGH your kin (from what they told you — attribute them to the person named, e.g. "my husband spoke of...", never as your own firsthand memory):\n' + shared : '',
     gaps ? 'Questions you yourself wonder about: ' + gaps : '',
   ].filter(Boolean).join('\n');
 
