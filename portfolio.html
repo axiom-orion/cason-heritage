@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ryan Cason — Portfolio</title>
+<meta name="description" content="Ryan Cason's portfolio — Vorion (governed runtime for agentic AI), BanquetAI, agent-memory-service, genealogy-graphrag, cason-heritage, and the rest of a 20+ site production estate.">
+<meta property="og:title" content="Ryan Cason — Portfolio">
+<meta property="og:description" content="What I've built: governance, memory, and retrieval infrastructure for agentic AI, a production hospitality SaaS, and everything shipped along the way.">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://flcason.com/portfolio">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ryan Cason — Portfolio">
+<meta name="twitter:description" content="What I've built: governance, memory, and retrieval infrastructure for agentic AI, a production hospitality SaaS, and everything shipped along the way.">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="canonical" href="https://flcason.com/portfolio">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/colors_and_type.css">
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-serif);
+    background: var(--parchment);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: var(--fg-link); text-decoration: none; }
+  a:hover { color: var(--gold); }
+
+  /* ── top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--deep-blue);
+    border-bottom: 1px solid var(--divider-on-dark);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .topbar .brand { font-family: var(--font-display); font-weight: 700; color: var(--cream); font-size: 1.05rem; }
+  .topbar .brand span { color: var(--gold-bright); }
+  .topbar nav { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .topbar nav a {
+    font-family: var(--font-sans); font-size: 0.82rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--fg-on-dark-2);
+  }
+  .topbar nav a.cta { color: var(--gold-bright); }
+  .topbar nav a:hover { color: var(--gold-bright); }
+
+  /* ── hero ── */
+  .hero { padding: 64px 20px 48px; text-align: center; max-width: 780px; margin: 0 auto; }
+  .hero .eyebrow {
+    font-family: var(--font-sans); font-size: var(--fs-eyebrow); font-weight: 700;
+    letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--gold);
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 7vw, 3.4rem); color: var(--ink); text-shadow: none; margin: 10px 0 14px;
+  }
+  .hero p.lede { font-size: var(--fs-body-lg); color: var(--fg-2); max-width: 46em; margin: 0 auto 24px; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans);
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 12px 22px; border-radius: var(--r-pill); transition: transform var(--t-fast);
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--rust); color: var(--cream); }
+  .btn-primary:hover { background: #763a0f; color: var(--cream); }
+  .btn-ghost { background: transparent; color: var(--rust); border: 1.5px solid var(--border-medium); }
+  .btn-ghost:hover { background: rgba(139,69,19,0.07); color: var(--rust); }
+
+  /* ── bands ── */
+  .band { padding: 48px 20px; }
+  .band.cream { background: var(--cream); }
+  .band-inner { max-width: 1080px; margin: 0 auto; }
+  .section-head { margin-bottom: var(--space-6); text-align: center; }
+  .section-head .meta {
+    font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .section-head h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
+  .section-head p.sub { color: var(--fg-2); font-style: italic; max-width: 42em; margin: 8px auto 0; }
+
+  /* ── flagship cards ── */
+  .flagship-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
+  @media (min-width: 720px) { .flagship-grid { grid-template-columns: repeat(2, 1fr); } }
+  .flagship {
+    background: var(--bg); border: 1px solid var(--border-hairline); border-radius: var(--r-lg);
+    padding: var(--space-6); box-shadow: var(--shadow-1); display: flex; flex-direction: column;
+  }
+  .flagship .kicker { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faded); margin-bottom: 6px; }
+  .flagship h3 { margin: 0 0 6px; }
+  .flagship .metric { font-family: var(--font-sans); font-size: 0.8rem; color: var(--sea-green); font-weight: 700; margin-bottom: 10px; }
+  .flagship p { font-size: 0.92rem; color: var(--fg-1); flex-grow: 1; }
+  .flagship .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .flagship .tag-chip {
+    font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.02em;
+    background: var(--bg-highlight); color: var(--rust); padding: 3px 10px; border-radius: var(--r-pill);
+  }
+  .flagship .links { font-family: var(--font-sans); font-size: 0.8rem; margin-top: auto; padding-top: 8px; }
+  .flagship .links a { margin-right: 14px; font-weight: 600; }
+
+  /* ── site grid (small cards) ── */
+  .site-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 560px) { .site-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 900px) { .site-grid { grid-template-columns: repeat(3, 1fr); } }
+  .site-card {
+    background: var(--bg-raised); border: 1px solid var(--border-hairline); border-radius: var(--r-md);
+    padding: var(--space-4) var(--space-5); transition: border-color var(--t-fast), transform var(--t-fast);
+    display: block;
+  }
+  .site-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .site-card .name { font-family: var(--font-display); font-weight: 700; color: var(--fg-accent-2); font-size: 1rem; display: flex; align-items: center; gap: 6px; }
+  .site-card .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sea-green); display: inline-block; flex-shrink: 0; }
+  .site-card .url { font-family: var(--font-sans); font-size: 0.72rem; color: var(--faded); margin: 2px 0 6px; }
+  .site-card p { font-size: 0.85rem; margin: 0; color: var(--fg-1); }
+
+  /* ── receipts list ── */
+  .receipts { max-width: 760px; margin: 0 auto; }
+  .receipt { display: flex; gap: var(--space-4); padding: var(--space-4) 0; border-bottom: 1px solid var(--border-hairline); }
+  .receipt:last-child { border-bottom: none; }
+  .receipt .mark { font-family: var(--font-display); font-weight: 900; color: var(--gold); font-size: 1.3rem; line-height: 1; flex-shrink: 0; width: 28px; }
+  .receipt .name { font-family: var(--font-sans); font-weight: 700; color: var(--fg-accent-2); font-size: 0.95rem; }
+  .receipt p { font-size: 0.88rem; margin: 4px 0 0; }
+  .receipt a { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 600; }
+
+  /* ── skills chips ── */
+  .chip-groups { max-width: 900px; margin: 0 auto; }
+  .chip-group { margin-bottom: var(--space-5); }
+  .chip-group .lbl {
+    font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: 8px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--font-sans); font-size: 0.8rem; background: var(--bg); border: 1px solid var(--border-hairline);
+    color: var(--fg-1); padding: 5px 12px; border-radius: var(--r-pill);
+  }
+
+  /* ── background ── */
+  .bg-copy { max-width: 700px; margin: 0 auto; text-align: left; }
+  .bg-copy p { font-size: 0.95rem; }
+  .bg-list { columns: 1; margin: var(--space-4) 0 0; padding-left: 1.1em; }
+  @media (min-width: 640px) { .bg-list { columns: 2; column-gap: 32px; } }
+  .bg-list li { font-size: 0.88rem; margin-bottom: 8px; break-inside: avoid; }
+
+  /* ── closing ── */
+  .closing {
+    background: var(--deep-blue); color: var(--cream); text-align: center; padding: 56px 20px;
+  }
+  .closing h2 { color: var(--cream); }
+  .closing p { color: var(--fg-on-dark-2); max-width: 40em; margin: 0 auto 22px; }
+
+  footer {
+    background: var(--deep-blue); color: var(--fg-on-dark-3);
+    font-family: var(--font-sans); font-size: 0.78rem; text-align: center;
+    padding: 20px; border-top: 1px solid var(--divider-on-dark);
+  }
+  footer a { color: var(--fg-on-dark-2); margin: 0 8px; }
+  footer a:hover { color: var(--gold-bright); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="/hub">Ryan Cason <span>· portfolio</span></a>
+  <nav>
+    <a href="/resume">Résumé</a>
+    <a href="/hub">Site map</a>
+    <a href="/" class="cta">The Cason Line →</a>
+  </nav>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">what I've built</div>
+  <h1>Governance, memory, and retrieval infrastructure for agentic AI — plus everything shipped along the way.</h1>
+  <p class="lede">I'm an AI systems builder working across agent governance, memory architecture, and retrieval — production TypeScript and Python, with a reproducible evaluation behind every claim. Before that: 25-plus years running high-volume hospitality operations. Below is the estate: flagship builds, the sites that are live right now, and the receipts.</p>
+  <div class="actions">
+    <a href="/resume" class="btn btn-primary">Read the résumé →</a>
+    <a href="https://github.com/axiom-orion" target="_blank" rel="noopener" class="btn btn-ghost">See the code →</a>
+    <a href="mailto:ryan@vorion.org" class="btn btn-ghost">Email →</a>
+  </div>
+</section>
+
+<section class="band cream" id="flagship">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 01 · flagship builds</div>
+      <h2>The core body of work.</h2>
+      <p class="sub">Governance and memory for agentic AI, and a production SaaS that funded the question in the first place.</p>
+    </div>
+    <div class="flagship-grid">
+
+      <div class="flagship">
+        <div class="kicker">runtime governance · Jan 2026–present</div>
+        <h3>Vorion — BASIS &amp; CogniGate</h3>
+        <div class="metric">~8ms p50 / ~20ms p95 policy decisions (same-region)</div>
+        <p>A vendor-neutral governance layer for agentic AI. BASIS is the open trust-tier specification (T0–T7); CogniGate is the Apache-2.0 policy-enforcement engine that checks every agent tool-call against it and writes an auditable decision record. Around it: AgentAnchor (a public trust registry), Aurais (a fleet security console with anomaly detection and quarantine-on-click), and Rainbow (a live trust-analytics observatory). NIST AI RMF RFI submitted; provisional patent filed March 2026 for a model-identity fingerprinting method.</p>
+        <div class="tags">
+          <span class="tag-chip">TypeScript strict</span>
+          <span class="tag-chip">Next.js</span>
+          <span class="tag-chip">Supabase</span>
+          <span class="tag-chip">Apache-2.0 OSS</span>
+        </div>
+        <div class="links">
+          <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
+          <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
+          <a href="https://github.com/vorionsys" target="_blank" rel="noopener">github.com/vorionsys</a>
+        </div>
+      </div>
+
+      <div class="flagship">
+        <div class="kicker">production SaaS · 2025–present</div>
+        <h3>BanquetAI</h3>
+        <div class="metric">1,000+ tests in the stewarding module alone</div>
+        <p>An AI-powered operations platform for hospitality and events: AI-assisted BEO processing, a drag-and-drop equipment-layout schematic builder, and a stewarding/requisition engine. Built and taken to market with real venue operators on Firebase and Next.js. The agent-trust and accuracy questions that surfaced building this platform's AI workforce led directly to Vorion.</p>
+        <div class="tags">
+          <span class="tag-chip">Next.js</span>
+          <span class="tag-chip">Firebase</span>
+          <span class="tag-chip">Production SaaS</span>
+        </div>
+        <div class="links">
+          <a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com</a>
+          <a href="https://beodraft.com" target="_blank" rel="noopener">beodraft.com</a>
+        </div>
+      </div>
+
+      <div class="flagship">
+        <div class="kicker">open source · agent memory</div>
+        <h3>agent-memory-service</h3>
+        <div class="metric">100% current-fact accuracy · 0% stale · ~35% token savings</div>
+        <p>A typed 4-store memory layer for LLM agents — working, episodic, semantic, procedural — with episodic→semantic consolidation and supersession-based forgetting, so a fact that changes mid-conversation stops answering with the stale value. A 4-config ablation, evaluated on a controlled synthetic set and the LoCoMo-10 benchmark, reproduces every number from a clean clone.</p>
+        <div class="tags">
+          <span class="tag-chip">Python</span>
+          <span class="tag-chip">FAISS</span>
+          <span class="tag-chip">Live on Cloud Run</span>
+        </div>
+        <div class="links"><a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">github.com/axiom-orion/agent-memory-service</a></div>
+      </div>
+
+      <div class="flagship">
+        <div class="kicker">open source · retrieval</div>
+        <h3>genealogy-graphrag</h3>
+        <div class="metric">relational recall@5 0.000 → 1.000</div>
+        <p>Hybrid retrieval (BM25 + dense) with cross-encoder reranking, plus a typed kinship-graph resolver for questions whose answer entity is never named in the query — the structural blind spot of dense and lexical retrieval alone. Dual graph backend: in-memory NetworkX for zero-setup eval, Neo4j/Cypher for production traversal.</p>
+        <div class="tags">
+          <span class="tag-chip">Python</span>
+          <span class="tag-chip">Neo4j</span>
+          <span class="tag-chip">Reranking</span>
+        </div>
+        <div class="links"><a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">github.com/axiom-orion/genealogy-graphrag</a></div>
+      </div>
+
+      <div class="flagship">
+        <div class="kicker">this site</div>
+        <h3>cason-heritage</h3>
+        <div class="metric">66 individuals · 12 generations · 7 evidence tiers</div>
+        <p>You're standing in it. Four centuries of contradictory genealogical records, resolved under the same provenance architecture as agent-memory-service, stress-tested on real, messy, conflicting historical data — plus a governed roster of research agents (the "Living Line") that proposes findings but never publishes without a human.</p>
+        <div class="tags">
+          <span class="tag-chip">Static HTML/JS</span>
+          <span class="tag-chip">Governed agents</span>
+        </div>
+        <div class="links"><a href="/living" target="_blank">Enter the Living Line →</a></div>
+      </div>
+
+      <div class="flagship">
+        <div class="kicker">open source · policy demo</div>
+        <h3>governed-agents</h3>
+        <div class="metric">Full NDJSON audit trail</div>
+        <p>A Next.js runtime that wraps LLM calls in a named-rule policy gate — every tool call evaluated against a rule set before execution, decisions emitted as TraceEvents for a replayable audit trail. Multi-model consensus across Claude, Gemini, and Grok, with a Red Cell adversarial mode that stress-tests policy coverage.</p>
+        <div class="tags">
+          <span class="tag-chip">TypeScript</span>
+          <span class="tag-chip">Multi-model</span>
+        </div>
+        <div class="links"><a href="https://governed-agents.vercel.app" target="_blank" rel="noopener">governed-agents.vercel.app</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="band" id="sites">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 02 · the estate</div>
+      <h2>Live right now.</h2>
+      <p class="sub">A 20-plus site production estate, run solo, across Vercel, Cloudflare Workers, Supabase, Firebase, Neo4j Aura, and Cloud Run.</p>
+    </div>
+    <div class="site-grid">
+
+      <a class="site-card" href="https://vorion.org" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>vorion.org</div>
+        <div class="url">vorion.org</div>
+        <p>The governance company — BASIS spec, CogniGate, the whole Vorion story.</p>
+      </a>
+      <a class="site-card" href="https://cognigate.dev" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Cognigate</div>
+        <div class="url">cognigate.dev</div>
+        <p>The policy-enforcement engine — spec, playground, and docs.</p>
+      </a>
+      <a class="site-card" href="https://agentanchorai.com" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>AgentAnchor</div>
+        <div class="url">agentanchorai.com</div>
+        <p>Public agent-trust registry — T0–T7 attestation, real signed certs.</p>
+      </a>
+      <a class="site-card" href="https://aurais.net" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Aurais</div>
+        <div class="url">aurais.net</div>
+        <p>SecOps console for agent fleets — anomaly detection, quarantine-on-click.</p>
+      </a>
+      <a class="site-card" href="https://rainbow.vorion.org" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Rainbow</div>
+        <div class="url">rainbow.vorion.org</div>
+        <p>Trust-analytics observatory — fleet-wide tier distribution and drift.</p>
+      </a>
+      <a class="site-card" href="https://demo.vorion.org" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Vorion demo</div>
+        <div class="url">demo.vorion.org</div>
+        <p>Interactive walkthrough of the governance runtime end to end.</p>
+      </a>
+      <a class="site-card" href="https://bai-cc.com" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>BAI Command Center</div>
+        <div class="url">bai-cc.com</div>
+        <p>The governed multi-app platform behind BanquetAI.</p>
+      </a>
+      <a class="site-card" href="https://beodraft.com" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>BeoDraft</div>
+        <div class="url">beodraft.com</div>
+        <p>The live BanquetAI product — AI-assisted BEO drafting for venues and caterers.</p>
+      </a>
+      <a class="site-card" href="https://footed.flcason.com" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Footed</div>
+        <div class="url">footed.flcason.com</div>
+        <p>A small commissioned build, shipped for a client application.</p>
+      </a>
+      <a class="site-card" href="https://anchor-hq-ashen.vercel.app" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Anchor</div>
+        <div class="url">anchor-hq-ashen.vercel.app</div>
+        <p>A personal HITL dashboard for running everything above.</p>
+      </a>
+      <a class="site-card" href="https://enhancements.vorion.org" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Enhancements</div>
+        <div class="url">enhancements.vorion.org</div>
+        <p>The public backlog and changelog for the Vorion estate.</p>
+      </a>
+      <a class="site-card" href="https://fourier-scope.banquetaillc.workers.dev" target="_blank" rel="noopener">
+        <div class="name"><span class="dot"></span>Fourier Scope</div>
+        <div class="url">fourier-scope.banquetaillc.workers.dev</div>
+        <p>A small signal-processing toy on Cloudflare Workers.</p>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section class="band cream" id="receipts">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 03 · open source &amp; recognition</div>
+      <h2>The receipts.</h2>
+      <p class="sub">Public, reproducible, and checkable — not talking points.</p>
+    </div>
+    <div class="receipts">
+
+      <div class="receipt">
+        <div class="mark">1</div>
+        <div>
+          <div class="name">livekit/agents — upstream contribution</div>
+          <p>Reported a cross-provider WebSocket reliability bug missed by an earlier fix, then shipped one PR fixing all seven affected provider plugins, backed by a 36-test regression harness. Issue #6473 · PR #6474, open with CI green.</p>
+          <a href="https://github.com/livekit/agents/pull/6474" target="_blank" rel="noopener">github.com/livekit/agents/pull/6474 →</a>
+        </div>
+      </div>
+
+      <div class="receipt">
+        <div class="mark">2</div>
+        <div>
+          <div class="name">30+ published npm packages</div>
+          <p>Published and maintained across <code>@vorionsys/*</code> on the public npm registry — BASIS spec, CogniGate SDK, Rainbow, agent SDKs, and more — with OIDC trusted publishing and SLSA provenance on release.</p>
+        </div>
+      </div>
+
+      <div class="receipt">
+        <div class="mark">3</div>
+        <div>
+          <div class="name">Estate-scale dependency remediation</div>
+          <p>Triaged and closed a dependency-vulnerability queue across an 80+ repository estate, then wrote the runbook so it's repeatable — on the rule that green CI is not itself a security signal.</p>
+        </div>
+      </div>
+
+      <div class="receipt">
+        <div class="mark">4</div>
+        <div>
+          <div class="name">NIST AI Risk Management Framework</div>
+          <p>Submitted an RFI response on runtime governance for agentic AI systems.</p>
+        </div>
+      </div>
+
+      <div class="receipt">
+        <div class="mark">5</div>
+        <div>
+          <div class="name">Provisional patent — filed March 2026</div>
+          <p>A model-identity fingerprinting method (Paramesphere) for detecting model substitution and drift across deployments.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="band" id="skills">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 04 · the toolbox</div>
+      <h2>What I build with.</h2>
+    </div>
+    <div class="chip-groups">
+      <div class="chip-group">
+        <div class="lbl">Languages &amp; Frameworks</div>
+        <div class="chips">
+          <span class="chip">TypeScript (strict)</span><span class="chip">Python</span><span class="chip">SQL</span>
+          <span class="chip">Cypher</span><span class="chip">Next.js (App Router / RSC)</span><span class="chip">Astro</span>
+        </div>
+      </div>
+      <div class="chip-group">
+        <div class="lbl">AI / Retrieval / Memory</div>
+        <div class="chips">
+          <span class="chip">Hybrid search (BM25 + dense)</span><span class="chip">FAISS (HNSW / IVFFlat)</span>
+          <span class="chip">Cross-encoder reranking</span><span class="chip">Knowledge-graph retrieval</span>
+          <span class="chip">Agent memory lifecycle</span><span class="chip">Multi-model orchestration</span>
+        </div>
+      </div>
+      <div class="chip-group">
+        <div class="lbl">Infra &amp; Data</div>
+        <div class="chips">
+          <span class="chip">Vercel</span><span class="chip">Cloudflare Workers</span><span class="chip">Supabase / Postgres / pgvector</span>
+          <span class="chip">Firebase</span><span class="chip">Neo4j Aura</span><span class="chip">Google Cloud Run</span>
+          <span class="chip">GitHub Actions CI/CD</span>
+        </div>
+      </div>
+      <div class="chip-group">
+        <div class="lbl">Quality &amp; Governance</div>
+        <div class="chips">
+          <span class="chip">Playwright</span><span class="chip">pytest</span><span class="chip">Evaluation-harness design</span>
+          <span class="chip">Provenance &amp; audit logging</span><span class="chip">OIDC / SLSA supply-chain hygiene</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band cream" id="background">
+  <div class="band-inner bg-copy">
+    <div class="section-head" style="text-align:left;">
+      <div class="meta">// 05 · before the code</div>
+      <h2>25 years of operations, first.</h2>
+    </div>
+    <p>Hospitality since 1998, catering since 1999 — luxury hotels, high-volume convention venues, theme parks. The through-line is systems thinking under pressure: luxury and volume are a seesaw, and the only way to serve both is to build the counterweights and ramps first. That instinct is what eventually led to building AI infrastructure.</p>
+    <ul class="bg-list">
+      <li>Opening team, Four Seasons Resort Orlando (2014–present)</li>
+      <li>Opening team, Topolino's at Disney's Riviera Resort</li>
+      <li>Walt Disney World (2012–present)</li>
+      <li>Hilton Signia / Waldorf Astoria (2012–2022)</li>
+      <li>Part of the Peabody Orlando expansion — 60,000 to 300,000 sq ft — through the Hyatt Regency rebrand (2009–2015)</li>
+      <li>Five-plus years, Orange County Convention Center</li>
+      <li>Hard Rock Cafe Orlando (2007–2016)</li>
+      <li>Loews Hotels and Universal (2006–2008)</li>
+    </ul>
+  </div>
+</section>
+
+<section class="closing">
+  <h2>Read the whole story, or just email me.</h2>
+  <p>The résumé has the numbers. GitHub has the code. Either way works.</p>
+  <div class="actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <a href="/resume" class="btn btn-primary">Read the résumé →</a>
+    <a href="mailto:ryan@vorion.org" class="btn btn-ghost" style="color:var(--gold-bright); border-color:rgba(212,168,37,0.4);">ryan@vorion.org</a>
+  </div>
+</section>
+
+<footer>
+  <a href="/">The Cason Line</a>·<a href="/hub">Site map</a>·<a href="/resume">Résumé</a>·<a href="https://github.com/axiom-orion" target="_blank" rel="noopener">GitHub</a>
+  <div style="margin-top:8px;">ryan cason · portfolio · updated july 2026</div>
+</footer>
+
+</body>
+</html>

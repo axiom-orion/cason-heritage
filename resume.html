@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ryan Cason — Résumé</title>
+<meta name="description" content="Ryan Cason — AI & agent-platform engineer. Vorion (runtime governance for agentic AI), BanquetAI, agent-memory-service, genealogy-graphrag. 25 years in high-volume operations before shifting to AI engineering.">
+<meta property="og:title" content="Ryan Cason — Résumé">
+<meta property="og:description" content="AI & agent-platform engineer. Governance, memory, and retrieval infrastructure — every claim reproducible from a clean clone.">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://flcason.com/resume">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ryan Cason — Résumé">
+<meta name="twitter:description" content="AI & agent-platform engineer. Governance, memory, and retrieval infrastructure — every claim reproducible from a clean clone.">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="canonical" href="https://flcason.com/resume">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/colors_and_type.css">
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-serif);
+    background: var(--parchment);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--fg-link); }
+  a:hover { color: var(--gold); }
+
+  /* ── top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--deep-blue);
+    border-bottom: 1px solid var(--divider-on-dark);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .topbar .brand {
+    font-family: var(--font-display); font-weight: 700;
+    color: var(--cream); font-size: 1.05rem; text-decoration: none;
+  }
+  .topbar .brand span { color: var(--gold-bright); }
+  .topbar nav { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .topbar nav a {
+    font-family: var(--font-sans); font-size: 0.82rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--fg-on-dark-2); text-decoration: none;
+  }
+  .topbar nav a:hover { color: var(--gold-bright); }
+  .topbar .btn-print {
+    font-family: var(--font-sans); font-size: 0.78rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--deep-blue); background: var(--gold-bright);
+    border: none; border-radius: var(--r-pill); padding: 8px 16px; cursor: pointer;
+    font-weight: 700;
+  }
+  .topbar .btn-print:hover { background: #e6bd3f; }
+
+  /* ── page shell ── */
+  .sheet {
+    max-width: 760px; margin: 0 auto; padding: 40px 20px 80px;
+  }
+  @media (min-width: 640px) { .sheet { padding: 56px 32px 96px; } }
+
+  .head {
+    text-align: center; margin-bottom: var(--space-7);
+    padding-bottom: var(--space-6);
+    border-bottom: 2px solid var(--border-gold);
+  }
+  .head h1 {
+    font-size: clamp(2rem, 6vw, 2.9rem); color: var(--ink); text-shadow: none;
+    margin: 0 0 6px;
+  }
+  .head .role {
+    font-family: var(--font-sans); font-size: 0.95rem; letter-spacing: 0.04em;
+    color: var(--rust); font-weight: 600; margin-bottom: 10px;
+  }
+  .head .tagline {
+    font-style: italic; color: var(--fg-2); max-width: 46em; margin: 0 auto 16px;
+  }
+  .head .contact {
+    font-family: var(--font-sans); font-size: 0.85rem; color: var(--fg-2);
+    display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center;
+  }
+  .head .contact a { text-decoration: none; }
+  .head .contact span.sep { color: var(--border-medium); }
+
+  section.block { margin-bottom: var(--space-7); }
+  .block h2 {
+    font-size: 1.15rem; color: var(--rust);
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
+    font-family: var(--font-sans);
+    border-bottom: 1px solid var(--border-hairline); padding-bottom: 8px;
+    margin: 0 0 var(--space-5);
+  }
+  .summary { font-size: var(--fs-body-lg); line-height: var(--lh-body); }
+
+  .item { margin-bottom: var(--space-5); }
+  .item:last-child { margin-bottom: 0; }
+  .item-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: 6px 16px; margin-bottom: 4px;
+  }
+  .item-head .name { font-family: var(--font-display); font-weight: 700; color: var(--fg-accent-2); font-size: 1.08rem; }
+  .item-head .metric { font-family: var(--font-sans); font-size: 0.82rem; color: var(--sea-green); font-weight: 600; text-align: right; }
+  .item .role-line { font-family: var(--font-sans); font-size: 0.85rem; color: var(--fg-2); margin-bottom: 6px; }
+  .item p { margin: 0 0 6px; font-size: var(--fs-body-sm); }
+  .item .links { font-family: var(--font-sans); font-size: 0.8rem; }
+  .item .links a { margin-right: 12px; }
+
+  .cap-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 640px) { .cap-grid { grid-template-columns: repeat(2, 1fr); } }
+  .cap-cell .lbl {
+    font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 4px;
+  }
+  .cap-cell p { font-size: 0.9rem; margin: 0; color: var(--fg-1); }
+
+  .ops-list { margin: 0; padding-left: 1.2em; }
+  .ops-list li { font-size: 0.92rem; margin-bottom: 6px; }
+
+  .edu-list { list-style: none; margin: 0; padding: 0; }
+  .edu-list li { font-size: 0.92rem; margin-bottom: 6px; }
+  .edu-list .dot { color: var(--gold); margin-right: 6px; }
+
+  .foot {
+    text-align: center; font-family: var(--font-sans); font-size: 0.8rem;
+    color: var(--fg-2); border-top: 1px solid var(--border-hairline);
+    padding-top: var(--space-5); margin-top: var(--space-8);
+  }
+  .foot a { color: var(--fg-link); }
+
+  .note {
+    font-family: var(--font-sans); font-size: 0.78rem; color: var(--fg-2);
+    font-style: italic; margin-top: 6px;
+  }
+
+  /* ── print ── */
+  @media print {
+    .topbar, .no-print { display: none !important; }
+    body { background: #fff; color: #1a1a1a; }
+    .sheet { max-width: 100%; padding: 0; }
+    .head { border-bottom-color: #999; }
+    .head .role { color: #444; }
+    .item-head .name, .block h2 { color: #1a1a1a; }
+    .item-head .metric { color: #2d5a4a; }
+    a { color: #1a1a1a; text-decoration: none; }
+    section.block { page-break-inside: avoid; margin-bottom: 18px; }
+    .foot { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <a class="brand" href="/hub">Ryan Cason <span>· résumé</span></a>
+  <nav>
+    <a href="/portfolio">Portfolio</a>
+    <a href="/hub">Site map</a>
+    <a href="/">The Cason Line</a>
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+  </nav>
+</div>
+
+<main class="sheet">
+
+  <header class="head">
+    <h1>Ryan Cason</h1>
+    <div class="role">AI &amp; Agent-Platform Engineer · Founder, Vorion · Founder, BanquetAI</div>
+    <p class="tagline">I build agent memory, retrieval, and governance systems — reproducible evaluation behind every claim, production TypeScript and Python, measurable results.</p>
+    <div class="contact">
+      <a href="mailto:ryan@vorion.org">ryan@vorion.org</a>
+      <span class="sep">·</span>
+      <span>Winter Garden, FL</span>
+      <span class="sep">·</span>
+      <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/axiom-orion" target="_blank" rel="noopener">github.com/axiom-orion</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/vorionsys" target="_blank" rel="noopener">github.com/vorionsys</a>
+    </div>
+  </header>
+
+  <section class="block">
+    <h2>Summary</h2>
+    <p class="summary">Self-directed AI systems builder working at the intersection of agent governance, memory architecture, and trust infrastructure. I started with BanquetAI in 2025 — an AI-powered hospitality platform — and the agent trust and accuracy problems that surfaced doing that work led directly to Vorion: a vendor-neutral runtime-governance layer for agentic AI, designed around an open trust-tier specification (BASIS) and a policy-enforcement engine (CogniGate), with a provisional patent filed and a NIST AI Risk Management Framework RFI response submitted. Twenty-five-plus years in high-stakes hospitality operations came before the shift to full-time AI engineering. The path is demonstrated work, not credentials — every open-source project below reproduces its numbers from a clean clone.</p>
+  </section>
+
+  <section class="block">
+    <h2>Built &amp; Shipped</h2>
+
+    <div class="item">
+      <div class="item-head">
+        <span class="name">agent-memory-service</span>
+        <span class="metric">100% current-fact accuracy · 0% stale · ~35% token savings</span>
+      </div>
+      <div class="role-line">Typed 4-store agent memory layer — open source, live API on Cloud Run</div>
+      <p>Working / episodic / semantic / procedural memory stores; episodic→semantic consolidation; supersession-based forgetting so a changed fact stops answering with the stale value. A 4-config ablation (flat → +recency → +consolidation → +supersession), evaluated on a controlled synthetic set and the LoCoMo-10 long-conversation benchmark.</p>
+      <div class="links"><a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">github.com/axiom-orion/agent-memory-service</a></div>
+    </div>
+
+    <div class="item">
+      <div class="item-head">
+        <span class="name">genealogy-graphrag</span>
+        <span class="metric">relational recall@5 0.000 → 1.000 · MRR@10 0.77 → 1.00</span>
+      </div>
+      <div class="role-line">Hybrid retrieval + knowledge-graph resolution — open source</div>
+      <p>BM25 + dense retrieval + cross-encoder reranking, with a typed kinship-graph resolver for questions whose answer entity is never named in the query — the case dense and lexical retrieval structurally can't answer. Dual graph backend (in-memory NetworkX / Neo4j-Cypher) behind one interface.</p>
+      <div class="links"><a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">github.com/axiom-orion/genealogy-graphrag</a></div>
+    </div>
+
+    <div class="item">
+      <div class="item-head">
+        <span class="name">Vorion / BASIS &amp; CogniGate</span>
+        <span class="metric">Co-Founder &amp; Engineer · Jan 2026–present</span>
+      </div>
+      <div class="role-line">Runtime governance for agentic AI</div>
+      <p>Designed BASIS, an open trust-tier specification (T0–T7) for agent runtime governance, and CogniGate, the Apache-2.0 policy-enforcement engine that evaluates agent tool-calls against it and emits an auditable decision record — ~8ms p50 / ~20ms p95 same-region. Also shipped AgentAnchor (public trust registry), Aurais (fleet security console), and Rainbow (trust-analytics observatory). NIST AI RMF RFI submitted; provisional patent filed March 2026 for a model-identity fingerprinting method (Paramesphere).</p>
+      <div class="links">
+        <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
+        <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
+        <a href="https://github.com/vorionsys" target="_blank" rel="noopener">github.com/vorionsys</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-head">
+        <span class="name">BanquetAI</span>
+        <span class="metric">Founder &amp; Engineer · 2025–present</span>
+      </div>
+      <div class="role-line">Production AI SaaS for hospitality operations</div>
+      <p>AI-assisted BEO (Banquet Event Order) processing, drag-and-drop equipment-layout schematics, and a stewarding/requisition engine — 1,000+ tests in the stewarding module alone. Firebase / Next.js. Taken to market with real venue operators; the agent-trust and accuracy questions that surfaced building it led directly to Vorion.</p>
+      <div class="links"><a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com</a></div>
+    </div>
+
+    <div class="item">
+      <div class="item-head">
+        <span class="name">cason-heritage</span>
+        <span class="metric">66 individuals · 12 generations · 7 evidence tiers</span>
+      </div>
+      <div class="role-line">This site — a governed provenance-graded knowledge base</div>
+      <p>Four centuries of contradictory multi-source genealogical records, resolved under the same architecture as agent-memory-service: sources conflict, candidates compete for the same slot, and one wrong claim silently corrupts everything downstream that inherits from it. A governed agent roster researches open questions and gates every claim before it reaches the record.</p>
+      <div class="links"><a href="https://github.com/axiom-orion/cason-heritage" target="_blank" rel="noopener">github.com/axiom-orion/cason-heritage</a> <a href="/hub" target="_blank">flcason.com</a></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Recent Receipts</h2>
+    <div class="item">
+      <div class="item-head">
+        <span class="name">livekit/agents</span>
+        <span class="metric">Issue #6473 · PR #6474 — open, CI green</span>
+      </div>
+      <p>Reported and fixed a cross-provider reliability class: a send-side WebSocket drop crashed live speech-to-text sessions in seven provider plugins missed by an earlier upstream fix. Shipped a single PR fixing all seven, backed by a shared regression harness (36 tests) covering error injection, in-flight frame disposition, and clean-close behavior — CI green across lint, type-check (Python 3.10/3.13), unit, and cross-OS jobs.</p>
+      <div class="links"><a href="https://github.com/livekit/agents/pull/6474" target="_blank" rel="noopener">github.com/livekit/agents/pull/6474</a></div>
+    </div>
+    <div class="item">
+      <div class="item-head">
+        <span class="name">Dependency &amp; supply-chain hygiene</span>
+      </div>
+      <p>Scanned an 80+ repository estate for dependency vulnerabilities, triaged and merged the fix queue to completion, and distilled the process into a reusable runbook — with the operating rule that green CI is not a security signal; the resolved dependency tree is. Separately, audited 30+ published <code>@vorionsys/*</code> npm packages against the live registry and republished a batch via OIDC trusted publishing with SLSA provenance.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Technical Capabilities</h2>
+    <div class="cap-grid">
+      <div class="cap-cell">
+        <div class="lbl">Retrieval &amp; Memory</div>
+        <p>Hybrid search (BM25 + dense), ANN indexing (FAISS HNSW / IVFFlat), cross-encoder reranking, Reciprocal Rank Fusion, knowledge-graph retrieval (Neo4j / Cypher), agent-memory architecture (working / episodic / semantic / procedural, consolidation, retention, supersession).</p>
+      </div>
+      <div class="cap-cell">
+        <div class="lbl">Evaluation</div>
+        <p>recall@k, MRR, nDCG, ablation-harness design, LoCoMo-10 benchmark, provenance &amp; audit logging, pytest, GitHub Actions CI.</p>
+      </div>
+      <div class="cap-cell">
+        <div class="lbl">Languages &amp; Frameworks</div>
+        <p>TypeScript (strict), Python, SQL, Cypher; Next.js (App Router / RSC), Astro, Vercel, Cloudflare Workers, Cloud Run.</p>
+      </div>
+      <div class="cap-cell">
+        <div class="lbl">Platforms (daily production use)</div>
+        <p>Vercel, Cloudflare Workers (OpenNext), Supabase (Postgres / RLS / pgvector), Firebase, Neo4j Aura, Google Cloud Run, GitHub Actions, npm (OIDC trusted publishing, SLSA provenance).</p>
+      </div>
+      <div class="cap-cell">
+        <div class="lbl">Debugging &amp; QA</div>
+        <p>Reproducible bug reports, regression-harness design, CI matrices (cross-OS, multi-version), Playwright, pytest, type-checking, log and trace analysis.</p>
+      </div>
+      <div class="cap-cell">
+        <div class="lbl">Research &amp; Standards</div>
+        <p>NIST AI Risk Management Framework — RFI response submitted. Provisional patent filed March 2026 (model-identity fingerprinting).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Operations &amp; Leadership · 1998–present</h2>
+    <p style="font-size:0.92rem; margin-top:0;">Twenty-five-plus years in hospitality operations across luxury hotels, high-volume venues, convention centers, catering, and theme parks. The through-line is systems thinking under pressure — luxury and volume are a seesaw, and serving both means building the counterweights first. That instinct is what eventually led to building AI infrastructure.</p>
+    <ul class="ops-list">
+      <li>Hospitality since 1998; catering from 1999. Loews Hotels and Universal (2006–2008); Hard Rock Cafe Orlando (2007–2016).</li>
+      <li>Part of the Peabody Orlando expansion — 60,000 sq ft to 300,000 sq ft, a 100%+ increase in rooms — through the Hyatt Regency rebrand (2009–2015).</li>
+      <li>Five-plus years at the Orange County Convention Center — high-volume convention operations at scale.</li>
+      <li>Opening team, Topolino's at Disney's Riviera Resort; Hilton Signia / Waldorf Astoria (2012–2022); Walt Disney World (2012–present).</li>
+      <li>Opening team, Four Seasons Resort Orlando (2014–present).</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>Education</h2>
+    <ul class="edu-list">
+      <li><span class="dot">—</span>Mobile Web Application Development Certificate, Wilmington University (2022)</li>
+      <li><span class="dot">—</span>Eastern Florida State College — coursework in computing</li>
+    </ul>
+  </section>
+
+  <div class="foot no-print">
+    <p><a href="mailto:ryan@vorion.org">ryan@vorion.org</a> · <a href="/portfolio">See the full portfolio →</a></p>
+  </div>
+
+</main>
+
+</body>
+</html>
