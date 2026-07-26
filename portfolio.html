@@ -65,6 +65,7 @@
     display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans);
     font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
     padding: 12px 22px; border-radius: var(--r-pill); transition: transform var(--t-fast);
+    border: none; cursor: pointer;
   }
   .btn:hover { transform: translateY(-1px); }
   .btn-primary { background: var(--rust); color: var(--cream); }
@@ -84,6 +85,29 @@
   .section-head h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
   .section-head p.sub { color: var(--fg-2); font-style: italic; max-width: 42em; margin: 8px auto 0; }
 
+  /* ── jargon tooltips (shared component) ── */
+  .term {
+    font: inherit; color: inherit; background: none; border: none; padding: 0; margin: 0;
+    display: inline; position: relative; cursor: help;
+    border-bottom: 1px dotted var(--gold);
+  }
+  .term:hover, .term:focus-visible, .term.is-active { color: var(--rust); outline: none; }
+  .term .tip {
+    position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px);
+    background: var(--deep-blue); color: var(--cream); font-family: var(--font-sans);
+    font-size: 0.76rem; line-height: 1.45; font-style: normal; font-weight: 400;
+    padding: 9px 12px; border-radius: var(--r-md); width: max-content; max-width: min(260px, 78vw);
+    text-align: left; box-shadow: var(--shadow-3); opacity: 0; visibility: hidden;
+    transition: opacity var(--t-fast), transform var(--t-fast); z-index: 600; pointer-events: none;
+  }
+  .term .tip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: var(--deep-blue);
+  }
+  .term:hover .tip, .term:focus-visible .tip, .term.is-active .tip {
+    opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+  }
+
   /* ── flagship cards ── */
   .flagship-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
   @media (min-width: 720px) { .flagship-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -94,29 +118,41 @@
   .flagship .kicker { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faded); margin-bottom: 6px; }
   .flagship h3 { margin: 0 0 6px; }
   .flagship .metric { font-family: var(--font-sans); font-size: 0.8rem; color: var(--sea-green); font-weight: 700; margin-bottom: 10px; }
-  .flagship p { font-size: 0.92rem; color: var(--fg-1); flex-grow: 1; }
-  .flagship .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .flagship .teaser { font-size: 0.92rem; color: var(--fg-1); flex-grow: 1; margin: 0 0 12px; }
+  .flagship .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
   .flagship .tag-chip {
     font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.02em;
     background: var(--bg-highlight); color: var(--rust); padding: 3px 10px; border-radius: var(--r-pill);
   }
-  .flagship .links { font-family: var(--font-sans); font-size: 0.8rem; margin-top: auto; padding-top: 8px; }
+  .flagship .card-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 8px; border-top: 1px solid var(--border-hairline); }
+  .flagship .links { font-family: var(--font-sans); font-size: 0.8rem; }
   .flagship .links a { margin-right: 14px; font-weight: 600; }
+  .more-btn {
+    font-family: var(--font-sans); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em;
+    color: var(--rust); background: var(--bg-highlight); border: none; border-radius: var(--r-pill);
+    padding: 7px 14px; cursor: pointer; white-space: nowrap;
+  }
+  .more-btn:hover { background: rgba(139,69,19,0.15); }
+  .more-btn .arr { transition: transform var(--t-fast); display: inline-block; }
+  .more-btn:hover .arr { transform: translateX(3px); }
 
   /* ── site grid (small cards) ── */
   .site-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
   @media (min-width: 560px) { .site-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 900px) { .site-grid { grid-template-columns: repeat(3, 1fr); } }
-  .site-card {
+  button.site-card {
     background: var(--bg-raised); border: 1px solid var(--border-hairline); border-radius: var(--r-md);
     padding: var(--space-4) var(--space-5); transition: border-color var(--t-fast), transform var(--t-fast);
-    display: block;
+    display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
   }
-  .site-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  button.site-card:hover, button.site-card:focus-visible { border-color: var(--gold); transform: translateY(-2px); }
   .site-card .name { font-family: var(--font-display); font-weight: 700; color: var(--fg-accent-2); font-size: 1rem; display: flex; align-items: center; gap: 6px; }
   .site-card .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sea-green); display: inline-block; flex-shrink: 0; }
   .site-card .url { font-family: var(--font-sans); font-size: 0.72rem; color: var(--faded); margin: 2px 0 6px; }
-  .site-card p { font-size: 0.85rem; margin: 0; color: var(--fg-1); }
+  .site-card p { font-size: 0.85rem; margin: 0 0 8px; color: var(--fg-1); }
+  .site-card .more { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gold); }
+  .site-card .more .arr { transition: transform var(--t-fast); display: inline-block; }
+  button.site-card:hover .more .arr { transform: translateX(3px); }
 
   /* ── receipts list ── */
   .receipts { max-width: 760px; margin: 0 auto; }
@@ -161,6 +197,28 @@
   }
   footer a { color: var(--fg-on-dark-2); margin: 0 8px; }
   footer a:hover { color: var(--gold-bright); }
+
+  /* ── detail modal (native <dialog>) ── */
+  dialog.detail {
+    width: min(560px, 92vw); max-width: 92vw; max-height: 85vh;
+    background: var(--cream); color: var(--ink);
+    border: 1px solid var(--border-gold); border-radius: var(--r-xl);
+    padding: 0; box-shadow: var(--shadow-4);
+  }
+  dialog.detail::backdrop { background: rgba(26,39,68,0.72); }
+  dialog.detail .detail-close { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 8px 10px 0; background: var(--cream); border-radius: var(--r-xl) var(--r-xl) 0 0; }
+  dialog.detail .detail-close button {
+    font-family: var(--font-sans); font-size: 1.4rem; line-height: 1; background: none; border: none;
+    color: var(--faded); cursor: pointer; width: 40px; height: 40px; border-radius: 50%;
+  }
+  dialog.detail .detail-close button:hover { background: var(--bg-highlight); color: var(--rust); }
+  dialog.detail .detail-body { padding: 0 26px 28px; overflow-y: auto; }
+  dialog.detail .detail-kicker { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faded); margin-bottom: 6px; }
+  dialog.detail h3 { margin: 0 0 8px; font-size: 1.35rem; }
+  dialog.detail .detail-metric { font-family: var(--font-sans); font-size: 0.82rem; color: var(--sea-green); font-weight: 700; margin-bottom: 14px; }
+  dialog.detail p { font-size: 0.94rem; margin: 0 0 12px; }
+  dialog.detail .detail-links { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-hairline); font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700; }
+  @media (max-width: 480px) { dialog.detail .detail-body { padding: 0 18px 22px; } dialog.detail h3 { font-size: 1.2rem; } }
 </style>
 </head>
 <body>
@@ -177,7 +235,7 @@
 <section class="hero">
   <div class="eyebrow">what I've built</div>
   <h1>Governance, memory, and retrieval infrastructure for agentic AI — plus everything shipped along the way.</h1>
-  <p class="lede">I'm an AI systems builder working across agent governance, memory architecture, and retrieval — production TypeScript and Python, with a reproducible evaluation behind every claim. Before that: 25-plus years running high-volume hospitality operations. Below is the estate: flagship builds, the sites that are live right now, and the receipts.</p>
+  <p class="lede">I'm an AI systems builder working across agent governance, memory architecture, and retrieval — production TypeScript and Python, with a reproducible evaluation behind every claim. Before that: 25-plus years running high-volume hospitality operations. Skim the cards below for the gist — tap "Learn more" on anything you want the full story on.</p>
   <div class="actions">
     <a href="/resume" class="btn btn-primary">Read the résumé →</a>
     <a href="https://github.com/axiom-orion" target="_blank" rel="noopener" class="btn btn-ghost">See the code →</a>
@@ -197,18 +255,20 @@
       <div class="flagship">
         <div class="kicker">runtime governance · Jan 2026–present</div>
         <h3>Vorion — BASIS &amp; CogniGate</h3>
-        <div class="metric">~8ms p50 / ~20ms p95 policy decisions (same-region)</div>
-        <p>A vendor-neutral governance layer for agentic AI. BASIS is the open trust-tier specification (T0–T7); CogniGate is the Apache-2.0 policy-enforcement engine that checks every agent tool-call against it and writes an auditable decision record. Around it: AgentAnchor (a public trust registry), Aurais (a fleet security console with anomaly detection and quarantine-on-click), and Rainbow (a live trust-analytics observatory). NIST AI RMF RFI submitted; provisional patent filed March 2026 for a model-identity fingerprinting method.</p>
+        <div class="metric">~<button type="button" class="term" data-tip="Median (p50) and 95th-percentile (p95) latency — how fast the typical decision is, versus how slow the slower-than-usual ones get.">8ms p50 / ~20ms p95</button> policy decisions (same-region)</div>
+        <p class="teaser">A vendor-neutral trust ladder for agentic AI — an open spec for what an agent is allowed to do, and an engine that checks every action against it before it runs.</p>
         <div class="tags">
           <span class="tag-chip">TypeScript strict</span>
           <span class="tag-chip">Next.js</span>
           <span class="tag-chip">Supabase</span>
           <span class="tag-chip">Apache-2.0 OSS</span>
         </div>
-        <div class="links">
-          <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
-          <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
-          <a href="https://github.com/vorionsys" target="_blank" rel="noopener">github.com/vorionsys</a>
+        <div class="card-foot">
+          <div class="links">
+            <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
+            <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
+          </div>
+          <button type="button" class="more-btn" data-open="modal-vorion">Learn more <span class="arr">→</span></button>
         </div>
       </div>
 
@@ -216,15 +276,18 @@
         <div class="kicker">production SaaS · 2025–present</div>
         <h3>BanquetAI</h3>
         <div class="metric">1,000+ tests in the stewarding module alone</div>
-        <p>An AI-powered operations platform for hospitality and events: AI-assisted BEO processing, a drag-and-drop equipment-layout schematic builder, and a stewarding/requisition engine. Built and taken to market with real venue operators on Firebase and Next.js. The agent-trust and accuracy questions that surfaced building this platform's AI workforce led directly to Vorion.</p>
+        <p class="teaser">AI-powered event operations: a Banquet Event Order goes in, a categorized equipment layout and stewarding pull sheet come out. Live, and taken to market with real venue operators.</p>
         <div class="tags">
           <span class="tag-chip">Next.js</span>
           <span class="tag-chip">Firebase</span>
           <span class="tag-chip">Production SaaS</span>
         </div>
-        <div class="links">
-          <a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com</a>
-          <a href="https://beodraft.com" target="_blank" rel="noopener">beodraft.com</a>
+        <div class="card-foot">
+          <div class="links">
+            <a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com</a>
+            <a href="https://beodraft.com" target="_blank" rel="noopener">beodraft.com</a>
+          </div>
+          <button type="button" class="more-btn" data-open="modal-banquetai">Learn more <span class="arr">→</span></button>
         </div>
       </div>
 
@@ -232,50 +295,62 @@
         <div class="kicker">open source · agent memory</div>
         <h3>agent-memory-service</h3>
         <div class="metric">100% current-fact accuracy · 0% stale · ~35% token savings</div>
-        <p>A typed 4-store memory layer for LLM agents — working, episodic, semantic, procedural — with episodic→semantic consolidation and supersession-based forgetting, so a fact that changes mid-conversation stops answering with the stale value. A 4-config ablation, evaluated on a controlled synthetic set and the LoCoMo-10 benchmark, reproduces every number from a clean clone.</p>
+        <p class="teaser">A typed 4-store agent memory layer that stops answering with facts after they've changed — the fix is <button type="button" class="term" data-tip="When a new value for a fact arrives, the old one is marked outdated instead of deleted — so the system always answers with what's true now, without losing the history of what changed.">supersession</button>, and every number reproduces from a clean clone.</p>
         <div class="tags">
           <span class="tag-chip">Python</span>
           <span class="tag-chip">FAISS</span>
           <span class="tag-chip">Live on Cloud Run</span>
         </div>
-        <div class="links"><a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">github.com/axiom-orion/agent-memory-service</a></div>
+        <div class="card-foot">
+          <div class="links"><a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">GitHub</a></div>
+          <button type="button" class="more-btn" data-open="modal-ams">Learn more <span class="arr">→</span></button>
+        </div>
       </div>
 
       <div class="flagship">
         <div class="kicker">open source · retrieval</div>
         <h3>genealogy-graphrag</h3>
-        <div class="metric">relational recall@5 0.000 → 1.000</div>
-        <p>Hybrid retrieval (BM25 + dense) with cross-encoder reranking, plus a typed kinship-graph resolver for questions whose answer entity is never named in the query — the structural blind spot of dense and lexical retrieval alone. Dual graph backend: in-memory NetworkX for zero-setup eval, Neo4j/Cypher for production traversal.</p>
+        <div class="metric">relational <button type="button" class="term" data-tip="The % of times the right answer shows up in the top 5 results retrieved — not just whether it was found, but whether it surfaced high enough to be seen.">recall@5</button> 0.000 → 1.000</div>
+        <p class="teaser">Hybrid search plus a knowledge-graph resolver for questions no embedding can answer — "who's the maternal grandfather of X" — because the answer isn't written near the question anywhere.</p>
         <div class="tags">
           <span class="tag-chip">Python</span>
           <span class="tag-chip">Neo4j</span>
           <span class="tag-chip">Reranking</span>
         </div>
-        <div class="links"><a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">github.com/axiom-orion/genealogy-graphrag</a></div>
+        <div class="card-foot">
+          <div class="links"><a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">GitHub</a></div>
+          <button type="button" class="more-btn" data-open="modal-graphrag">Learn more <span class="arr">→</span></button>
+        </div>
       </div>
 
       <div class="flagship">
         <div class="kicker">this site</div>
         <h3>cason-heritage</h3>
         <div class="metric">66 individuals · 12 generations · 7 evidence tiers</div>
-        <p>You're standing in it. Four centuries of contradictory genealogical records, resolved under the same provenance architecture as agent-memory-service, stress-tested on real, messy, conflicting historical data — plus a governed roster of research agents (the "Living Line") that proposes findings but never publishes without a human.</p>
+        <p class="teaser">You're standing in it — four centuries of contradictory family records, resolved with the same provenance architecture as agent-memory-service, governed by a roster of research agents that propose but never publish.</p>
         <div class="tags">
           <span class="tag-chip">Static HTML/JS</span>
           <span class="tag-chip">Governed agents</span>
         </div>
-        <div class="links"><a href="/living" target="_blank">Enter the Living Line →</a></div>
+        <div class="card-foot">
+          <div class="links"><a href="/living" target="_blank">Enter the Living Line →</a></div>
+          <button type="button" class="more-btn" data-open="modal-heritage">Learn more <span class="arr">→</span></button>
+        </div>
       </div>
 
       <div class="flagship">
         <div class="kicker">open source · policy demo</div>
         <h3>governed-agents</h3>
-        <div class="metric">Full NDJSON audit trail</div>
-        <p>A Next.js runtime that wraps LLM calls in a named-rule policy gate — every tool call evaluated against a rule set before execution, decisions emitted as TraceEvents for a replayable audit trail. Multi-model consensus across Claude, Gemini, and Grok, with a Red Cell adversarial mode that stress-tests policy coverage.</p>
+        <div class="metric">full NDJSON audit trail</div>
+        <p class="teaser">A standalone demo of the same governance idea: every LLM tool-call checked against a policy gate before it runs, with multi-model consensus and an adversarial "Red Cell" mode trying to break it.</p>
         <div class="tags">
           <span class="tag-chip">TypeScript</span>
           <span class="tag-chip">Multi-model</span>
         </div>
-        <div class="links"><a href="https://governed-agents.vercel.app" target="_blank" rel="noopener">governed-agents.vercel.app</a></div>
+        <div class="card-foot">
+          <div class="links"><a href="https://governed-agents.vercel.app" target="_blank" rel="noopener">Visit ↗</a></div>
+          <button type="button" class="more-btn" data-open="modal-governed-agents">Learn more <span class="arr">→</span></button>
+        </div>
       </div>
 
     </div>
@@ -287,70 +362,82 @@
     <div class="section-head">
       <div class="meta">// 02 · the estate</div>
       <h2>Live right now.</h2>
-      <p class="sub">A 20-plus site production estate, run solo, across Vercel, Cloudflare Workers, Supabase, Firebase, Neo4j Aura, and Cloud Run.</p>
+      <p class="sub">A 20-plus site production estate, run solo, across Vercel, Cloudflare Workers, Supabase, Firebase, Neo4j Aura, and Cloud Run. Tap any card for what it is and a link through.</p>
     </div>
     <div class="site-grid">
 
-      <a class="site-card" href="https://vorion.org" target="_blank" rel="noopener">
+      <button type="button" class="site-card" data-open="modal-site-vorion">
         <div class="name"><span class="dot"></span>vorion.org</div>
         <div class="url">vorion.org</div>
         <p>The governance company — BASIS spec, CogniGate, the whole Vorion story.</p>
-      </a>
-      <a class="site-card" href="https://cognigate.dev" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-cognigate">
         <div class="name"><span class="dot"></span>Cognigate</div>
         <div class="url">cognigate.dev</div>
         <p>The policy-enforcement engine — spec, playground, and docs.</p>
-      </a>
-      <a class="site-card" href="https://agentanchorai.com" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-agentanchor">
         <div class="name"><span class="dot"></span>AgentAnchor</div>
         <div class="url">agentanchorai.com</div>
         <p>Public agent-trust registry — T0–T7 attestation, real signed certs.</p>
-      </a>
-      <a class="site-card" href="https://aurais.net" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-aurais">
         <div class="name"><span class="dot"></span>Aurais</div>
         <div class="url">aurais.net</div>
         <p>SecOps console for agent fleets — anomaly detection, quarantine-on-click.</p>
-      </a>
-      <a class="site-card" href="https://rainbow.vorion.org" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-rainbow">
         <div class="name"><span class="dot"></span>Rainbow</div>
         <div class="url">rainbow.vorion.org</div>
         <p>Trust-analytics observatory — fleet-wide tier distribution and drift.</p>
-      </a>
-      <a class="site-card" href="https://demo.vorion.org" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-demo">
         <div class="name"><span class="dot"></span>Vorion demo</div>
         <div class="url">demo.vorion.org</div>
         <p>Interactive walkthrough of the governance runtime end to end.</p>
-      </a>
-      <a class="site-card" href="https://bai-cc.com" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-baicc">
         <div class="name"><span class="dot"></span>BAI Command Center</div>
         <div class="url">bai-cc.com</div>
         <p>The governed multi-app platform behind BanquetAI.</p>
-      </a>
-      <a class="site-card" href="https://beodraft.com" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-beodraft">
         <div class="name"><span class="dot"></span>BeoDraft</div>
         <div class="url">beodraft.com</div>
         <p>The live BanquetAI product — AI-assisted BEO drafting for venues and caterers.</p>
-      </a>
-      <a class="site-card" href="https://footed.flcason.com" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-footed">
         <div class="name"><span class="dot"></span>Footed</div>
         <div class="url">footed.flcason.com</div>
         <p>A small commissioned build, shipped for a client application.</p>
-      </a>
-      <a class="site-card" href="https://anchor-hq-ashen.vercel.app" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-anchor">
         <div class="name"><span class="dot"></span>Anchor</div>
         <div class="url">anchor-hq-ashen.vercel.app</div>
         <p>A personal HITL dashboard for running everything above.</p>
-      </a>
-      <a class="site-card" href="https://enhancements.vorion.org" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-enhancements">
         <div class="name"><span class="dot"></span>Enhancements</div>
         <div class="url">enhancements.vorion.org</div>
         <p>The public backlog and changelog for the Vorion estate.</p>
-      </a>
-      <a class="site-card" href="https://fourier-scope.banquetaillc.workers.dev" target="_blank" rel="noopener">
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
+      <button type="button" class="site-card" data-open="modal-site-fourier">
         <div class="name"><span class="dot"></span>Fourier Scope</div>
         <div class="url">fourier-scope.banquetaillc.workers.dev</div>
         <p>A small signal-processing toy on Cloudflare Workers.</p>
-      </a>
+        <div class="more">More <span class="arr">→</span></div>
+      </button>
 
     </div>
   </div>
@@ -369,7 +456,7 @@
         <div class="mark">1</div>
         <div>
           <div class="name">livekit/agents — upstream contribution</div>
-          <p>Reported a cross-provider WebSocket reliability bug missed by an earlier fix, then shipped one PR fixing all seven affected provider plugins, backed by a 36-test regression harness. Issue #6473 · PR #6474, open with CI green.</p>
+          <p>Reported a cross-provider WebSocket reliability bug missed by an earlier fix, then shipped one PR fixing all seven affected provider plugins, backed by a 36-test <button type="button" class="term" data-tip="An automated test suite built specifically to make sure a fixed bug never quietly comes back.">regression harness</button>. Issue #6473 · PR #6474, open with CI green.</p>
           <a href="https://github.com/livekit/agents/pull/6474" target="_blank" rel="noopener">github.com/livekit/agents/pull/6474 →</a>
         </div>
       </div>
@@ -378,7 +465,7 @@
         <div class="mark">2</div>
         <div>
           <div class="name">30+ published npm packages</div>
-          <p>Published and maintained across <code>@vorionsys/*</code> on the public npm registry — BASIS spec, CogniGate SDK, Rainbow, agent SDKs, and more — with OIDC trusted publishing and SLSA provenance on release.</p>
+          <p>Published and maintained across <code>@vorionsys/*</code> on the public npm registry — BASIS spec, CogniGate SDK, Rainbow, agent SDKs, and more — with <button type="button" class="term" data-tip="OpenID Connect — lets a CI pipeline authenticate to a registry like npm with a short-lived signed token instead of a stored password.">OIDC trusted publishing</button> and <button type="button" class="term" data-tip="A signed, independently verifiable record of exactly how and where a package was built — proof it wasn't tampered with in the pipeline.">SLSA provenance</button> on release.</p>
         </div>
       </div>
 
@@ -484,6 +571,282 @@
   <a href="/">The Cason Line</a>·<a href="/hub">Site map</a>·<a href="/resume">Résumé</a>·<a href="https://github.com/axiom-orion" target="_blank" rel="noopener">GitHub</a>
   <div style="margin-top:8px;">ryan cason · portfolio · updated july 2026</div>
 </footer>
+
+<!-- ████ DETAIL MODALS — flagship ████ -->
+
+<dialog id="modal-vorion" class="detail" aria-labelledby="modal-vorion-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">runtime governance · Jan 2026–present</div>
+    <h3 id="modal-vorion-title">Vorion — BASIS &amp; CogniGate</h3>
+    <div class="detail-metric">~8ms p50 / ~20ms p95 policy decisions (same-region)</div>
+    <p>Agentic AI systems tend to fail in a specific way: an agent takes an action — calls a tool, moves money, deletes a record — with no enforced boundary on what it's allowed to do, and no reliable record of why it was allowed. Vorion is a vendor-neutral answer to that. BASIS is an open specification defining an eight-rung trust ladder, T0 through T7, from "no established trust" to "fully autonomous within its scope." CogniGate is the policy-enforcement engine that reads that ladder: every agent tool-call is checked against the tier it's cleared for before it executes, and the decision — allow, needs-approval, or block — is written to an auditable, replayable record. CogniGate is Apache-2.0 and open source.</p>
+    <p>Three products sit around that core. AgentAnchor is a public trust registry — an agent's tier and attestation history are checkable, the way certificate-transparency logs work for TLS. Aurais is a security console for people running fleets of agents: anomaly detection against a learned baseline, one-click chain inspection, and quarantine-on-click when something looks wrong. Rainbow is the analytics layer over all of it — fleet-wide tier distribution, trust-score velocity, and drift detection.</p>
+    <p>I submitted an RFI response to NIST's AI Risk Management Framework based on this work, and filed a provisional patent (March 2026) for a model-identity fingerprinting method used to detect when a model has been silently swapped or has drifted from its known baseline.</p>
+    <div class="detail-links">
+      <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org ↗</a>
+      <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev ↗</a>
+      <a href="https://github.com/vorionsys" target="_blank" rel="noopener">github.com/vorionsys ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-banquetai" class="detail" aria-labelledby="modal-banquetai-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">production SaaS · 2025–present</div>
+    <h3 id="modal-banquetai-title">BanquetAI</h3>
+    <div class="detail-metric">1,000+ tests in the stewarding module alone</div>
+    <p>Event and banquet operations run on paperwork nobody enjoys: a Banquet Event Order (BEO) gets typed up, an equipment list gets built from it by hand, and someone in the back of house turns that into an actual pull sheet — trays, linens, chafers — usually under time pressure, usually more than once a day. BanquetAI automates that chain: it extracts and categorizes BEO line items automatically, a drag-and-drop schematic builder calculates equipment requirements from the room layout, and a stewarding engine turns all of it into a requisition with ratio calculations and pull sheets already generated.</p>
+    <p>Built on Firebase and Next.js, with 1,000+ tests in the stewarding module alone and 75%+ overall coverage — and it went out to real venue operators, not just a demo.</p>
+    <p>The most useful thing that came out of building it wasn't the product itself — it was watching what happens when you put an AI "employee" in the loop of a real operation and ask it to be right, not just fast. The trust and accuracy questions that came up doing that are what turned into Vorion.</p>
+    <div class="detail-links">
+      <a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com ↗</a>
+      <a href="https://beodraft.com" target="_blank" rel="noopener">beodraft.com ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-ams" class="detail" aria-labelledby="modal-ams-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">open source · agent memory</div>
+    <h3 id="modal-ams-title">agent-memory-service</h3>
+    <div class="detail-metric">100% current-fact accuracy · 0% stale · ~35% token savings</div>
+    <p>Most agent-memory systems get scored with one number, and that number hides two different failure modes. The first is retrieval: can the system find the right facts at all. The second is currency: when a fact changes mid-conversation — you say you live in Denver, then later say Lisbon — does the system answer with what's true now, or what used to be true? A flat vector store retrieves both the old and new fact, since they're semantically similar, with no notion that one of them is dead: measured directly, a naive store answers changing-fact questions correctly 0% of the time and surfaces the stale value in its top 5 every single time.</p>
+    <p>agent-memory-service is a typed four-store memory layer — working, episodic, semantic, procedural — built around the fix: supersession. When a new value for a fact arrives, the old one is marked inactive and drops out of the active retrieval set, the same bi-temporal idea Graphiti and Zep use. A 4-configuration ablation (flat → +recency → +consolidation → +supersession) isolates each piece's real contribution, evaluated on a controlled synthetic set and on LoCoMo-10, the field-standard long-conversation benchmark. The full system reaches 100% current-fact accuracy with 0% stale retrieval, and consolidating raw turns into deduplicated facts cuts grounding-context token cost by about a third. Every number reproduces from a clean clone — no API key required for the retrieval numbers.</p>
+    <div class="detail-links">
+      <a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">github.com/axiom-orion/agent-memory-service ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-graphrag" class="detail" aria-labelledby="modal-graphrag-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">open source · retrieval</div>
+    <h3 id="modal-graphrag-title">genealogy-graphrag</h3>
+    <div class="detail-metric">relational recall@5 0.000 → 1.000 · MRR@10 0.77 → 1.00</div>
+    <p>There's a class of question dense embeddings and keyword search structurally cannot answer: "who is the maternal grandfather of X," where the answer's name never appears anywhere near the question in the source text. No amount of better embeddings fixes that — the relationship has to be resolved, not searched for. genealogy-graphrag pairs a standard hybrid retriever (BM25 + dense, cross-encoder reranked) with a typed kinship-graph resolver that walks the actual family graph to answer relational questions directly. On the relational subset, recall@5 goes from 0.000 with retrieval alone to 1.000 with graph resolution; overall MRR@10 rises from 0.77 to 1.00 once reranking is layered on top.</p>
+    <p>It runs on a dual graph backend behind one interface — in-memory NetworkX for a zero-setup evaluation, Neo4j/Cypher for real hop-bounded traversal in production — and every answer carries a bibliographic citation, not just a confidence score.</p>
+    <div class="detail-links">
+      <a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">github.com/axiom-orion/genealogy-graphrag ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-heritage" class="detail" aria-labelledby="modal-heritage-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">this site</div>
+    <h3 id="modal-heritage-title">cason-heritage</h3>
+    <div class="detail-metric">66 individuals · 12 generations · 7 evidence tiers</div>
+    <p>This site is the stress test for the same architecture as agent-memory-service, run on the messiest data there is: four centuries of real, contradictory, incomplete genealogical records. The problem shape is identical to production AI memory — sources conflict, multiple candidates compete for the same generational slot, and one wrong claim silently corrupts every record downstream that inherits from it.</p>
+    <p>Every individual on the direct line carries one of seven evidence tiers, from confirmed-by-primary-source down through possible, unlikely, and disproven-claim — nobody enters the confirmed line without a primary source. Disproven records aren't deleted, they're quarantined with their disqualification reasoning intact, so a future researcher can't accidentally resurrect a myth that's already been ruled out. Behind the narrative is a small governed agent system — the "Living Line" — a roster of research agents that read the family knowledge graph, propose findings on the open questions, and gate every claim through an auditable policy before it reaches the record. The rule the whole thing runs on: propose, never publish.</p>
+    <div class="detail-links">
+      <a href="/living" target="_blank">Enter the Living Line ↗</a>
+      <a href="https://github.com/axiom-orion/cason-heritage" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="modal-governed-agents" class="detail" aria-labelledby="modal-governed-agents-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">open source · policy demo</div>
+    <h3 id="modal-governed-agents-title">governed-agents</h3>
+    <div class="detail-metric">full NDJSON audit trail</div>
+    <p>A smaller, standalone demonstration of the same governance idea behind Vorion: wrap every LLM tool-call in a named-rule policy gate, so nothing executes without first being checked against a rule set — a name, a threshold, an enforcement level — and every decision gets written out as a TraceEvent in NDJSON, one JSON record per line, so the whole run replays and audits cleanly.</p>
+    <p>It runs multi-model consensus across Claude, Gemini, and Grok rather than trusting a single model's judgment, and has a "Red Cell" adversarial mode built specifically to try to find gaps in the policy coverage rather than confirm it works.</p>
+    <div class="detail-links">
+      <a href="https://governed-agents.vercel.app" target="_blank" rel="noopener">governed-agents.vercel.app ↗</a>
+    </div>
+  </div>
+</dialog>
+
+<!-- ████ DETAIL MODALS — the estate ████ -->
+
+<dialog id="modal-site-vorion" class="detail" aria-labelledby="modal-site-vorion-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">vorion.org</div>
+    <h3 id="modal-site-vorion-title">Vorion</h3>
+    <p>The home of the governance company: the BASIS specification in full, the CogniGate architecture, and the case for why agentic AI needs an enforced trust ladder rather than a vendor's promise. Static Astro site, deployed on Vercel.</p>
+    <div class="detail-links"><a href="https://vorion.org" target="_blank" rel="noopener">Visit vorion.org ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-cognigate" class="detail" aria-labelledby="modal-site-cognigate-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">cognigate.dev</div>
+    <h3 id="modal-site-cognigate-title">Cognigate</h3>
+    <p>CogniGate's own home: the policy-enforcement engine's spec, an interactive playground for testing rules against sample agent actions, and integration docs. Apache-2.0, and the fastest way to see the trust-tier gate actually run.</p>
+    <div class="detail-links"><a href="https://cognigate.dev" target="_blank" rel="noopener">Visit cognigate.dev ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-agentanchor" class="detail" aria-labelledby="modal-site-agentanchor-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">agentanchorai.com</div>
+    <h3 id="modal-site-agentanchor-title">AgentAnchor</h3>
+    <p>A public registry for agent trust attestations — real, signed T0–T7 certificates anyone can look up, the same idea as a certificate-transparency log applied to AI agents instead of TLS certs.</p>
+    <div class="detail-links"><a href="https://agentanchorai.com" target="_blank" rel="noopener">Visit agentanchorai.com ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-aurais" class="detail" aria-labelledby="modal-site-aurais-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">aurais.net</div>
+    <h3 id="modal-site-aurais-title">Aurais</h3>
+    <p>A security console built for people operating fleets of agents rather than one: anomaly detection against a learned behavioral baseline, one-click inspection of an agent's decision chain, and quarantine-on-click the moment something looks wrong.</p>
+    <div class="detail-links"><a href="https://aurais.net" target="_blank" rel="noopener">Visit aurais.net ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-rainbow" class="detail" aria-labelledby="modal-site-rainbow-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">rainbow.vorion.org</div>
+    <h3 id="modal-site-rainbow-title">Rainbow</h3>
+    <p>The analytics layer over the whole governed fleet — trust-tier distribution across every agent, how fast trust scores are moving, and drift detection, in configurable time windows.</p>
+    <div class="detail-links"><a href="https://rainbow.vorion.org" target="_blank" rel="noopener">Visit rainbow.vorion.org ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-demo" class="detail" aria-labelledby="modal-site-demo-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">demo.vorion.org</div>
+    <h3 id="modal-site-demo-title">Vorion demo</h3>
+    <p>A guided, click-through walkthrough of the governance runtime end to end — the fastest way to see what a policy decision, a trust tier, and an audit record actually look like without reading the spec first.</p>
+    <div class="detail-links"><a href="https://demo.vorion.org" target="_blank" rel="noopener">Visit demo.vorion.org ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-baicc" class="detail" aria-labelledby="modal-site-baicc-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">bai-cc.com</div>
+    <h3 id="modal-site-baicc-title">BAI Command Center</h3>
+    <p>The command center behind BanquetAI — the governed multi-app platform that the hospitality-facing product, BeoDraft, runs on top of.</p>
+    <div class="detail-links"><a href="https://bai-cc.com" target="_blank" rel="noopener">Visit bai-cc.com ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-beodraft" class="detail" aria-labelledby="modal-site-beodraft-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">beodraft.com</div>
+    <h3 id="modal-site-beodraft-title">BeoDraft</h3>
+    <p>The live BanquetAI product: give it a Banquet Event Order and it drafts the categorized line items, the equipment layout, and the stewarding pull sheet automatically. This is the one venue operators actually touch day to day.</p>
+    <div class="detail-links"><a href="https://beodraft.com" target="_blank" rel="noopener">Visit beodraft.com ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-footed" class="detail" aria-labelledby="modal-site-footed-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">footed.flcason.com</div>
+    <h3 id="modal-site-footed-title">Footed</h3>
+    <p>A small commissioned build, shipped for a client's job application rather than for the governance or hospitality work above. Kept here because it's live and it's mine.</p>
+    <div class="detail-links"><a href="https://footed.flcason.com" target="_blank" rel="noopener">Visit footed.flcason.com ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-anchor" class="detail" aria-labelledby="modal-site-anchor-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">anchor-hq-ashen.vercel.app</div>
+    <h3 id="modal-site-anchor-title">Anchor</h3>
+    <p>A personal human-in-the-loop dashboard for keeping an eye on everything above — the one piece of this estate that's just for me, not for a visitor or a customer.</p>
+    <div class="detail-links"><a href="https://anchor-hq-ashen.vercel.app" target="_blank" rel="noopener">Visit anchor-hq-ashen.vercel.app ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-enhancements" class="detail" aria-labelledby="modal-site-enhancements-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">enhancements.vorion.org</div>
+    <h3 id="modal-site-enhancements-title">Enhancements</h3>
+    <p>The public backlog and changelog for the whole Vorion estate — what shipped, what's in flight, and what's next, kept in the open rather than behind a private roadmap doc.</p>
+    <div class="detail-links"><a href="https://enhancements.vorion.org" target="_blank" rel="noopener">Visit enhancements.vorion.org ↗</a></div>
+  </div>
+</dialog>
+
+<dialog id="modal-site-fourier" class="detail" aria-labelledby="modal-site-fourier-title">
+  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
+  <div class="detail-body">
+    <div class="detail-kicker">fourier-scope.banquetaillc.workers.dev</div>
+    <h3 id="modal-site-fourier-title">Fourier Scope</h3>
+    <p>A small signal-processing toy — a live Fourier-transform visualizer — built on Cloudflare Workers mostly to learn the platform. Not part of the governance or hospitality work; just a fun standalone build.</p>
+    <div class="detail-links"><a href="https://fourier-scope.banquetaillc.workers.dev" target="_blank" rel="noopener">Visit Fourier Scope ↗</a></div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── jargon tooltips: hover (desktop), focus (keyboard), tap (touch) ── */
+  var terms = document.querySelectorAll('.term');
+  terms.forEach(function (term, i) {
+    var tipText = term.getAttribute('data-tip');
+    if (!tipText) return;
+    var tip = document.createElement('span');
+    tip.className = 'tip';
+    tip.id = 'term-tip-' + i;
+    tip.setAttribute('role', 'tooltip');
+    tip.textContent = tipText;
+    term.appendChild(tip);
+    term.setAttribute('aria-describedby', tip.id);
+
+    function place() {
+      tip.style.transform = 'translateX(-50%)';
+      var rect = tip.getBoundingClientRect();
+      var margin = 8;
+      if (rect.left < margin) {
+        tip.style.transform = 'translateX(calc(-50% + ' + (margin - rect.left) + 'px))';
+      } else if (rect.right > window.innerWidth - margin) {
+        tip.style.transform = 'translateX(calc(-50% - ' + (rect.right - (window.innerWidth - margin)) + 'px))';
+      }
+    }
+
+    term.addEventListener('mouseenter', place);
+    term.addEventListener('focus', place);
+    term.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var willOpen = !term.classList.contains('is-active');
+      terms.forEach(function (t) { t.classList.remove('is-active'); });
+      if (willOpen) { term.classList.add('is-active'); place(); }
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.term')) {
+      terms.forEach(function (t) { t.classList.remove('is-active'); });
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') terms.forEach(function (t) { t.classList.remove('is-active'); });
+  });
+
+  /* ── detail modals: open via [data-open], close on backdrop click ── */
+  document.addEventListener('click', function (e) {
+    var opener = e.target.closest('[data-open]');
+    if (!opener) return;
+    var dlg = document.getElementById(opener.getAttribute('data-open'));
+    if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+  });
+  document.querySelectorAll('dialog.detail').forEach(function (dlg) {
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg) dlg.close();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
