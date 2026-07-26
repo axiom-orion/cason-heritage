@@ -11,10 +11,14 @@
       "id": "cognigate-latency",
       "claimKind": "metric",
       "visibility": "public",
-      "text": "8ms p50 / ~20ms p95",
+      "text": "38ms median",
       "appearsIn": ["resume.html", "portfolio.html"],
-      "verify": { "method": "unverified" },
-      "note": "UNRESOLVED — deliberately left unsourced so the gate blocks it. This figure reconciles with nothing: cognigate.dev publishes '~38ms median target / <120ms p99 budget' (explicitly design targets, not measurements), while vorion/docs/benchmarks/phase6-performance.md measures p50 12ms / p95 28ms — where 8ms appears as a *min*, not a p50. Resolve by restating as '~12ms p50 / ~28ms p95' with that file as an attested source, or by producing a measurement that yields 8/20."
+      "verify": {
+        "method": "attested",
+        "source": "cognigate.dev publishes '~38ms MEDIAN TARGET' and '<120ms P99 BUDGET' as the design budget for the reference gate. The claim is stated as a TARGET, matching that language exactly — it is not represented as a measurement.",
+        "asOf": "2026-07-26"
+      },
+      "note": "RESOLVED 2026-07-26. Was '~8ms p50 / ~20ms p95', presented as measured fact and reconciling with nothing. Two traps were found while fixing it. First: vorion/docs/benchmarks/phase6-performance.md measures p50 12ms / p95 28ms — but that row is `GET /stats`, a dashboard read, and the fastest endpoint in the table; the policy-decision endpoint (`POST /role-gates/evaluate`) measures 18/42. Second: that file benchmarks Vorion's Phase 6 Trust Engine, not CogniGate, so citing it here would swap one mis-attribution for another. CogniGate has no measured latency artifact — the `p50` in cognigate/tests/test_monte_carlo.py is a probability variable, not latency. The honest claim is therefore CogniGate's own published design target, worded as a target. If a real CogniGate benchmark is ever produced, replace this with the measurement and drop the word 'target'."
     },
     {
       "id": "livekit-pr-6474",
