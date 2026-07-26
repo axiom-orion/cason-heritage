@@ -255,7 +255,7 @@
       <div class="flagship">
         <div class="kicker">runtime governance · Jan 2026–present</div>
         <h3>Vorion — BASIS &amp; CogniGate</h3>
-        <div class="metric">~<button type="button" class="term" data-tip="Median (p50) and 95th-percentile (p95) latency — how fast the typical decision is, versus how slow the slower-than-usual ones get.">8ms p50 / ~20ms p95</button> policy decisions (same-region)</div>
+        <div class="metric">~<button type="button" class="term" data-tip="The latency budget the reference gate is designed to: authorize, sign and return end to end. A design target, not a measured benchmark.">38ms median / &lt;120ms p99</button> policy-decision target</div>
         <p class="teaser">A vendor-neutral trust ladder for agentic AI — an open spec for what an agent is allowed to do, and an engine that checks every action against it before it runs.</p>
         <div class="tags">
           <span class="tag-chip">TypeScript strict</span>
@@ -579,7 +579,7 @@
   <div class="detail-body">
     <div class="detail-kicker">runtime governance · Jan 2026–present</div>
     <h3 id="modal-vorion-title">Vorion — BASIS &amp; CogniGate</h3>
-    <div class="detail-metric">~8ms p50 / ~20ms p95 policy decisions (same-region)</div>
+    <div class="detail-metric">~38ms median / &lt;120ms p99 policy-decision target</div>
     <p>Agentic AI systems tend to fail in a specific way: an agent takes an action — calls a tool, moves money, deletes a record — with no enforced boundary on what it's allowed to do, and no reliable record of why it was allowed. Vorion is a vendor-neutral answer to that. BASIS is an open specification defining an eight-rung trust ladder, T0 through T7, from "no established trust" to "fully autonomous within its scope." CogniGate is the policy-enforcement engine that reads that ladder: every agent tool-call is checked against the tier it's cleared for before it executes, and the decision — allow, needs-approval, or block — is written to an auditable, replayable record. CogniGate is Apache-2.0 and open source.</p>
     <p>Three products sit around that core. AgentAnchor is a public trust registry — an agent's tier and attestation history are checkable, the way certificate-transparency logs work for TLS. Aurais is a security console for people running fleets of agents: anomaly detection against a learned baseline, one-click chain inspection, and quarantine-on-click when something looks wrong. Rainbow is the analytics layer over all of it — fleet-wide tier distribution, trust-score velocity, and drift detection.</p>
     <p>I submitted an RFI response to NIST's AI Risk Management Framework based on this work, and filed a provisional patent (March 2026) for a model-identity fingerprinting method used to detect when a model has been silently swapped or has drifted from its known baseline.</p>

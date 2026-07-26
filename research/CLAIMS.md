@@ -91,19 +91,38 @@ Exit code is non-zero when any claim **blocks**. Claims needing review do not
 fail the run — that is what the PR is for. A network outage degrades a check
 and says so; it never fabricates a pass.
 
-## Known open finding
+## The first finding, and what fixing it taught
 
-`cognigate-latency` blocks today, deliberately. The résumé and portfolio both
-publish `~8ms p50 / ~20ms p95`, which reconciles with nothing:
+`cognigate-latency` blocked on the auditor's first run. Both pages published
+`~8ms p50 / ~20ms p95` as measured fact, and it reconciled with nothing.
 
-- `cognigate.dev` publishes `~38ms median target` / `<120ms p99 budget`,
-  explicitly framed as design budgets rather than measurements
-- `vorion/docs/benchmarks/phase6-performance.md` measures `p50 12ms / p95 28ms`
-  — where **8ms appears as a `min`**, not a p50
+Fixing it surfaced two traps, and the second is the interesting one.
 
-Resolve by restating the claim as `~12ms p50 / ~28ms p95` attested to that
-file, or by producing a measurement that actually yields 8/20. The auditor
-stays red until one of those happens, which is the point.
+**Trap 1 — the nearest real number was the wrong row.**
+`vorion/docs/benchmarks/phase6-performance.md` measures `p50 12ms / p95 28ms`,
+which looks like a clean substitute. But that row is `GET /stats` — a dashboard
+read, and the *fastest* endpoint in the table. The policy-decision endpoint,
+`POST /role-gates/evaluate`, measures **18/42**. Swapping in 12/28 would have
+put the fastest read endpoint on a résumé as a policy-decision latency.
+
+**Trap 2 — the file benchmarks the wrong system.**
+Those are **Vorion Phase 6 Trust Engine** endpoints. The claim is about
+**CogniGate**. CogniGate has no measured latency artifact anywhere — the `p50`
+in `cognigate/tests/test_monte_carlo.py` is a probability variable
+(`analytical_failure_prob`), not a latency. So citing that file would have
+traded one mis-attribution for another that merely *looked* sourced.
+
+The honest resolution was neither: restate the claim as **CogniGate's own
+published design target** — `~38ms median / <120ms p99` — worded as a target,
+matching `cognigate.dev` verbatim. In the manifest it is `attested` to that
+published budget, with the reasoning above recorded in the claim's `note` so
+the next person does not re-walk it.
+
+The lesson the gate encodes: **a number is not sourced merely because a number
+exists somewhere.** It has to be the same measurement, of the same system.
+`no-unsourced-metric` catches the missing source; only a human reading the
+source catches the wrong one — which is exactly why every correction routes to
+a human merge.
 
 ## Porting it to another repo
 
