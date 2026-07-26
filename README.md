@@ -27,7 +27,7 @@ disproves, and shows its work.
 
 ## The agent system
 
-Thirteen agents across four layers, each a **real, no-build module** — governed, traced,
+Fourteen agents across four layers, each a **real, no-build module** — governed, traced,
 self-tested, and self-described in a registry (`ui_kits/living-line/agents.js`). Every
 agent's *system* (how it works) and *ability* is machine-checkable: `npm run
 selftest:agents` asserts that each `live` agent names a module that exists on disk.
@@ -43,6 +43,7 @@ selftest:agents` asserts that each `live` agent names a module that exists on di
 | Governance | **Governance Conductor** (the Keeper) | Routes open lines → kinship → grounded research → gate → trace → tiered dossier → PR. |
 | Governance | **Circuit Breaker & Safety** | The typed pre-action gate + the temporal horizon → allow / needs-approval / **block**, by named rules with thresholds. |
 | Governance | **Trust, Coherence & Drift Auditor** | Scheduled invariant battery + content-addressed attestation vs a baseline → drift/regression detection, alert PR. |
+| Governance | **Public Record Auditor** | The same gate pointed at a different corpus: the claims manifest verified against live sources (GitHub state, npm, HTTP, counts derived from `data.js`) → blocks an unsourced metric or internal content in a public artifact, routes drift to a human. |
 | Governance | **Reflection & Self-Improvement** | Reads the graph → a ranked "what to work on" report (the load-bearing Gen-5 slot first). Advises; never writes. |
 | Governance | **Recovery & Resilience** | *Cross-cutting:* every external call degrades gracefully — an outage degrades a run, never crashes or fabricates. |
 | Interaction | **Narrative Journey** | Recommends the next persona / open line / section and surfaces a memory through the horizon-bounded subgraph; public-only. |
@@ -88,6 +89,7 @@ The **Keeper** (`scripts/keeper.js`) is the conductor. On a schedule (or on dema
 npm run keeper -- --dry-run     # the conductor: show the queue it would research (no network)
 npm run keeper -- --max 3       # research 3 open lines, gate them, write a dossier + trace
 npm run drift-audit             # the self-audit: re-run invariants + attest the governed state
+npm run claim-audit             # the public record: verify every published claim against its source
 npm test                        # the Playwright browser smoke suite (the live site + glass box)
 npm run check:syntax            # parse-gate all JSX (files + inline babel in .html) + ban iOS lookbehind
 npm run selftest:all            # every Node selftest in one shot
@@ -100,6 +102,7 @@ npm run selftest:supersessions  # the correction ledger, grounded in data.js (10
 npm run selftest:memory         # the durable-memory client contract (13)
 npm run selftest:drift          # the drift auditor incl. injected-regression detection (13)
 npm run selftest:agents         # the new agents + registry honesty (20)
+npm run selftest:claims         # the public-record gate: the refusals (23)
 ```
 
 Durable memory is opt-in and graceful: set `KEEPER_MEMORY_URL` (+ `KEEPER_MEMORY_TOKEN`)
@@ -135,6 +138,7 @@ stdio JSON-RPC; register via the project `.mcp.json`, or in `claude_desktop_conf
 - [`research/KEEPER.md`](research/KEEPER.md) — the conductor: the pipeline, the gate rules, durable memory, the honesty bar.
 - [`research/bloodhound.md`](research/bloodhound.md) — the one law: corroboration counts independent sources.
 - [`research/DRIFT.md`](research/DRIFT.md) — the self-audit: invariants vs. drift, the attestation.
+- [`research/CLAIMS.md`](research/CLAIMS.md) — the public record: the claims manifest, the verifiers, and how to port the auditor to another repo.
 
 ---
 

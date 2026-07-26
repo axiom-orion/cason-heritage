@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "subject": "Ryan Cason — the public record",
+  "note": "The manifest the Public Record Auditor governs. Every assertion published about the person or the estate lives here with the source that backs it. Portable by design: the auditor is generic, this file is what makes it about THIS repo. To govern another surface, copy scripts/claim-audit.js + ui_kits/living-line/{governance,claim-policy}.js + the workflow, and write a new claims.json.",
+
+  "publicArtifacts": ["resume.html", "portfolio.html", "README.md"],
+  "attestationMaxAgeDays": 180,
+
+  "claims": [
+    {
+      "id": "cognigate-latency",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "8ms p50 / ~20ms p95",
+      "appearsIn": ["resume.html", "portfolio.html"],
+      "verify": { "method": "unverified" },
+      "note": "UNRESOLVED — deliberately left unsourced so the gate blocks it. This figure reconciles with nothing: cognigate.dev publishes '~38ms median target / <120ms p99 budget' (explicitly design targets, not measurements), while vorion/docs/benchmarks/phase6-performance.md measures p50 12ms / p95 28ms — where 8ms appears as a *min*, not a p50. Resolve by restating as '~12ms p50 / ~28ms p95' with that file as an attested source, or by producing a measurement that yields 8/20."
+    },
+    {
+      "id": "livekit-pr-6474",
+      "claimKind": "status",
+      "visibility": "public",
+      "text": "Issue #6473 · PR #6474 — open, CI green",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "github-issue-state", "repo": "livekit/agents", "number": 6474, "expect": "open" },
+      "note": "The volatile one. The moment this merges or closes, 'open' is wrong on a résumé."
+    },
+    {
+      "id": "livekit-issue-6473",
+      "claimKind": "status",
+      "visibility": "public",
+      "text": "Issue #6473",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "github-issue-state", "repo": "livekit/agents", "number": 6473, "expect": "open" }
+    },
+    {
+      "id": "heritage-people",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "101 individuals · 11 generations · 7 evidence tiers",
+      "appearsIn": ["resume.html", "portfolio.html"],
+      "verify": { "method": "record-count", "metric": "people", "expect": 101 },
+      "note": "Self-healing: derived from data.js, so this class of drift (the old '66 individuals') can never silently recur."
+    },
+    {
+      "id": "heritage-generations",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "11 generations",
+      "appearsIn": ["resume.html", "portfolio.html"],
+      "verify": { "method": "record-count", "metric": "generations", "expect": 11 },
+      "note": "The direct line spans generation 1 → 11. data.js's own family.span says '~12 generations', which contradicts its header comment; the direct-line span is the defensible figure."
+    },
+    {
+      "id": "heritage-tiers",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "7 evidence tiers",
+      "appearsIn": ["resume.html", "portfolio.html"],
+      "verify": { "method": "record-count", "metric": "evidenceTiers", "expect": 7 }
+    },
+    {
+      "id": "npm-basis-spec",
+      "claimKind": "status",
+      "visibility": "public",
+      "text": "@vorionsys",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "npm-package", "package": "@vorionsys/basis-spec" },
+      "note": "Spot-check that the published @vorionsys line is real. Note basis-spec, NOT basis — the latter was withdrawn."
+    },
+    {
+      "id": "site-vorion",
+      "claimKind": "link", "visibility": "public", "text": "vorion.org",
+      "appearsIn": ["resume.html", "portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://vorion.org" }
+    },
+    {
+      "id": "site-cognigate",
+      "claimKind": "link", "visibility": "public", "text": "cognigate.dev",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://cognigate.dev" },
+      "note": "Rejects HEAD with 405 — the verifier uses GET for exactly this reason."
+    },
+    {
+      "id": "site-bai-cc",
+      "claimKind": "link", "visibility": "public", "text": "bai-cc.com",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://bai-cc.com" }
+    },
+    {
+      "id": "site-beodraft",
+      "claimKind": "link", "visibility": "public", "text": "beodraft.com",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://beodraft.com" }
+    },
+    {
+      "id": "site-agentanchor",
+      "claimKind": "link", "visibility": "public", "text": "agentanchorai.com",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://agentanchorai.com" }
+    },
+    {
+      "id": "site-aurais",
+      "claimKind": "link", "visibility": "public", "text": "aurais.net",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://aurais.net" }
+    },
+    {
+      "id": "site-governed-agents",
+      "claimKind": "link", "visibility": "public", "text": "governed-agents.vercel.app",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://governed-agents.vercel.app" }
+    },
+    {
+      "id": "site-footed",
+      "claimKind": "link", "visibility": "public", "text": "footed.flcason.com",
+      "appearsIn": ["portfolio.html"],
+      "verify": { "method": "http-ok", "url": "https://footed.flcason.com" }
+    },
+    {
+      "id": "bai-stewarding-tests",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "1,000+ tests in the stewarding",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "attested", "source": "BanquetAI stewarding module test suite (private repo — count taken from the suite run)", "asOf": "2026-07-26" },
+      "note": "Real measurement, private source. Attested rather than auto-verified; expires after attestationMaxAgeDays and routes to a human to re-run the count."
+    },
+    {
+      "id": "repo-estate-scan",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "80+ repository estate",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "attested", "source": "Dependabot estate remediation sweep; footprint audit settled the estate at 83 repos", "asOf": "2026-07-26" }
+    },
+    {
+      "id": "provisional-patent",
+      "claimKind": "credential",
+      "visibility": "public",
+      "text": "provisional patent filed March 2026",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "unverified" },
+      "basis": "USPTO provisional application filed March 2026 for a model-identity fingerprinting method (Paramesphere); filing receipt held offline. Deliberately worded 'provisional ... filed' — never 'granted', and never plural.",
+      "note": "No public API exposes a provisional filing, so this cannot be machine-checked. It carries a basis instead, which is what require-claim-basis demands."
+    },
+    {
+      "id": "nist-rfi",
+      "claimKind": "credential",
+      "visibility": "public",
+      "text": "NIST AI RMF RFI submitted",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "unverified" },
+      "basis": "Response submitted to the NIST AI Risk Management Framework request for information; submission copy retained in the vorion-gov-submissions working set."
+    },
+    {
+      "id": "hospitality-years",
+      "claimKind": "narrative",
+      "visibility": "public",
+      "text": "Twenty-five-plus years in hospitality operations",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "unverified" },
+      "basis": "Continuous hospitality operations employment from 1998 to present, itemized by employer and date range in the résumé's Operations & Leadership section."
+    }
+  ]
+}

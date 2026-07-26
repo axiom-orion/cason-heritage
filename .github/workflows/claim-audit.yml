@@ -1,0 +1,86 @@
+name: Public record audit
+
+# The public record watching itself. On a schedule it re-verifies every claim
+# in claims.json against a live source — GitHub issue/PR state, the npm
+# registry, HTTP reachability, and counts derived from data.js — and runs each
+# result through the same typed gate as the family record.
+#
+# A BLOCKED claim is an honesty violation that must be fixed (the run exits
+# non-zero). A claim needing review is the world having moved underneath a
+# published statement. Either way it opens a PR for a human — propose, never
+# publish; the auditor never edits a page.
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'        # Mondays 12:00 UTC — an hour before the Keeper
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: claim-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Audit the public record
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Skip if a claim-audit PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search 'Public record audit in:title' --json number --jq 'length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then echo "A claim-audit PR is already open — skipping this run."; fi
+
+      - name: Run the auditor
+        id: audit
+        if: steps.guard.outputs.open == '0'
+        env:
+          # Lifts the anonymous GitHub API rate limit for the issue/PR verifiers.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          node scripts/claim-audit.js
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Open a report PR on a blocked or drifted claim
+        if: steps.guard.outputs.open == '0'
+        # Prefer a user PAT (KEEPER_PAT) — a PR opened by the default token does
+        # NOT trigger the required CI checks, so the report can never be merged.
+        env:
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
+        run: |
+          if [ -z "$(git status --porcelain research/claims)" ]; then
+            echo "Every claim verified clean — nothing to report."
+            exit ${{ steps.audit.outputs.code }}
+          fi
+          date=$(date -u +%Y-%m-%d)
+          branch="claims/audit-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/claims
+          git commit -m "Public record audit $date"
+          git push -u origin "$branch"
+          flag=""
+          if [ "${{ steps.audit.outputs.code }}" != "0" ]; then flag=" — ⛔ BLOCKED CLAIM"; fi
+          if gh pr create \
+            --title "Public record audit: $date$flag" \
+            --body $'The public record audited itself against live sources.\n\nA **blocked** claim is an honesty violation — an unsourced metric, internal content in a public artifact, or a claim the page no longer carries. Fix the claim (or the manifest) before this ships.\n\nA claim **needing review** is the world having moved: a PR merged, a link died, a count changed, an attestation expired. Review and update `claims.json` and the page together.\n\nThe auditor never edits a page. See `research/CLAIMS.md`.' \
+            --base main --head "$branch"; then
+            echo "Opened report PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically. The report is pushed to branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret (a user PAT with pull-request write)."
+          fi
+          exit ${{ steps.audit.outputs.code }}
