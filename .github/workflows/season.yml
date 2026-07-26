@@ -25,8 +25,8 @@ jobs:
     name: Write the seasonal digest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -45,8 +45,11 @@ jobs:
 
       - name: Open a seasonal PR
         if: steps.guard.outputs.open == '0'
+        # Prefer a user PAT (KEEPER_PAT) — a PR opened by the default token does
+        # NOT trigger the required CI checks, so the digest can never be merged.
+        # Fall back to the default token: the digest is still safely on the branch.
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
         run: |
           if [ -z "$(git status --porcelain research/proposals)" ]; then
             echo "No new digest — nothing to propose."; exit 0
@@ -59,7 +62,11 @@ jobs:
           git add research/proposals
           git commit -m "Seasonal refresh digest $iso"
           git push -u origin "$branch"
-          gh pr create \
+          if gh pr create \
             --title "Seasonal refresh — $iso" \
             --body $'Quarterly content-freshness digest. The live homestead already re-themes and re-features with the season; this captures that rotation for the record and re-attests the `gov:<digest>` integrity stamp.\n\n**It invents nothing** — it re-features what is already documented, and excludes living descendants. Merge to keep the seasonal note, or close to discard.\n\nSee `research/KEEPER.md`.' \
-            --base main --head "$branch"
+            --base main --head "$branch"; then
+            echo "Opened seasonal PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically. The digest is pushed to branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret (a user PAT with pull-request write)."
+          fi
