@@ -24,9 +24,9 @@ jobs:
     name: Audit the governed state for drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -38,8 +38,11 @@ jobs:
           echo "code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Open an alert PR on drift or regression
+        # Prefer a user PAT (KEEPER_PAT) — a PR opened by the default token does
+        # NOT trigger the required CI checks, so the alert can never be merged.
+        # Fall back to the default token: the report is still safely on the branch.
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
         run: |
           changed="$(git status --porcelain research/attestation.json research/drift)"
           if [ -z "$changed" ] && [ "${{ steps.audit.outputs.code }}" = "0" ]; then
@@ -56,7 +59,11 @@ jobs:
           git push -u origin "$branch"
           flag=""
           if [ "${{ steps.audit.outputs.code }}" != "0" ]; then flag=" — ⚠ INVARIANT REGRESSION"; fi
-          gh pr create \
+          if gh pr create \
             --title "Drift audit: $date$flag" \
             --body $'The system audited its own governed state.\n\nAn **invariant failure** is a regression that must be fixed (the run exited non-zero — see the report under `research/drift/`). A **digest change** with all invariants green is the record simply evolving — the refreshed `research/attestation.json` is the new baseline; review the drift and merge to accept it.\n\nSee `research/DRIFT.md` for how the auditor works.' \
-            --base main --head "$branch"
+            --base main --head "$branch"; then
+            echo "Opened alert PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically. The drift report is pushed to branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret (a user PAT with pull-request write)."
+          fi
