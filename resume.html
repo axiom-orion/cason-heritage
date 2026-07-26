@@ -138,6 +138,29 @@
     font-style: italic; margin-top: 6px;
   }
 
+  /* ── jargon tooltips (tap/hover for a one-line explainer) ── */
+  .term {
+    font: inherit; color: inherit; background: none; border: none; padding: 0; margin: 0;
+    display: inline; position: relative; cursor: help;
+    border-bottom: 1px dotted var(--gold);
+  }
+  .term:hover, .term:focus-visible, .term.is-active { color: var(--rust); outline: none; }
+  .term .tip {
+    position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px);
+    background: var(--deep-blue); color: var(--cream); font-family: var(--font-sans);
+    font-size: 0.76rem; line-height: 1.45; font-style: normal; font-weight: 400;
+    padding: 9px 12px; border-radius: var(--r-md); width: max-content; max-width: min(260px, 78vw);
+    text-align: left; box-shadow: var(--shadow-3); opacity: 0; visibility: hidden;
+    transition: opacity var(--t-fast), transform var(--t-fast); z-index: 600; pointer-events: none;
+  }
+  .term .tip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: var(--deep-blue);
+  }
+  .term:hover .tip, .term:focus-visible .tip, .term.is-active .tip {
+    opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+  }
+
   /* ── print ── */
   @media print {
     .topbar, .no-print { display: none !important; }
@@ -150,6 +173,8 @@
     a { color: #1a1a1a; text-decoration: none; }
     section.block { page-break-inside: avoid; margin-bottom: 18px; }
     .foot { display: none; }
+    .term { border-bottom: none; cursor: default; }
+    .term .tip { display: none !important; }
   }
 </style>
 </head>
@@ -198,17 +223,17 @@
         <span class="metric">100% current-fact accuracy · 0% stale · ~35% token savings</span>
       </div>
       <div class="role-line">Typed 4-store agent memory layer — open source, live API on Cloud Run</div>
-      <p>Working / episodic / semantic / procedural memory stores; episodic→semantic consolidation; supersession-based forgetting so a changed fact stops answering with the stale value. A 4-config ablation (flat → +recency → +consolidation → +supersession), evaluated on a controlled synthetic set and the LoCoMo-10 long-conversation benchmark.</p>
+      <p>Working / episodic / semantic / procedural memory stores; episodic→semantic consolidation; <button type="button" class="term" data-tip="When a new value for a fact arrives, the old one is marked outdated instead of deleted — so the system always answers with what's true now, without losing the history of what changed.">supersession</button>-based forgetting so a changed fact stops answering with the stale value. A 4-config <button type="button" class="term" data-tip="Removing one piece of a system at a time and re-measuring — the only way to know how much each individual piece actually contributes.">ablation</button> (flat → +recency → +consolidation → +supersession), evaluated on a controlled synthetic set and the LoCoMo-10 long-conversation benchmark.</p>
       <div class="links"><a href="https://github.com/axiom-orion/agent-memory-service" target="_blank" rel="noopener">github.com/axiom-orion/agent-memory-service</a></div>
     </div>
 
     <div class="item">
       <div class="item-head">
         <span class="name">genealogy-graphrag</span>
-        <span class="metric">relational recall@5 0.000 → 1.000 · MRR@10 0.77 → 1.00</span>
+        <span class="metric">relational <button type="button" class="term" data-tip="The % of times the right answer shows up in the top 5 results retrieved — not just whether it was found, but whether it surfaced high enough to be seen.">recall@5</button> 0.000 → 1.000 · <button type="button" class="term" data-tip="Mean Reciprocal Rank — how high the correct answer ranks on average. 1.00 means it's first every time.">MRR@10</button> 0.77 → 1.00</span>
       </div>
       <div class="role-line">Hybrid retrieval + knowledge-graph resolution — open source</div>
-      <p>BM25 + dense retrieval + cross-encoder reranking, with a typed kinship-graph resolver for questions whose answer entity is never named in the query — the case dense and lexical retrieval structurally can't answer. Dual graph backend (in-memory NetworkX / Neo4j-Cypher) behind one interface.</p>
+      <p><button type="button" class="term" data-tip="A classic keyword-ranking algorithm — the 'lexical' half of hybrid search, paired here with embedding-based ('dense') retrieval.">BM25</button> + dense retrieval + cross-encoder reranking, with a typed kinship-graph resolver for questions whose answer entity is never named in the query — the case dense and lexical retrieval structurally can't answer. Dual graph backend (in-memory NetworkX / Neo4j-Cypher) behind one interface.</p>
       <div class="links"><a href="https://github.com/axiom-orion/genealogy-graphrag" target="_blank" rel="noopener">github.com/axiom-orion/genealogy-graphrag</a></div>
     </div>
 
@@ -218,7 +243,7 @@
         <span class="metric">Co-Founder &amp; Engineer · Jan 2026–present</span>
       </div>
       <div class="role-line">Runtime governance for agentic AI</div>
-      <p>Designed BASIS, an open trust-tier specification (T0–T7) for agent runtime governance, and CogniGate, the Apache-2.0 policy-enforcement engine that evaluates agent tool-calls against it and emits an auditable decision record — ~8ms p50 / ~20ms p95 same-region. Also shipped AgentAnchor (public trust registry), Aurais (fleet security console), and Rainbow (trust-analytics observatory). NIST AI RMF RFI submitted; provisional patent filed March 2026 for a model-identity fingerprinting method (Paramesphere).</p>
+      <p>Designed BASIS, an open <button type="button" class="term" data-tip="An eight-rung trust ladder for AI agents, from T0 (no established trust) to T7 (fully autonomous within its scope) — the tier decides what an agent is allowed to do without a human in the loop.">trust-tier specification (T0–T7)</button> for agent runtime governance, and CogniGate, the Apache-2.0 policy-enforcement engine that evaluates agent tool-calls against it and emits an auditable decision record — ~<button type="button" class="term" data-tip="Median (p50) and 95th-percentile (p95) latency — how fast the typical decision is, versus how slow the slower-than-usual ones get.">8ms p50 / ~20ms p95</button> same-region. Also shipped AgentAnchor (public trust registry), Aurais (fleet security console), and Rainbow (trust-analytics observatory). NIST AI RMF RFI submitted; provisional patent filed March 2026 for a model-identity fingerprinting method (Paramesphere).</p>
       <div class="links">
         <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
         <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
@@ -261,7 +286,7 @@
       <div class="item-head">
         <span class="name">Dependency &amp; supply-chain hygiene</span>
       </div>
-      <p>Scanned an 80+ repository estate for dependency vulnerabilities, triaged and merged the fix queue to completion, and distilled the process into a reusable runbook — with the operating rule that green CI is not a security signal; the resolved dependency tree is. Separately, audited 30+ published <code>@vorionsys/*</code> npm packages against the live registry and republished a batch via OIDC trusted publishing with SLSA provenance.</p>
+      <p>Scanned an 80+ repository estate for dependency vulnerabilities, triaged and merged the fix queue to completion, and distilled the process into a reusable runbook — with the operating rule that green CI is not a security signal; the resolved dependency tree is. Separately, audited 30+ published <code>@vorionsys/*</code> npm packages against the live registry and republished a batch via <button type="button" class="term" data-tip="OpenID Connect — lets a CI pipeline authenticate to a registry like npm with a short-lived signed token instead of a stored password.">OIDC trusted publishing</button> with <button type="button" class="term" data-tip="A signed, independently verifiable record of exactly how and where a package was built — proof it wasn't tampered with in the pipeline.">SLSA provenance</button>.</p>
     </div>
   </section>
 
@@ -270,11 +295,11 @@
     <div class="cap-grid">
       <div class="cap-cell">
         <div class="lbl">Retrieval &amp; Memory</div>
-        <p>Hybrid search (BM25 + dense), ANN indexing (FAISS HNSW / IVFFlat), cross-encoder reranking, Reciprocal Rank Fusion, knowledge-graph retrieval (Neo4j / Cypher), agent-memory architecture (working / episodic / semantic / procedural, consolidation, retention, supersession).</p>
+        <p>Hybrid search (<button type="button" class="term" data-tip="A classic keyword-ranking algorithm — the 'lexical' half of hybrid search, paired here with embedding-based ('dense') retrieval.">BM25</button> + dense), ANN indexing (FAISS HNSW / IVFFlat), <button type="button" class="term" data-tip="A slower, more careful second pass that re-scores the top candidates from a fast first search — trades a little speed for real accuracy.">cross-encoder reranking</button>, <button type="button" class="term" data-tip="A simple way to combine rankings from multiple retrieval methods into one, by rewarding items that rank well across more than one method.">Reciprocal Rank Fusion</button>, knowledge-graph retrieval (Neo4j / Cypher), agent-memory architecture (working / episodic / semantic / procedural, consolidation, retention, supersession).</p>
       </div>
       <div class="cap-cell">
         <div class="lbl">Evaluation</div>
-        <p>recall@k, MRR, nDCG, ablation-harness design, LoCoMo-10 benchmark, provenance &amp; audit logging, pytest, GitHub Actions CI.</p>
+        <p><button type="button" class="term" data-tip="The % of times the right answer shows up in the top k results retrieved — not just whether it was found, but whether it surfaced high enough to be seen.">recall@k</button>, <button type="button" class="term" data-tip="Mean Reciprocal Rank — how high the correct answer ranks on average. 1.00 means it's first every time.">MRR</button>, <button type="button" class="term" data-tip="Normalized Discounted Cumulative Gain — rewards getting the best answers ranked highest, not just present somewhere in the list.">nDCG</button>, ablation-harness design, LoCoMo-10 benchmark, provenance &amp; audit logging, pytest, GitHub Actions CI.</p>
       </div>
       <div class="cap-cell">
         <div class="lbl">Languages &amp; Frameworks</div>
@@ -320,6 +345,53 @@
   </div>
 
 </main>
+
+<script>
+(function () {
+  'use strict';
+  var terms = document.querySelectorAll('.term');
+  terms.forEach(function (term, i) {
+    var tipText = term.getAttribute('data-tip');
+    if (!tipText) return;
+    var tip = document.createElement('span');
+    tip.className = 'tip';
+    tip.id = 'term-tip-' + i;
+    tip.setAttribute('role', 'tooltip');
+    tip.textContent = tipText;
+    term.appendChild(tip);
+    term.setAttribute('aria-describedby', tip.id);
+
+    function place() {
+      tip.style.transform = 'translateX(-50%)';
+      var rect = tip.getBoundingClientRect();
+      var margin = 8;
+      if (rect.left < margin) {
+        tip.style.transform = 'translateX(calc(-50% + ' + (margin - rect.left) + 'px))';
+      } else if (rect.right > window.innerWidth - margin) {
+        tip.style.transform = 'translateX(calc(-50% - ' + (rect.right - (window.innerWidth - margin)) + 'px))';
+      }
+    }
+
+    term.addEventListener('mouseenter', place);
+    term.addEventListener('focus', place);
+    term.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var willOpen = !term.classList.contains('is-active');
+      terms.forEach(function (t) { t.classList.remove('is-active'); });
+      if (willOpen) { term.classList.add('is-active'); place(); }
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.term')) {
+      terms.forEach(function (t) { t.classList.remove('is-active'); });
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') terms.forEach(function (t) { t.classList.remove('is-active'); });
+  });
+})();
+</script>
 
 </body>
 </html>
