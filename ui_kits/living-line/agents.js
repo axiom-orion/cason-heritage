@@ -110,6 +110,13 @@
       hooks: ['advises only — never writes, proposes nothing as fact'],
     },
     {
+      id: 'public-record-auditor', name: 'Public Record Auditor', layer: 'governance', status: 'live', autonomy: 'proposes',
+      modules: ['scripts/claim-audit.js', 'ui_kits/living-line/claim-policy.js', 'claims.json'],
+      system: 'The same typed gate pointed at a different corpus. Reads the claims manifest, verifies each published claim against a live source (GitHub state, npm registry, HTTP, or counts derived from data.js), and runs every result through the gate with an NDJSON trace. Portable: the agent is generic, claims.json is what makes it about this repo.',
+      abilities: ['verify a published claim against its live source', 'block an unsourced metric', 'block internal content appearing in a public artifact', 'catch a claim silently edited off the page', 'expire a stale attestation'],
+      hooks: ['propose-never-publish — it reports, it never edits a page', 'a blocked claim exits non-zero', 'an outage degrades a check, never fabricates a pass'],
+    },
+    {
       id: 'resilience', name: 'Recovery & Resilience', layer: 'governance', status: 'cross-cutting', autonomy: 'acts-bounded',
       modules: [],
       system: 'Not one file but a discipline realized across the system: every external call degrades gracefully — the persona voice falls back to a templated voice with no key, consensus runs whatever provider subset is present, the memory client no-ops on outage, and the gate is a pure synchronous function.',

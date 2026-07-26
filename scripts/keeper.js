@@ -348,12 +348,18 @@ function dossier(runs, memNote) {
     }
     if (r.res.ok) {
       md += '**Consensus:** agreement *' + (c.agreement || '?') + '*, confidence *' + (c.confidence || '?') + '*\n\n';
-      if (c.corroborated) md += '- **Corroborated (>=2 models):** ' + clip(c.corroborated, 600) + '\n';
-      if (c.disputed) md += '- **Disputed:** ' + clip(c.disputed, 400) + '\n';
-      if (c.unverified) md += '- **Unverified (single source):** ' + clip(c.unverified, 400) + '\n';
-      if (c.answer) md += '\n> ' + clip(c.answer, 700) + '\n';
+      // Dossier prose caps. These write to a FILE, not to a prompt or a gate
+      // payload, so they exist only for readability — and clipping the reasoning
+      // mid-sentence defeats the point of an auditable record. (The 2026-07-26
+      // dossier lost both its single-source caveat and its synthesis to the old
+      // 400/700 caps.) The tight caps upstream on provenance snippets and gate
+      // payloads are deliberate and stay as they are.
+      if (c.corroborated) md += '- **Corroborated (>=2 models):** ' + clip(c.corroborated, 2000) + '\n';
+      if (c.disputed) md += '- **Disputed:** ' + clip(c.disputed, 1500) + '\n';
+      if (c.unverified) md += '- **Unverified (single source):** ' + clip(c.unverified, 1500) + '\n';
+      if (c.answer) md += '\n> ' + clip(c.answer, 2500) + '\n';
       md += '\n<details><summary>Per-model answers</summary>\n\n';
-      r.res.providers.forEach(function (p) { md += '**' + p.provider + '** — ' + (p.ok ? clip(p.answer, 500) : '_error: ' + clip(p.error, 160) + '_') + '\n\n'; });
+      r.res.providers.forEach(function (p) { md += '**' + p.provider + '** — ' + (p.ok ? clip(p.answer, 1800) : '_error: ' + clip(p.error, 160) + '_') + '\n\n'; });
       md += '</details>\n';
     } else {
       md += '_Research unavailable this run: ' + clip(r.res.error, 200) + '._\n';
