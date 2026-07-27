@@ -196,6 +196,72 @@ function parseCandidates(text) {
   });
 }
 
+/* Corroboration counted here rather than taken from the adjudicator.
+
+   The endpoint's adjudicator is Claude; when that key is unavailable the
+   endpoint still returns 200 with `consensus.answer` set to the literal string
+   "Adjudication unavailable." — a truthy non-answer. Depending on it meant a
+   dead adjudicator silently discarded two perfectly good provider responses.
+
+   So every provider is parsed independently and a title is corroborated when
+   two or more of them named it. Same >=2 rule the gate wants, computed from
+   the raw answers, and it degrades to single-source-but-flagged instead of to
+   nothing. Corroboration is signal, not the gate — a title still has to carry
+   a citation, survive scoring, and satisfy the catalogue. */
+const ADJUDICATOR_DOWN = /adjudication unavailable/i;
+
+/* The endpoint defaults to the Keeper's genealogy framing, which made both
+   models refuse this task outright ("poses no explicit question about
+   historical or genealogical facts"). The Librarian supplies its own. */
+const PROPOSE_SYS = 'You are a well-read acquisitions librarian. You recommend books, and you are ' +
+  'rigorous about which books actually exist. You never invent a title, an author, or a publication ' +
+  'date, and you would rather return a short list than pad it with something you are unsure of. ' +
+  'When asked for JSON, you return only JSON with no prose around it.';
+
+const VALIDATE_SYS = 'You are a hostile fact-checker assessing whether a specific book exists as ' +
+  'described. You assume the claim is wrong until the evidence says otherwise. You are especially ' +
+  'suspicious of titles that sound exactly like what a given author would plausibly write, because ' +
+  'that is the signature of a fabrication rather than evidence for one. An honest low score is ' +
+  'always a better answer than a charitable guess. When asked for JSON, you return only JSON.';
+
+function collectCandidates(res) {
+  const providers = (res && res.providers) || [];
+  const byTitle = new Map();
+
+  providers.filter(function (p) { return p && p.ok && p.answer; }).forEach(function (p) {
+    parseCandidates(p.answer).forEach(function (c) {
+      const key = norm(c.title);
+      if (!key) return;
+      const prev = byTitle.get(key);
+      if (!prev) {
+        byTitle.set(key, Object.assign({}, c, { namedBy: [p.provider] }));
+        return;
+      }
+      if (prev.namedBy.indexOf(p.provider) === -1) prev.namedBy.push(p.provider);
+      // Keep the first real citation; a later provider's is only a fallback.
+      if (!prev.citation && c.citation) prev.citation = c.citation;
+      if (!prev.why && c.why) prev.why = c.why;
+      // If any provider says forthcoming, treat it as the riskier claim and
+      // hold it to the higher bar rather than the more convenient one.
+      if (c.status === 'forthcoming') prev.status = 'forthcoming';
+    });
+  });
+
+  // The adjudicator's synthesis, when it actually ran, as one more voice.
+  const adj = res && res.consensus && res.consensus.answer;
+  if (adj && !ADJUDICATOR_DOWN.test(adj)) {
+    parseCandidates(adj).forEach(function (c) {
+      const key = norm(c.title);
+      if (!key) return;
+      const prev = byTitle.get(key);
+      if (!prev) byTitle.set(key, Object.assign({}, c, { namedBy: ['adjudicator'] }));
+      else if (prev.namedBy.indexOf('adjudicator') === -1) prev.namedBy.push('adjudicator');
+    });
+  }
+
+  return Array.from(byTitle.values());
+}
+
 function parseScore(text) {
   if (!text) return null;
   let s = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
@@ -366,25 +432,39 @@ async function main() {
     return;
   }
 
-  let answer = '';
+  let proposal;
   try {
-    const res = await getJSON(ENDPOINT, {
+    proposal = await getJSON(ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ question: question, context: 'The reader builds AI governance and memory infrastructure and spent 25 years in hospitality operations before that.' }),
+      body: JSON.stringify({
+        question: question,
+        system: PROPOSE_SYS,
+        // The log alone is well past the endpoint's default 600-char cap.
+        maxQuestion: 8000,
+        context: 'The reader builds AI governance and memory infrastructure and spent 25 years in hospitality operations before that.',
+      }),
     });
-    answer = (res.consensus && (res.consensus.answer || res.consensus.corroborated)) || '';
-    if (!answer && res.providers) {
-      const ok = Object.values(res.providers).filter(function (p) { return p && p.text; });
-      answer = ok.length ? ok[0].text : '';
-    }
   } catch (e) {
     console.error('Consensus endpoint failed: ' + (e && e.message));
     process.exitCode = 1;
     return;
   }
 
-  let cands = parseCandidates(answer);
+  // Report what actually answered — a silent degradation is the thing that
+  // wasted the first live run of this agent.
+  const provs = (proposal.providers || []);
+  const live = provs.filter(function (p) { return p && p.ok; }).map(function (p) { return p.provider; });
+  const dead = provs.filter(function (p) { return p && !p.ok; });
+  console.log('Providers answering: ' + (live.join(', ') || 'NONE'));
+  dead.forEach(function (p) { console.log('  ! ' + p.provider + ' unavailable: ' + clip(p.error, 100)); });
+  if (!live.length) {
+    console.error('No provider answered — nothing to propose. This is an outage, not an empty result.');
+    process.exitCode = 1;
+    return;
+  }
+
+  let cands = collectCandidates(proposal);
   // Never recommend something already finished — the profile is the filter.
   const before = cands.length;
   cands = cands.filter(function (c) { return !profile.seen.has(norm(c.title)); });
@@ -414,7 +494,7 @@ async function main() {
         const vres = await getJSON(ENDPOINT, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ question: buildValidationQuestion(cand) }),
+          body: JSON.stringify({ question: buildValidationQuestion(cand), system: VALIDATE_SYS, maxQuestion: 2000 }),
         });
         score = parseScore((vres.consensus && vres.consensus.answer) || '');
         if (!score && vres.providers) {
@@ -437,7 +517,8 @@ async function main() {
     const check = adjudicate(cand, score, cat);
     const passing = PASSING.indexOf(check.tier) !== -1;
 
-    const prov = ['model-consensus'];
+    const named = (cand.namedBy || []).length;
+    const prov = [named >= 2 ? 'model-consensus' : 'single-model'];
     if (cand.citation) prov.push('cited-source');
     if (score && score.citationSupports) prov.push('model-review');
     if (cat.state === 'present') prov.push('open-library');
@@ -478,7 +559,8 @@ if (require.main === module) {
 
 module.exports = {
   norm: norm, surname: surname,
-  parseCandidates: parseCandidates, parseScore: parseScore,
+  parseCandidates: parseCandidates, parseScore: parseScore, collectCandidates: collectCandidates,
+  ADJUDICATOR_DOWN: ADJUDICATOR_DOWN,
   buildQuestion: buildQuestion, buildValidationQuestion: buildValidationQuestion,
   adjudicate: adjudicate, render: render,
   SCORE_PUBLISHED: SCORE_PUBLISHED, SCORE_FORTHCOMING: SCORE_FORTHCOMING, PASSING: PASSING,

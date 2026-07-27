@@ -66,6 +66,23 @@ async function callGemini(system, user, maxTokens) {
 
 const RESEARCH_SYS = 'You are a careful research assistant verifying historical and genealogical facts. Answer the question concisely (<=120 words). Be precise. End with your confidence as high, medium, or low. If you are not certain, say so explicitly and do NOT guess or fabricate. Where you can, name the type of source your answer rests on.';
 
+/* The endpoint was written for the Keeper and had its assumptions baked in as
+   constants: a genealogy system prompt, and a 600-character question cap sized
+   for "who was the father of X". The Librarian's prompt carries a 27-book
+   reading log, so it was silently truncated mid-list — Grok replied "12 titles
+   shown, cuts off at 13" and Gemini answered a question nobody asked. Both
+   models were working perfectly; the endpoint had cut the question in half and
+   then told them to verify genealogical facts.
+
+   So `system` and the question cap are now per-request, defaulting to exactly
+   the previous values. The Keeper passes neither and is bit-for-bit unaffected.
+
+   The cap still exists — an unbounded question is a cost and abuse surface —
+   it is just no longer sized for one caller's shortest case. */
+const DEFAULT_MAX_QUESTION = 600;
+const HARD_MAX_QUESTION = 8000;
+const HARD_MAX_SYSTEM = 4000;
+
 // Output budgets for the research pass. RESEARCH_SYS asks for <=120 words, but
 // the models overrun it — at 400 the tail of a substantive answer was being cut
 // mid-sentence.
@@ -89,14 +106,21 @@ function parseJson(s) { if (!s) return null; const a = s.indexOf('{'), b = s.las
 module.exports = async function (req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
   let p = req.body; if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { p = {}; } } p = p || {};
-  const question = clamp(p.question || '', 600);
+  // Callers may raise the question cap for a genuinely longer prompt, but never
+  // past the hard ceiling, and never below the default by accident.
+  const askedMax = Math.min(HARD_MAX_QUESTION, Math.max(DEFAULT_MAX_QUESTION, parseInt(p.maxQuestion, 10) || 0));
+  const question = clamp(p.question || '', askedMax);
   if (!question) { res.status(400).json({ error: 'Provide a question.' }); return; }
   const user = question + (p.context ? '\n\nContext: ' + clamp(p.context, 800) : '');
 
+  // A caller that knows its task is not genealogy supplies its own framing.
+  // Absent that, the Keeper's system prompt is unchanged.
+  const system = p.system ? clamp(String(p.system), HARD_MAX_SYSTEM) : RESEARCH_SYS;
+
   const jobs = [];
-  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(RESEARCH_SYS, user, { max_tokens: RESEARCH_MAX_TOKENS }); } });
-  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(RESEARCH_SYS, user, RESEARCH_MAX_TOKENS); } });
-  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(RESEARCH_SYS, user, GEMINI_RESEARCH_MAX_TOKENS); } });
+  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(system, user, { max_tokens: RESEARCH_MAX_TOKENS }); } });
+  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(system, user, RESEARCH_MAX_TOKENS); } });
+  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(system, user, GEMINI_RESEARCH_MAX_TOKENS); } });
   if (!jobs.length) { res.status(501).json({ error: 'No research providers configured. Set ANTHROPIC_API_KEY, XAI_API_KEY, and/or GEMINI_API_KEY.' }); return; }
 
   const providers = await Promise.all(jobs.map(function (j) {

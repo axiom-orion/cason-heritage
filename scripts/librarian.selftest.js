@@ -146,5 +146,67 @@ ok('validation: the scorer is NOT given the reading profile (it cannot be swayed
 ok('validation: a low score is explicitly endorsed as a correct answer',
   v.indexOf('honest low score is the correct answer') !== -1);
 
+/* ---- the degraded-adjudicator case: this wasted the first live run ----
+   The endpoint returns HTTP 200 with consensus.answer set to the literal
+   string "Adjudication unavailable." when the Claude adjudicator's key is
+   dead. That string is truthy, so reading it as the answer silently threw
+   away two working providers that had both returned usable JSON. ---- */
+const ONE = JSON.stringify([{ title: 'Book One', author: 'A', citation: 'publisher listing' }]);
+const TWO = JSON.stringify([
+  { title: 'Book One', author: 'A', citation: 'ISBN 123' },
+  { title: 'Book Two', author: 'B', citation: 'a review' },
+]);
+
+const degraded = {
+  providers: [
+    { provider: 'Claude', ok: false, error: 'credit balance is too low' },
+    { provider: 'Grok', ok: true, answer: ONE },
+    { provider: 'Gemini', ok: true, answer: TWO },
+  ],
+  consensus: { answer: 'Adjudication unavailable.' },
+};
+const got = L.collectCandidates(degraded);
+const pick = function (arr, t) { return arr.filter(function (c) { return c.title === t; })[0] || {}; };
+
+ok('degraded: candidates survive a dead adjudicator', got.length === 2, 'got ' + got.length);
+ok('degraded: the sentinel string is recognised', L.ADJUDICATOR_DOWN.test('Adjudication unavailable.'));
+ok('degraded: the sentinel is not confused with a real answer', !L.ADJUDICATOR_DOWN.test(ONE));
+ok('degraded: a title named by two providers is corroborated',
+  (pick(got, 'Book One').namedBy || []).length === 2);
+ok('degraded: a title named by one provider is kept but marked single-source',
+  (pick(got, 'Book Two').namedBy || []).length === 1);
+ok('degraded: a citation is carried through the merge', !!pick(got, 'Book One').citation);
+
+ok('degraded: a total outage yields nothing rather than a fabrication',
+  L.collectCandidates({
+    providers: [{ provider: 'Claude', ok: false, error: 'x' }],
+    consensus: { answer: 'Adjudication unavailable.' },
+  }).length === 0);
+
+ok('degraded: a provider that errored is never read for candidates',
+  L.collectCandidates({ providers: [{ provider: 'Grok', ok: false, answer: ONE }], consensus: {} }).length === 0);
+
+const healthy = L.collectCandidates({ providers: [{ provider: 'Grok', ok: true, answer: ONE }], consensus: { answer: ONE } });
+ok('healthy: a live adjudicator counts as one more voice',
+  healthy.length === 1 && healthy[0].namedBy.indexOf('adjudicator') !== -1);
+
+ok('degraded: a conflicting status resolves to the riskier claim',
+  L.collectCandidates({
+    providers: [
+      { provider: 'Grok', ok: true, answer: JSON.stringify([{ title: 'X', author: 'A', status: 'published', citation: 'c' }]) },
+      { provider: 'Gemini', ok: true, answer: JSON.stringify([{ title: 'X', author: 'A', status: 'forthcoming', citation: 'c' }]) },
+    ],
+    consensus: {},
+  })[0].status === 'forthcoming');
+
+ok('degraded: the same title written differently is merged, not duplicated',
+  L.collectCandidates({
+    providers: [
+      { provider: 'Grok', ok: true, answer: JSON.stringify([{ title: 'The Long Game', author: 'A', citation: 'c' }]) },
+      { provider: 'Gemini', ok: true, answer: JSON.stringify([{ title: 'Long Game: A Subtitle', author: 'A', citation: 'c' }]) },
+    ],
+    consensus: {},
+  }).length === 1);
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed.\n');
 process.exit(fail ? 1 : 0);
