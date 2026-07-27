@@ -45,12 +45,17 @@ const TIMEOUT_MS = 15000;
 function today() { return new Date().toISOString().slice(0, 10); }
 function clip(s, n) { s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; }
 
-/* ---- the record, loaded the same way every other suite loads it ---- */
+/* ---- the record, loaded the same way every other suite loads it ----
+   Returns null when there is no data.js. `record-count` is the one verifier
+   specific to THIS repo; a ported copy governing a profile README or an npm
+   package has no family record, and must degrade rather than crash on import. */
+const DATA_JS = path.join(ROOT, 'ui_kits', 'family-tree-app', 'data.js');
 function recordCounts() {
+  if (!fs.existsSync(DATA_JS)) return null;
   const ctx = { console: console };
   ctx.window = ctx;
   vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(path.join(ROOT, 'ui_kits', 'family-tree-app', 'data.js'), 'utf8'), ctx, { filename: 'data.js' });
+  vm.runInContext(fs.readFileSync(DATA_JS, 'utf8'), ctx, { filename: 'data.js' });
   const people = (ctx.CASON_DATA || {}).people || {};
   const ids = Object.keys(people);
   const direct = ids.filter(function (i) { return people[i].direct === true; })
@@ -86,6 +91,7 @@ async function verify(claim, opts) {
 
   if (m === 'record-count') {
     const counts = opts.counts;
+    if (!counts) return { method: m, checkable: true, ok: false, error: 'record-count needs ui_kits/family-tree-app/data.js, which this repo does not have' };
     const observed = counts[v.metric];
     if (observed === undefined) return { method: m, checkable: true, ok: false, error: 'unknown metric `' + v.metric + '`' };
     return { method: m, checkable: true, ok: true, observed: observed, expected: v.expect };

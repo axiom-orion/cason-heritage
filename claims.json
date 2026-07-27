@@ -158,6 +158,25 @@
       "basis": "Response submitted to the NIST AI Risk Management Framework request for information; submission copy retained in the vorion-gov-submissions working set."
     },
     {
+      "id": "role-vorion",
+      "claimKind": "narrative",
+      "visibility": "public",
+      "text": "Co-Founder, Vorion",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "unverified" },
+      "basis": "Founding role at Vorion from January 2026. Confirmed by Ryan 2026-07-27 as the correct title.",
+      "note": "Registered specifically to lock a title that had already drifted. The headline read 'Founder, Vorion' while this same page's Vorion section read 'Co-Founder & Engineer' and the flasun/flasun profile README read 'Co-Founder' — a role contradicting itself on one page. Now that the text is attested here, `claim-must-appear` BLOCKS if it ever reverts."
+    },
+    {
+      "id": "role-banquetai",
+      "claimKind": "narrative",
+      "visibility": "public",
+      "text": "Founder, BanquetAI",
+      "appearsIn": ["resume.html"],
+      "verify": { "method": "unverified" },
+      "basis": "Sole founder of BanquetAI, begun 2025. Consistent with this résumé's own BanquetAI section, which titles the role 'Founder & Engineer · 2025–present'. Deliberately NOT 'Co-Founder' — the two ventures have different founding structures and the titles must not be normalized to match each other."
+    },
+    {
       "id": "hospitality-years",
       "claimKind": "narrative",
       "visibility": "public",
