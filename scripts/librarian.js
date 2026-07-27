@@ -169,12 +169,18 @@ function buildValidationQuestion(cand) {
     'exist? Does the cited source plausibly exist and actually support the claim, or is the citation ' +
     'itself vague or invented? Is the date consistent? Beware a title that sounds exactly like what ' +
     'this author WOULD write — that is the signature of a fabrication, not evidence for one.\n\n' +
-    'Score 0-100 for how confident you are the book is real and the citation supports it. ' +
-    'Score below 40 if you cannot substantiate it. Score below 20 if the citation looks invented. ' +
-    'An honest low score is the correct answer when you do not know.\n\n' +
+    'Answer TWO SEPARATE questions. Do not let one contaminate the other.\n\n' +
+    'existsScore (0-100): does this book exist, by this author, at all? This is the question that ' +
+    'matters. If you recognise the book, score it high even when the citation offered is imprecise — ' +
+    'a real book described with a sloppy citation is still a real book. Score near 50 if you simply ' +
+    'do not know; below 20 only if you know something that contradicts it, such as an author who ' +
+    'does not exist or a title that belongs to someone else.\n\n' +
+    'citationScore (0-100): separately, how specific and checkable is the citation as written? ' +
+    'A bare "publisher catalogue" is vague; an ISBN with a dated listing is specific. A vague ' +
+    'citation for a book you know to be real should NOT drag down existsScore.\n\n' +
     'Respond with ONLY a JSON object, no prose:\n' +
-    '{"score":0-100,"citationSupports":true|false,"sourceType":"publisher|retailer|news|review|vague|none",' +
-    '"reasoning":"one or two sentences","concerns":"what would make you wrong, or empty"}';
+    '{"existsScore":0-100,"citationScore":0-100,"sourceType":"publisher|retailer|news|review|vague|none",' +
+    '"reasoning":"one or two sentences on whether the BOOK is real","concerns":"what would make you wrong, or empty"}';
 }
 
 /* Models wrap JSON in prose or fences no matter how firmly you ask. */
@@ -310,12 +316,15 @@ function parseScore(text) {
   let o;
   try { o = JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; }
   if (!o || typeof o !== 'object') return null;
-  let score = Number(o.score);
-  if (!isFinite(score)) return null;
-  score = Math.max(0, Math.min(100, score));
+  const clamp01 = function (v) { const n = Number(v); return isFinite(n) ? Math.max(0, Math.min(100, n)) : null; };
+  // `score` is the older single-value shape; accept it as existsScore so a model
+  // that answers in the old form still degrades usefully rather than to null.
+  const exists = clamp01(o.existsScore != null ? o.existsScore : o.score);
+  if (exists == null) return null;
+  const cite = clamp01(o.citationScore);
   return {
-    score: score,
-    citationSupports: o.citationSupports === true,
+    score: exists,                       // the one that decides: does the book exist
+    citationScore: cite,                 // secondary: how checkable the citation is
     sourceType: String(o.sourceType || 'none').toLowerCase(),
     reasoning: clip(o.reasoning, 300),
     concerns: clip(o.concerns, 240),
@@ -417,10 +426,35 @@ function adjudicate(cand, score, cat) {
   if (cat.state === 'author-mismatch') {
     return { tier: 'conflict', note: cat.note, score: score.score };
   }
-  if (!score.citationSupports || WEAK_SOURCES.indexOf(score.sourceType) !== -1) {
+
+  /* The catalogue outranks the citation, and used not to.
+
+     Previously a 'vague' sourceType rejected outright, BEFORE the catalogue was
+     consulted. Since a model with no web access can almost never call a citation
+     specific, that vetoed nearly everything — including books the reviewer had
+     just confirmed. The 2026-07-27 run rejected "The Diary of a CEO: The 33 Laws
+     of Business and Life" at 22/100 while stating "the actual known title is
+     'The Diary of a CEO: The 33 Laws of Business and Life'".
+
+     The citation was only ever a proxy for independent evidence. When a
+     catalogue supplies that evidence directly the proxy is redundant, and
+     letting it veto is letting the weaker signal overrule the stronger one. */
+  if (cat.state === 'present') {
+    return {
+      tier: 'verified',
+      note: cat.note + (score.citationScore != null && score.citationScore < 40
+        ? ' (the citation itself was thin, but the catalogue is the evidence here)' : ''),
+      score: score.score,
+      year: cat.year,
+    };
+  }
+
+  // No catalogue record: now the citation is all there is, so it has to hold up.
+  if (WEAK_SOURCES.indexOf(score.sourceType) !== -1 && score.score < SCORE_FORTHCOMING) {
     return {
       tier: 'unsupported',
-      note: 'citation rejected on review (' + score.sourceType + ', scored ' + score.score + '): ' + score.reasoning,
+      note: 'no catalogue record, and the citation is ' + score.sourceType + ' with the book itself ' +
+        'scored only ' + score.score + '/100: ' + score.reasoning,
       score: score.score,
     };
   }
@@ -441,13 +475,7 @@ function adjudicate(cand, score, cat) {
     };
   }
 
-  // Claimed already published: the catalogue is the test it has to pass.
-  if (cat.state === 'present') {
-    if (score.score >= SCORE_PUBLISHED) {
-      return { tier: 'verified', note: cat.note + '; citation scored ' + score.score + '/100', score: score.score, year: cat.year };
-    }
-    return { tier: 'unsupported', note: 'catalogue has it, but the citation scored only ' + score.score + '/100 — the recommendation may be about a different book', score: score.score, year: cat.year };
-  }
+  // (A catalogue hit already returned above — the catalogue outranks the citation.)
   if (cat.state === 'unreachable') {
     return { tier: 'unsupported', note: cat.note + ' — cannot confirm a supposedly-published title without it', score: score.score };
   }
@@ -631,7 +659,7 @@ async function main() {
     const named = (cand.namedBy || []).length;
     const prov = [named >= 2 ? 'model-consensus' : 'single-model'];
     if (cand.citation) prov.push('cited-source');
-    if (score && score.citationSupports) prov.push('model-review');
+    if (score && score.score >= SCORE_PUBLISHED) prov.push('model-review');
     if (cat.state === 'present') prov.push('open-library');
 
     const action = {
