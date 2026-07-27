@@ -3,7 +3,7 @@
   "subject": "Ryan Cason — the public record",
   "note": "The manifest the Public Record Auditor governs. Every assertion published about the person or the estate lives here with the source that backs it. Portable by design: the auditor is generic, this file is what makes it about THIS repo. To govern another surface, copy scripts/claim-audit.js + ui_kits/living-line/{governance,claim-policy}.js + the workflow, and write a new claims.json.",
 
-  "publicArtifacts": ["resume.html", "portfolio.html", "README.md"],
+  "publicArtifacts": ["resume.html", "portfolio.html", "profile.html", "README.md"],
   "attestationMaxAgeDays": 180,
 
   "claims": [
@@ -183,7 +183,31 @@
       "text": "Twenty-five-plus years in hospitality operations",
       "appearsIn": ["resume.html"],
       "verify": { "method": "unverified" },
-      "basis": "Continuous hospitality operations employment from 1998 to present, itemized by employer and date range in the résumé's Operations & Leadership section."
+      "basis": "Continuous hospitality operations employment from 1999 to present, itemized by employer and date range in the résumé's Operations & Leadership section. Corrected 2026-07-26: the record previously read 'hospitality since 1998'. The defensible segments are catering since 1999 and hotels/resorts since 2006 — 1998 was not backed by an itemized employer entry, and the Loews Hotels start (2006) is what actually anchors the hotel/resort line. 1999→present is 27 years, so 'twenty-five-plus' survives the correction."
+    },
+    {
+      "id": "hospitality-segments",
+      "claimKind": "narrative",
+      "visibility": "public",
+      "text": "Catering since 1999, hotels and resorts since 2006",
+      "appearsIn": ["portfolio.html", "profile.html"],
+      "verify": { "method": "unverified" },
+      "basis": "Stated directly by the subject 2026-07-26 and consistent with the résumé's itemized employer list, where the earliest hotel/resort entry is Loews Hotels and Universal (2006–2008). Kept as two dated segments rather than one 'hospitality since X' figure precisely because the segments are what the employer list can back."
+    },
+    {
+      "id": "agent-roster-count",
+      "claimKind": "metric",
+      "visibility": "public",
+      "text": "Fourteen research agents",
+      "appearsIn": ["profile.html"],
+      "verify": {
+        "method": "file-count",
+        "file": "ui_kits/living-line/agents.js",
+        "pattern": "^\\s*id:\\s*'[a-z0-9-]+'",
+        "flags": "m",
+        "expect": 14
+      },
+      "note": "Derived from the registry that defines the roster, not from memory. The count was 13 until the Public Record Auditor was added 2026-07-26; research/VORION-GOVERNANCE.md sat stale at '13-agent roster' because the number lived in prose with nothing able to check it. That is what `file-count` exists to prevent: add or remove an agent and this claim drifts on the next run instead of quietly outliving the truth."
     }
   ]
 }

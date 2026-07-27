@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ryan Cason — Profile</title>
+<meta name="description" content="How I got here and how I work — 25 years of hospitality operations into AI governance infrastructure, the operating rules that came out of it, and the reading behind them.">
+<meta property="og:title" content="Ryan Cason — Profile">
+<meta property="og:description" content="The through-line from 25 years of hospitality operations to AI governance infrastructure, the operating rules that came out of it, and the books that shaped them.">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://flcason.com/profile">
+<meta property="og:image" content="https://flcason.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ryan Cason — Profile">
+<meta name="twitter:description" content="The through-line from 25 years of hospitality operations to AI governance infrastructure, and the reading behind it.">
+<meta name="twitter:image" content="https://flcason.com/og-image.png">
+<link rel="canonical" href="https://flcason.com/profile">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/colors_and_type.css">
+<link rel="stylesheet" href="/assets/fonts/local-fonts.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-serif);
+    background: var(--parchment);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: var(--fg-link); text-decoration: none; }
+  a:hover { color: var(--gold); }
+
+  /* ── top bar (shared with /portfolio, /resume) ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--deep-blue);
+    border-bottom: 1px solid var(--divider-on-dark);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .topbar .brand { font-family: var(--font-display); font-weight: 700; color: var(--cream); font-size: 1.05rem; }
+  .topbar .brand span { color: var(--gold-bright); }
+  .topbar nav { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .topbar nav a {
+    font-family: var(--font-sans); font-size: 0.82rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--fg-on-dark-2);
+  }
+  .topbar nav a.cta { color: var(--gold-bright); }
+  .topbar nav a:hover { color: var(--gold-bright); }
+
+  /* ── hero ── */
+  .hero { padding: 64px 20px 48px; text-align: center; max-width: 780px; margin: 0 auto; }
+  .hero .eyebrow {
+    font-family: var(--font-sans); font-size: var(--fs-eyebrow); font-weight: 700;
+    letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--gold);
+  }
+  .hero h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); color: var(--ink); margin: 10px 0 14px; }
+  .hero p.lede { font-size: var(--fs-body-lg); color: var(--fg-2); max-width: 46em; margin: 0 auto 24px; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans);
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 12px 22px; border-radius: var(--r-pill); transition: transform var(--t-fast);
+    border: none; cursor: pointer;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--rust); color: var(--cream); }
+  .btn-primary:hover { background: #763a0f; color: var(--cream); }
+  .btn-ghost { background: transparent; color: var(--rust); border: 1.5px solid var(--border-medium); }
+  .btn-ghost:hover { background: rgba(139,69,19,0.07); color: var(--rust); }
+
+  /* ── bands ── */
+  .band { padding: 48px 20px; }
+  .band.cream { background: var(--cream); }
+  .band.dark { background: var(--deep-blue); color: var(--fg-on-dark); }
+  .band-inner { max-width: 1080px; margin: 0 auto; }
+  .band-inner.narrow { max-width: 720px; }
+  .section-head { margin-bottom: var(--space-6); text-align: center; }
+  .section-head.left { text-align: left; }
+  .section-head .meta {
+    font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .section-head h2 { font-size: clamp(1.5rem, 4vw, 2rem); margin: 0; }
+  .band.dark .section-head h2 { color: var(--cream); }
+  .section-head p.sub { color: var(--fg-2); font-style: italic; max-width: 42em; margin: 8px auto 0; }
+  .section-head.left p.sub { margin-left: 0; }
+  .band.dark .section-head p.sub { color: var(--fg-on-dark-2); }
+
+  /* ── the through-line: a vertical arc ── */
+  .arc { position: relative; padding-left: 26px; }
+  .arc::before {
+    content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px;
+    background: linear-gradient(to bottom, var(--gold), var(--rust), var(--sea-green));
+    opacity: 0.45;
+  }
+  .arc-step { position: relative; margin-bottom: var(--space-6); }
+  .arc-step:last-child { margin-bottom: 0; }
+  .arc-step::before {
+    content: ''; position: absolute; left: -26px; top: 7px; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--parchment); border: 2px solid var(--gold);
+  }
+  .band.cream .arc-step::before { background: var(--cream); }
+  .arc-step .when {
+    font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faded); margin-bottom: 2px;
+  }
+  .arc-step h3 { margin: 0 0 6px; font-size: 1.15rem; color: var(--fg-accent-2); }
+  .arc-step p { font-size: 0.95rem; margin: 0; }
+
+  /* ── operating rules ── */
+  .rules { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 700px) { .rules { grid-template-columns: repeat(2, 1fr); } }
+  .rule {
+    background: var(--bg); border: 1px solid var(--border-hairline); border-left: 3px solid var(--rust);
+    border-radius: var(--r-md); padding: var(--space-5);
+  }
+  .band.cream .rule { background: var(--parchment); }
+  .rule .n {
+    font-family: var(--font-sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .rule h3 { margin: 4px 0 8px; font-size: 1.05rem; font-family: var(--font-display); color: var(--fg-accent-2); }
+  .rule p { font-size: 0.9rem; margin: 0; color: var(--fg-1); }
+  .rule .from {
+    display: block; margin-top: 10px; font-family: var(--font-sans); font-size: 0.72rem;
+    color: var(--faded); font-style: italic;
+  }
+
+  /* ── the shelf ── */
+  .shelf-wrap { max-width: 1080px; margin: 0 auto; }
+  /* Flex, not grid, so the shelf holds however many books actually belong on it.
+     A grid with fixed columns leaves an orphan hanging left on any count that
+     isn't a multiple of 3, which quietly pressures the content to fit the
+     layout. Here the last row centers and any count looks deliberate. */
+  .shelf {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: var(--space-4); margin-bottom: var(--space-7);
+  }
+  .shelf > * { flex: 1 1 260px; min-width: 0; }
+  @media (min-width: 620px) { .shelf > * { max-width: 340px; } }
+  /* The empty/error notice is not a book — it spans, and must beat the card cap. */
+  .shelf > .empty-state { flex: 1 1 100%; max-width: none; }
+  button.book {
+    position: relative; overflow: hidden;
+    background: var(--bg-raised); border: 1px solid var(--border-hairline);
+    border-radius: var(--r-md); padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-5) + 10px);
+    display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    transition: border-color var(--t-fast), transform var(--t-fast);
+  }
+  .band.dark button.book { background: rgba(244,237,228,0.05); border-color: var(--divider-on-dark); }
+  button.book::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    background: var(--spine, var(--gold));
+  }
+  button.book:hover, button.book:focus-visible { border-color: var(--gold); transform: translateY(-2px); outline: none; }
+  .book .b-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; color: var(--fg-accent-2); line-height: 1.25; }
+  .band.dark .book .b-title { color: var(--cream); }
+  .book .b-author { font-family: var(--font-sans); font-size: 0.76rem; color: var(--faded); margin: 3px 0 8px; }
+  .band.dark .book .b-author { color: var(--fg-on-dark-3); }
+  .book .b-why { font-size: 0.88rem; margin: 0; color: var(--fg-1); }
+  .band.dark .book .b-why { color: var(--fg-on-dark-2); }
+  .book .b-more {
+    font-family: var(--font-sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--gold); margin-top: 10px; display: inline-block;
+  }
+  .book .b-more .arr { display: inline-block; transition: transform var(--t-fast); }
+  button.book:hover .b-more .arr { transform: translateX(3px); }
+
+  /* ── pace meter ── */
+  .pace {
+    background: var(--bg-raised); border: 1px solid var(--border-gold); border-radius: var(--r-lg);
+    padding: var(--space-6); max-width: 620px; margin: 0 auto;
+  }
+  .band.dark .pace { background: rgba(244,237,228,0.06); border-color: var(--divider-on-dark); }
+  .pace-head { display: flex; align-items: flex-start; gap: var(--space-6); flex-wrap: wrap; margin-bottom: var(--space-4); }
+  .pace-lbl {
+    font-family: var(--font-sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 4px;
+  }
+  .pace-count { font-family: var(--font-display); font-weight: 900; font-size: 2.4rem; line-height: 1; color: var(--fg-accent-2); }
+  .band.dark .pace-count { color: var(--cream); }
+  .pace-count.alt { color: var(--rust); }
+  .band.dark .pace-count.alt { color: var(--gold-bright); }
+  .pace-verdict { font-family: var(--font-sans); font-size: 0.9rem; font-weight: 700; }
+  .pace-verdict.close { color: var(--gold-bright); }
+  .pace-verdict.even { color: var(--gold); }
+  .band:not(.dark) .pace-verdict.close { color: var(--rust); }
+  .pace-note { font-family: var(--font-sans); font-size: 0.76rem; color: var(--faded); margin-top: 6px; }
+  .band.dark .pace-note { color: var(--fg-on-dark-3); }
+  /* ── the log: the reference point, not a display case ── */
+  .logbook { max-width: 900px; margin: var(--space-6) auto 0; }
+  .log-lbl {
+    font-family: var(--font-sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 12px; text-align: center;
+  }
+  .log-list { list-style: none; margin: 0; padding: 0; columns: 1; column-gap: var(--space-6); }
+  @media (min-width: 620px) { .log-list { columns: 2; } }
+  @media (min-width: 940px) { .log-list { columns: 3; } }
+  .log-list li {
+    break-inside: avoid; padding: 6px 0; font-size: 0.86rem; line-height: 1.35;
+    border-bottom: 1px solid rgba(244,237,228,0.08);
+  }
+  .band:not(.dark) .log-list li { border-bottom-color: var(--border-hairline); }
+  .log-list .lg-a {
+    display: block; font-family: var(--font-sans); font-size: 0.72rem; color: var(--fg-on-dark-3);
+  }
+  .band:not(.dark) .log-list .lg-a { color: var(--faded); }
+  /* A quiet mark, not a badge — it's a note to self that this one's open again. */
+  .log-list .lg-again {
+    font-family: var(--font-sans); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold-bright); margin-left: 6px; white-space: nowrap;
+  }
+  .band:not(.dark) .log-list .lg-again { color: var(--rust); }
+
+  .empty-state {
+    border: 1px dashed var(--border-medium); border-radius: var(--r-md);
+    padding: var(--space-6); text-align: center; color: var(--fg-2); font-style: italic; font-size: 0.92rem;
+  }
+  .band.dark .empty-state { border-color: var(--divider-on-dark); color: var(--fg-on-dark-2); }
+
+  /* ── beyond the code ── */
+  .side-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+  @media (min-width: 620px) { .side-grid { grid-template-columns: repeat(2, 1fr); } }
+  .side {
+    background: var(--bg-raised); border: 1px solid var(--border-hairline); border-radius: var(--r-md);
+    padding: var(--space-5); display: flex; flex-direction: column;
+  }
+  .side .kicker { font-family: var(--font-sans); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faded); }
+  .side h3 { margin: 4px 0 8px; font-size: 1.05rem; color: var(--fg-accent-2); }
+  .side p { font-size: 0.88rem; margin: 0 0 12px; flex-grow: 1; }
+  .side a { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 700; }
+
+  /* ── closing / footer ── */
+  .closing { background: var(--deep-blue); color: var(--cream); text-align: center; padding: 56px 20px; }
+  .closing h2 { color: var(--cream); }
+  .closing p { color: var(--fg-on-dark-2); max-width: 40em; margin: 0 auto 22px; }
+  footer {
+    background: var(--deep-blue); color: var(--fg-on-dark-3);
+    font-family: var(--font-sans); font-size: 0.78rem; text-align: center;
+    padding: 20px; border-top: 1px solid var(--divider-on-dark);
+  }
+  footer a { color: var(--fg-on-dark-2); margin: 0 8px; }
+  footer a:hover { color: var(--gold-bright); }
+
+  /* ── detail modal (shared component with /portfolio) ── */
+  dialog.detail {
+    width: min(560px, 92vw); max-width: 92vw; max-height: 85vh;
+    background: var(--cream); color: var(--ink);
+    border: 1px solid var(--border-gold); border-radius: var(--r-xl);
+    padding: 0; box-shadow: var(--shadow-4);
+  }
+  dialog.detail::backdrop { background: rgba(26,39,68,0.72); }
+  dialog.detail .detail-close { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 8px 10px 0; background: var(--cream); border-radius: var(--r-xl) var(--r-xl) 0 0; }
+  dialog.detail .detail-close button {
+    font-family: var(--font-sans); font-size: 1.4rem; line-height: 1; background: none; border: none;
+    color: var(--faded); cursor: pointer; width: 40px; height: 40px; border-radius: 50%;
+  }
+  dialog.detail .detail-close button:hover { background: var(--bg-highlight); color: var(--rust); }
+  dialog.detail .detail-body { padding: 0 26px 28px; overflow-y: auto; }
+  dialog.detail .detail-kicker { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faded); margin-bottom: 6px; }
+  dialog.detail h3 { margin: 0 0 8px; font-size: 1.35rem; }
+  dialog.detail .detail-metric { font-family: var(--font-sans); font-size: 0.82rem; color: var(--sea-green); font-weight: 700; margin-bottom: 14px; }
+  dialog.detail p { font-size: 0.94rem; margin: 0 0 12px; }
+  @media (max-width: 480px) { dialog.detail .detail-body { padding: 0 18px 22px; } dialog.detail h3 { font-size: 1.2rem; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="/hub">Ryan Cason <span>· profile</span></a>
+  <nav>
+    <a href="/portfolio">Portfolio</a>
+    <a href="/resume">Résumé</a>
+    <a href="/hub">Site map</a>
+    <a href="/" class="cta">The Cason Line →</a>
+  </nav>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">who's behind the record</div>
+  <h1>The path is demonstrated work, not credentials.</h1>
+  <p class="lede">The résumé has the numbers and the portfolio has the builds. This page is the part neither one holds: how a twenty-five-year operations career turned into AI governance infrastructure, the operating rules that came out of that, and the reading behind them.</p>
+  <div class="actions">
+    <a href="#shelf" class="btn btn-primary">The shelf →</a>
+    <a href="/portfolio" class="btn btn-ghost">See the work →</a>
+    <a href="mailto:ryan@vorion.org" class="btn btn-ghost">Email →</a>
+  </div>
+</section>
+
+<section class="band cream" id="throughline">
+  <div class="band-inner narrow">
+    <div class="section-head left">
+      <div class="meta">// 01 · the through-line</div>
+      <h2>Operations first, for twenty-five years.</h2>
+      <p class="sub">The instinct that eventually built AI infrastructure was trained on ballrooms, not codebases.</p>
+    </div>
+    <div class="arc">
+
+      <div class="arc-step">
+        <div class="when">1999 → 2024 · catering, then hotels</div>
+        <h3>Luxury and volume are a seesaw</h3>
+        <p>Catering since 1999, hotels and resorts since 2006 — luxury properties, high-volume convention venues, theme parks. The through-line is systems thinking under pressure: luxury and volume sit on opposite ends of the same board, and the only way to serve both is to build the counterweights and the ramps <em>before</em> the room fills. You do not get to debug a banquet at 6pm. Everything that can be decided in advance has to be decided in advance, and everything that can't has to have a documented fallback.</p>
+      </div>
+
+      <div class="arc-step">
+        <div class="when">2025 · banquetai</div>
+        <h3>The operations problem became a software problem</h3>
+        <p>BanquetAI started as the thing I wanted to exist: a Banquet Event Order goes in, a categorized equipment layout and a stewarding pull sheet come out. It went to market with real venue operators. It also surfaced the question that changed the work — when an AI system hands an operator a number, what exactly is that number standing on?</p>
+      </div>
+
+      <div class="arc-step">
+        <div class="when">2026 · vorion</div>
+        <h3>Trust needed to be infrastructure, not a disclaimer</h3>
+        <p>The agent-trust and accuracy problems that surfaced building BanquetAI led directly to Vorion: a vendor-neutral runtime-governance layer for agentic AI, built around an open trust-tier specification and a policy-enforcement engine that checks every agent action against it before it runs. Same instinct as the ballroom — decide what's allowed while there's still time to decide, and leave an auditable record of who decided it.</p>
+      </div>
+
+      <div class="arc-step">
+        <div class="when">now</div>
+        <h3>Same architecture, applied to my own family</h3>
+        <p>This site is the proof-of-work. Four centuries of contradictory genealogical records run through the same provenance grading as the agent systems, governed by a roster of research agents that propose but never publish. If the architecture can't survive being pointed at my own ancestors, it has no business being pointed at anyone's production traffic.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="band" id="rules">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 02 · how I work</div>
+      <h2>Rules I actually enforce.</h2>
+      <p class="sub">Not aspirations — each of these is wired into something on this site, and each was learned by getting it wrong first.</p>
+    </div>
+    <div class="rules">
+
+      <div class="rule">
+        <div class="n">rule 01</div>
+        <h3>Green CI is not a security signal</h3>
+        <p>A passing pipeline tells you the tests you wrote still pass. It tells you nothing about the resolved dependency tree underneath. The tree is the signal; the checkmark is a mood.</p>
+        <span class="from">Learned auditing an 80+ repository estate for dependency vulnerabilities.</span>
+      </div>
+
+      <div class="rule">
+        <div class="n">rule 02</div>
+        <h3>Read the source table before you quote the number</h3>
+        <p>A latency figure on this site was once wrong twice: the first version cited the fastest endpoint in a table instead of the relevant one, and the correction cited the right endpoint in the wrong system. The honest fix was to publish a design target and label it a target. Two mis-attributions in a row on a number I cared about is exactly why the rule exists.</p>
+        <span class="from">Documented in this repo's claims manifest, in full, including the wrong version.</span>
+      </div>
+
+      <div class="rule">
+        <div class="n">rule 03</div>
+        <h3>Agents propose. They never publish.</h3>
+        <p>The research agents on this site open pull requests against the record; a human merges them. An agent that can write directly to the thing it's researching isn't a researcher, it's an unreviewed author with a schedule.</p>
+        <span class="from">The governed agent roster behind The Cason Line.</span>
+      </div>
+
+      <div class="rule">
+        <div class="n">rule 04</div>
+        <h3>A self-claim is worth zero trust</h3>
+        <p>"We're compliant" is not evidence. An assertion only counts once something independent can check it — a signed attestation, a reproducible run, a build provenance record. Design for the checker, not the claim.</p>
+        <span class="from">The premise of the whole BASIS trust-tier spec.</span>
+      </div>
+
+      <div class="rule">
+        <div class="n">rule 05</div>
+        <h3>Every number reproduces from a clean clone</h3>
+        <p>If a metric on my résumé can't be regenerated by someone who just cloned the repo and ran the harness, it isn't a metric — it's marketing. This is why the evaluation work ships with the ablation, not just the result.</p>
+        <span class="from">Standing rule across every open-source project listed on the portfolio.</span>
+      </div>
+
+      <div class="rule">
+        <div class="n">rule 06</div>
+        <h3>Govern the public record like production</h3>
+        <p>An automated auditor checks what this site says about me — every metric, every status, every claim — against its source on a schedule, because a résumé is just a database that nobody put constraints on. Including this page. Including the book count below.</p>
+        <span class="from">The Public Record Auditor, run weekly against the claims manifest.</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="band dark" id="shelf">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 03 · the shelf</div>
+      <h2>What I read, and what I read twice.</h2>
+      <p class="sub">Kept as a marker rather than a scoreboard — somewhere to see what's actually been through, and notice when the list stops moving.</p>
+    </div>
+
+    <div class="shelf-wrap">
+      <div class="shelf" id="shelf-grid" hidden></div>
+
+      <div class="pace" id="pace">
+        <div class="pace-head">
+          <div>
+            <span class="pace-lbl">Finished</span>
+            <div class="pace-count" id="pace-done">—</div>
+          </div>
+          <div>
+            <span class="pace-lbl">On a repeat pass</span>
+            <div class="pace-count alt" id="pace-open">—</div>
+          </div>
+        </div>
+        <div class="pace-verdict even" id="pace-verdict">Loading the log…</div>
+        <div class="pace-note" id="pace-note"></div>
+      </div>
+
+      <div class="logbook" id="logbook" hidden>
+        <span class="log-lbl">The log</span>
+        <ul class="log-list" id="log-list"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band cream" id="beyond">
+  <div class="band-inner">
+    <div class="section-head">
+      <div class="meta">// 04 · beyond the code</div>
+      <h2>The other things I'm building.</h2>
+    </div>
+    <div class="side-grid">
+
+      <div class="side">
+        <div class="kicker">four centuries, one family</div>
+        <h3>The Cason Line</h3>
+        <p>A governed, provenance-graded reconstruction of my own family record — contradictory sources, competing candidates for the same slot, and an evidence tier on every claim. The site you're on.</p>
+        <a href="/">Enter the record →</a>
+      </div>
+
+      <div class="side">
+        <div class="kicker">writing</div>
+        <h3>Into the Unknown</h3>
+        <p>A book about the family, in progress — the story the ledger can't hold. The research agents feed it; the voice stays mine.</p>
+        <a href="/heritage">Read the narrative →</a>
+      </div>
+
+      <div class="side">
+        <div class="kicker">side build</div>
+        <h3>Footed</h3>
+        <p>A small, finished thing built for someone specific rather than for a market. Proof that not every project needs a business model attached to justify existing.</p>
+        <a href="https://footed.flcason.com" target="_blank" rel="noopener">Visit ↗</a>
+      </div>
+
+      <div class="side">
+        <div class="kicker">the roster</div>
+        <h3>Governed agents</h3>
+        <p>Fourteen research agents with defined scopes and no publish rights, working the open questions in the record on a schedule — including one whose entire job is auditing what this site claims about me.</p>
+        <a href="/proof">See the proof plane →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <h2>The numbers are on the résumé. The builds are on the portfolio.</h2>
+  <p>If what's on this page is the part you wanted, that's the part I'd rather talk about anyway.</p>
+  <div class="actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <a href="/resume" class="btn btn-primary">Read the résumé →</a>
+    <a href="mailto:ryan@vorion.org" class="btn btn-ghost" style="color:var(--gold-bright); border-color:rgba(212,168,37,0.4);">ryan@vorion.org</a>
+  </div>
+</section>
+
+<footer>
+  <a href="/">The Cason Line</a>·<a href="/hub">Site map</a>·<a href="/portfolio">Portfolio</a>·<a href="/resume">Résumé</a>·<a href="https://github.com/axiom-orion" target="_blank" rel="noopener">GitHub</a>
+  <div style="margin-top:8px;">ryan cason · profile · updated july 2026</div>
+</footer>
+
+<dialog class="detail" id="book-modal" aria-labelledby="book-modal-title">
+  <div class="detail-close"><button type="button" data-close aria-label="Close">×</button></div>
+  <div class="detail-body">
+    <div class="detail-kicker" id="book-modal-kicker"></div>
+    <h3 id="book-modal-title"></h3>
+    <div class="detail-metric" id="book-modal-meta"></div>
+    <p id="book-modal-why"></p>
+    <p id="book-modal-still"></p>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  var SPINES = ['var(--rust)', 'var(--sea-green)', 'var(--gold)', 'var(--deep-blue)', 'var(--blood)', 'var(--gold-bright)'];
+
+  var grid = document.getElementById('shelf-grid');
+  var modal = document.getElementById('book-modal');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function daysBetween(a, b) { return Math.floor((a - b) / DAY); }
+
+  /* An empty shelf renders nothing at all rather than a placeholder. The log
+     below stands on its own, so the page is complete without this row instead
+     of advertising a gap in itself. */
+  function renderShelf(shelf) {
+    if (!shelf.length) { grid.hidden = true; return; }
+    grid.hidden = false;
+    grid.innerHTML = shelf.map(function (b, i) {
+      return '<button type="button" class="book" data-i="' + i + '" style="--spine:' + SPINES[i % SPINES.length] + '">' +
+        '<div class="b-title">' + esc(b.title) + '</div>' +
+        '<div class="b-author">' + esc(b.author) + (b.year ? ' · ' + esc(b.year) : '') + '</div>' +
+        '<p class="b-why">' + esc(b.why) + '</p>' +
+        (b.stillUse ? '<span class="b-more">What I still use <span class="arr">→</span></span>' : '') +
+      '</button>';
+    }).join('');
+
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.book');
+      if (!btn) return;
+      var b = shelf[+btn.getAttribute('data-i')];
+      if (!b || !b.stillUse) return;
+      document.getElementById('book-modal-kicker').textContent = b.field || 'influence';
+      document.getElementById('book-modal-title').textContent = b.title;
+      document.getElementById('book-modal-meta').textContent = b.author + (b.year ? ' · ' + b.year : '');
+      document.getElementById('book-modal-why').textContent = b.why;
+      document.getElementById('book-modal-still').textContent = b.stillUse;
+      if (typeof modal.showModal === 'function') modal.showModal();
+    });
+  }
+
+  // "2h 14m", "44m", "6m" — the shape the library itself reports.
+  function humanize(min) {
+    if (min == null) return '';
+    if (min < 60) return min + 'm';
+    var h = Math.floor(min / 60), m = min % 60;
+    return h + 'h' + (m ? ' ' + m + 'm' : '');
+  }
+
+  /* No annual target, on purpose: an invented goal would be exactly the kind of
+     unbacked number rule 06 exists to keep off this page.
+
+     The motivator is the shape of the number instead. Every title here has been
+     through at least twice, so the count only moves when something NEW lands —
+     a repeat pass, however deep, leaves it exactly where it was. That's the nag,
+     and it's honest, because it's just the log described accurately. */
+  function renderPace(data) {
+    var log = data.log || [];
+    var again = (data.revisiting || []).slice().sort(function (a, b) {
+      return (a.remainingMinutes == null ? 1e9 : a.remainingMinutes) -
+             (b.remainingMinutes == null ? 1e9 : b.remainingMinutes);
+    });
+
+    document.getElementById('pace-done').textContent = log.length;
+    document.getElementById('pace-open').textContent = again.length;
+
+    var verdict = document.getElementById('pace-verdict');
+    verdict.className = 'pace-verdict close';
+    verdict.textContent = log.length + ' titles, every one of them at least twice.';
+
+    document.getElementById('pace-note').textContent =
+      'No target and no pace — this is a reference point, not a scoreboard. It only moves ' +
+      'for a title that has never been read, which is the part worth watching: a second pass ' +
+      'through something familiar is the comfortable way to leave the number exactly where it was.';
+
+    // The log itself — the actual reference point. Marked where a repeat pass is open.
+    if (log.length) {
+      var openNow = {};
+      again.forEach(function (b) { openNow[b.title] = b.remainingMinutes; });
+      document.getElementById('logbook').hidden = false;
+      document.getElementById('log-list').innerHTML = log.map(function (b) {
+        var open = Object.prototype.hasOwnProperty.call(openNow, b.title);
+        return '<li>' + esc(b.title) +
+          (open ? '<span class="lg-again">again · ' + humanize(openNow[b.title]) + ' left</span>' : '') +
+          '<span class="lg-a">' + esc(b.author) + '</span></li>';
+      }).join('');
+    }
+
+  }
+
+  // no-cache: the log changes far more often than the page does, and a stale
+  // copy would publish a book count that disagrees with books.json — the exact
+  // drift this whole setup exists to prevent.
+  fetch('/books.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error('books.json ' + r.status); return r.json(); })
+    .then(function (data) {
+      renderShelf(data.shelf || []);
+      renderPace(data);
+    })
+    .catch(function () {
+      grid.innerHTML = '<div class="empty-state">The shelf could not be loaded.</div>';
+      document.getElementById('pace-verdict').textContent = 'The reading log could not be loaded.';
+    });
+
+  // Modal close: button, backdrop, Esc is native.
+  modal.addEventListener('click', function (e) {
+    if (e.target.hasAttribute('data-close') || e.target === modal) modal.close();
+  });
+})();
+</script>
+
+</body>
+</html>
