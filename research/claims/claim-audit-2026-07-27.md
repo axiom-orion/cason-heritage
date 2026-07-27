@@ -8,7 +8,7 @@
 
 ## Needs review — the world moved
 
-- **`agent-roster-count`** (profile.html) — failed-check-needs-review: verification failed (file-count): file-count path escapes the repo: ../../../Windows/System32/drivers/etc/hosts
+- **`agent-roster-count`** (profile.html) — drifted-value-needs-review: published value is `14` but the source now reads `15`
 
 ## Every claim
 
@@ -37,6 +37,6 @@
 | `role-banquetai` | narrative | public | unverified | ✅ allow · declared uncheckable |
 | `hospitality-years` | narrative | public | unverified | ✅ allow · declared uncheckable |
 | `hospitality-segments` | narrative | public | unverified | ✅ allow · declared uncheckable |
-| `agent-roster-count` | metric | public | file-count | ⚠ review · FAILED — file-count path escapes the repo: ../../../Windows/System32/… |
+| `agent-roster-count` | metric | public | file-count | ⚠ review · 15 (published: 14) |
 
 _No blocked claims._

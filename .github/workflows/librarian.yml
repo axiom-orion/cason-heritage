@@ -1,0 +1,86 @@
+name: Librarian
+
+# Reading recommendations, on a slow cadence. It reads books.json (the finished
+# log IS the taste profile), asks the consensus endpoint for candidates that must
+# each carry a citation, has a second isolated pass score those citations
+# hostilely, checks Open Library, and opens a PR with what survived.
+#
+# Propose, never publish — it never writes books.json. Merging the PR is the
+# approval, and even then the title only enters the log when it's actually read.
+
+on:
+  schedule:
+    - cron: '0 14 1 * *'        # 1st of the month, 14:00 UTC — a monthly pass
+  workflow_dispatch:
+    inputs:
+      max:
+        description: 'How many candidates to ask for'
+        required: false
+        default: '8'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: librarian
+  cancel-in-progress: false
+
+jobs:
+  recommend:
+    name: Propose what to read next
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      # The guard the Keeper learned the hard way: don't stack proposals.
+      - name: Skip if a Librarian PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search 'Librarian: reading proposals in:title' --json number --jq 'length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then echo "A Librarian PR is already open — skipping this run."; fi
+
+      - name: Verify the guard logic still holds before spending model calls
+        if: steps.guard.outputs.open == '0'
+        run: node scripts/librarian.selftest.js
+
+      - name: Run the Librarian
+        if: steps.guard.outputs.open == '0'
+        env:
+          LIBRARIAN_CONSENSUS_URL: ${{ vars.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus' }}
+        run: node scripts/librarian.js --max "${{ github.event.inputs.max || '8' }}"
+
+      - name: Push the proposals branch and open a PR
+        if: steps.guard.outputs.open == '0'
+        # Prefer a user PAT so the PR opens despite the org disabling
+        # "Actions can create pull requests"; fall back to the default token,
+        # which can push the branch but not open the PR here.
+        env:
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
+        run: |
+          if [ -z "$(git status --porcelain research/proposals)" ]; then
+            echo "No proposals this run — nothing to propose."; exit 0
+          fi
+          date=$(date -u +%Y-%m-%d)
+          branch="librarian/reading-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/proposals
+          git commit -m "Librarian: reading proposals $date"
+          git push -u origin "$branch"
+          if gh pr create \
+            --title "Librarian: reading proposals $date" \
+            --body $'Reading recommendations derived from `books.json` — the finished log is the taste profile, so it cannot drift from what was actually read.\n\n**Every candidate had to survive three independent checks:** a mandatory citation from the proposing model, a hostile validity score from a second isolated pass that never sees the reading profile, and an Open Library lookup. A catalogue miss is expected for a genuinely forthcoming title and is judged on its citation at a higher bar instead; a title claimed as already published with no catalogue record is treated as invented.\n\nWithheld candidates are listed on purpose — that count is the honest measure of how far to trust a model on this question.\n\n**Propose, never publish**: nothing here writes `books.json`. Merge to accept the list as a reading queue; a title only enters the log once it has actually been finished.' \
+            --base main --head "$branch"; then
+            echo "Opened proposal PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically (org disables Actions PR-create). The proposals are pushed to branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret."
+          fi

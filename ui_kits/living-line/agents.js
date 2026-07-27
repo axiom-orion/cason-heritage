@@ -123,6 +123,13 @@
       abilities: ['graceful degradation on any dependency outage', 'a memory/consensus outage never fails a Keeper run'],
       hooks: ['fail safe, not silent — degrade rather than crash or fabricate'],
     },
+    {
+      id: 'librarian', name: 'Librarian', layer: 'governance', status: 'live', autonomy: 'proposes',
+      modules: ['scripts/librarian.js', 'books.json'],
+      system: 'Reads the reading log in books.json — the log IS the taste profile, so it cannot drift from what was actually finished — and proposes what to read next. Built around the fact that asking a model for forthcoming books is the most confabulation-prone question there is: multi-model agreement does not help, because models trained on similar corpora invent the same plausible title independently and agreement then launders it into a fact. So the proposing model must cite where it knows a title from, a second isolated pass researches that citation and scores it hostilely, and Open Library provides an objective third check. A catalogue miss is expected for a genuinely forthcoming book and is not held against it — those are judged on the citation at a higher bar instead.',
+      abilities: ['derive a taste profile from the finished log', 'demand a citation for every recommendation', 'score a citation independently of the profile that motivated it', 'catch an invented title claimed as already published', 'refuse to recommend a book already read'],
+      hooks: ['propose-never-publish — it never writes books.json', 'no citation, no consideration', 'the scorer never sees the reading profile, so it cannot be swayed by fit', 'an unusable score is unsupported, never assumed good', 'withheld candidates stay visible — the count is the measure of trust'],
+    },
   ];
 
   function byId(id) { return AGENTS.filter(function (a) { return a.id === id; })[0] || null; }
