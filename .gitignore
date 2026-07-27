@@ -40,3 +40,6 @@ node_modules/
 
 # Claude Code tooling — untracked from public repos
 .claude/
+
+# local librarian test output
+_libtest/

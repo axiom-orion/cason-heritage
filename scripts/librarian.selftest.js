@@ -70,8 +70,19 @@ ok('adjudicate: no citation → uncited, never scored',
   L.adjudicate({ title: 't', author: 'a', status: 'published', citation: '' }, strong, present).tier === 'uncited');
 ok('adjudicate: published + catalogue + strong score → verified',
   L.adjudicate(pub(), strong, present).tier === 'verified');
-ok('adjudicate: published + NO catalogue record → unverified even with a 90 score',
-  L.adjudicate(pub(), strong, absent).tier === 'unverified');
+// Open Library's coverage of recent trade non-fiction is patchy — the live run
+// found Co-Intelligence (Mollick, 2024) missing from it entirely. So a catalogue
+// miss is missing evidence, not evidence of absence; a fabrication has to fail
+// BOTH the catalogue and the reviewer.
+ok('adjudicate: published + no catalogue + STRONG score → attested, not called invented',
+  L.adjudicate(pub(), strong, absent).tier === 'attested');
+ok('adjudicate: published + no catalogue + weak score → unverified',
+  L.adjudicate(pub(), weak, absent).tier === 'unverified');
+ok('adjudicate: a catalogue miss is never described as proof of invention',
+  L.adjudicate(pub(), weak, absent).note.indexOf('invented') === -1);
+ok('adjudicate: the scorer is told it cannot search the live web',
+  L.buildValidationQuestion({ title: 't', author: 'a', citation: 'c' }).length > 0 &&
+  require('fs').readFileSync(path.join(ROOT, 'scripts', 'librarian.js'), 'utf8').indexOf('NO live internet access') !== -1);
 ok('adjudicate: forthcoming + no catalogue + strong score → attested (miss is expected)',
   L.adjudicate(fwd(), strong, absent).tier === 'attested');
 ok('adjudicate: forthcoming is held to the HIGHER bar',
@@ -207,6 +218,23 @@ ok('degraded: the same title written differently is merged, not duplicated',
     ],
     consensus: {},
   }).length === 1);
+
+/* ---- the Trace API: `events` is an accessor, not an array ----
+   The first run that got all the way through the model work then died writing
+   the audit trail: "trace.events.map is not a function". A run that cannot be
+   recorded is a run that did not happen, so the contract is asserted here
+   rather than discovered in CI again. */
+const GOV = require(path.join(ROOT, 'ui_kits', 'living-line', 'governance.js'));
+const t = GOV.Trace('selftest');
+t.runStarted();
+t.runCompleted();
+ok('trace: toNdjson() is the serializer', typeof t.toNdjson === 'function');
+ok('trace: events is an accessor function, not an array',
+  typeof t.events === 'function' && !Array.isArray(t.events));
+ok('trace: toNdjson emits one parseable JSON object per line',
+  t.toNdjson().trim().split('\n').every(function (l) { try { JSON.parse(l); return true; } catch (e) { return false; } }));
+ok('trace: the Librarian serializes via toNdjson, never events.map',
+  fs.readFileSync(path.join(ROOT, 'scripts', 'librarian.js'), 'utf8').indexOf('trace.events.map') === -1);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed.\n');
 process.exit(fail ? 1 : 0);
