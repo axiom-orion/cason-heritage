@@ -2,13 +2,15 @@
 
 > The public record auditing itself. Every claim published about the person or the estate, checked against a live source and run through the same typed gate as the family record. **Propose, never publish** — nothing here edits a page.
 
-**24** claim(s) · **23** clean · **1** needs review · **0** BLOCKED
+**24** claim(s) · **23** clean · **0** needs review · **1** BLOCKED
 
 **Autonomy posture:** supervised — no correction is auto-applied — every published-record change routes to a human merge
 
-## Needs review — the world moved
+## Blocked — an honesty violation, fix before this ships
 
-- **`agent-roster-count`** (profile.html) — drifted-value-needs-review: published value is `14` but the source now reads `15`
+### `site-footed` — footed.flcason.com
+
+- **claim-must-appear** — manifest says this claim appears in portfolio.html, but the text is not there — the page or the manifest drifted
 
 ## Every claim
 
@@ -28,7 +30,7 @@
 | `site-agentanchor` | link | public | http-ok | ✅ allow · skipped (offline) |
 | `site-aurais` | link | public | http-ok | ✅ allow · skipped (offline) |
 | `site-governed-agents` | link | public | http-ok | ✅ allow · skipped (offline) |
-| `site-footed` | link | public | http-ok | ✅ allow · skipped (offline) |
+| `site-footed` | link | public | http-ok | ⛔ block · skipped (offline) |
 | `bai-stewarding-tests` | metric | public | attested | ✅ allow · ok |
 | `repo-estate-scan` | metric | public | attested | ✅ allow · ok |
 | `provisional-patent` | credential | public | unverified | ✅ allow · declared uncheckable |
@@ -37,6 +39,6 @@
 | `role-banquetai` | narrative | public | unverified | ✅ allow · declared uncheckable |
 | `hospitality-years` | narrative | public | unverified | ✅ allow · declared uncheckable |
 | `hospitality-segments` | narrative | public | unverified | ✅ allow · declared uncheckable |
-| `agent-roster-count` | metric | public | file-count | ⚠ review · 15 (published: 14) |
+| `agent-roster-count` | metric | public | file-count | ✅ allow · 15 |
 
-_No blocked claims._
+**1 claim(s) BLOCKED — the run exits non-zero.**

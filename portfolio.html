@@ -136,23 +136,21 @@
   .more-btn .arr { transition: transform var(--t-fast); display: inline-block; }
   .more-btn:hover .arr { transform: translateX(3px); }
 
-  /* ── site grid (small cards) ── */
-  .site-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
-  @media (min-width: 560px) { .site-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 900px) { .site-grid { grid-template-columns: repeat(3, 1fr); } }
-  button.site-card {
-    background: var(--bg-raised); border: 1px solid var(--border-hairline); border-radius: var(--r-md);
-    padding: var(--space-4) var(--space-5); transition: border-color var(--t-fast), transform var(--t-fast);
-    display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  /* ── estate strip (detail moved to /projects) ── */
+  .strip {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px;
+    max-width: 820px; margin: 0 auto;
   }
-  button.site-card:hover, button.site-card:focus-visible { border-color: var(--gold); transform: translateY(-2px); }
-  .site-card .name { font-family: var(--font-display); font-weight: 700; color: var(--fg-accent-2); font-size: 1rem; display: flex; align-items: center; gap: 6px; }
-  .site-card .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sea-green); display: inline-block; flex-shrink: 0; }
-  .site-card .url { font-family: var(--font-sans); font-size: 0.72rem; color: var(--faded); margin: 2px 0 6px; }
-  .site-card p { font-size: 0.85rem; margin: 0 0 8px; color: var(--fg-1); }
-  .site-card .more { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gold); }
-  .site-card .more .arr { transition: transform var(--t-fast); display: inline-block; }
-  button.site-card:hover .more .arr { transform: translateX(3px); }
+  .strip a {
+    font-family: var(--font-sans); font-size: 0.84rem; font-weight: 600;
+    background: var(--bg-raised); border: 1px solid var(--border-hairline);
+    padding: 7px 14px; border-radius: var(--r-pill); transition: border-color var(--t-fast);
+  }
+  .strip a:hover { border-color: var(--gold); }
+  .strip-foot {
+    text-align: center; margin: var(--space-5) 0 0;
+    font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700;
+  }
 
   /* ── receipts list ── */
   .receipts { max-width: 760px; margin: 0 auto; }
@@ -228,6 +226,7 @@
   <nav>
     <a href="/resume">Résumé</a>
     <a href="/profile">Profile</a>
+    <a href="/projects">Projects</a>
     <a href="/hub">Site map</a>
     <a href="/" class="cta">The Cason Line →</a>
   </nav>
@@ -363,84 +362,19 @@
     <div class="section-head">
       <div class="meta">// 02 · the estate</div>
       <h2>Live right now.</h2>
-      <p class="sub">A 20-plus site production estate, run solo, across Vercel, Cloudflare Workers, Supabase, Firebase, Neo4j Aura, and Cloud Run. Tap any card for what it is and a link through.</p>
+      <p class="sub">A 20-plus site production estate, run solo, across Vercel, Cloudflare Workers, Supabase, Firebase, Neo4j Aura, and Cloud Run.</p>
     </div>
-    <div class="site-grid">
-
-      <button type="button" class="site-card" data-open="modal-site-vorion">
-        <div class="name"><span class="dot"></span>vorion.org</div>
-        <div class="url">vorion.org</div>
-        <p>The governance company — BASIS spec, CogniGate, the whole Vorion story.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-cognigate">
-        <div class="name"><span class="dot"></span>Cognigate</div>
-        <div class="url">cognigate.dev</div>
-        <p>The policy-enforcement engine — spec, playground, and docs.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-agentanchor">
-        <div class="name"><span class="dot"></span>AgentAnchor</div>
-        <div class="url">agentanchorai.com</div>
-        <p>Public agent-trust registry — T0–T7 attestation, real signed certs.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-aurais">
-        <div class="name"><span class="dot"></span>Aurais</div>
-        <div class="url">aurais.net</div>
-        <p>SecOps console for agent fleets — anomaly detection, quarantine-on-click.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-rainbow">
-        <div class="name"><span class="dot"></span>Rainbow</div>
-        <div class="url">rainbow.vorion.org</div>
-        <p>Trust-analytics observatory — fleet-wide tier distribution and drift.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-demo">
-        <div class="name"><span class="dot"></span>Vorion demo</div>
-        <div class="url">demo.vorion.org</div>
-        <p>Interactive walkthrough of the governance runtime end to end.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-baicc">
-        <div class="name"><span class="dot"></span>BAI Command Center</div>
-        <div class="url">bai-cc.com</div>
-        <p>The governed multi-app platform behind BanquetAI.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-beodraft">
-        <div class="name"><span class="dot"></span>BeoDraft</div>
-        <div class="url">beodraft.com</div>
-        <p>The live BanquetAI product — AI-assisted BEO drafting for venues and caterers.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-footed">
-        <div class="name"><span class="dot"></span>Footed</div>
-        <div class="url">footed.flcason.com</div>
-        <p>A small commissioned build, shipped for a client application.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-anchor">
-        <div class="name"><span class="dot"></span>Anchor</div>
-        <div class="url">anchor-hq-ashen.vercel.app</div>
-        <p>A personal HITL dashboard for running everything above.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-enhancements">
-        <div class="name"><span class="dot"></span>Enhancements</div>
-        <div class="url">enhancements.vorion.org</div>
-        <p>The public backlog and changelog for the Vorion estate.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-      <button type="button" class="site-card" data-open="modal-site-fourier">
-        <div class="name"><span class="dot"></span>Fourier Scope</div>
-        <div class="url">fourier-scope.banquetaillc.workers.dev</div>
-        <p>A small signal-processing toy on Cloudflare Workers.</p>
-        <div class="more">More <span class="arr">→</span></div>
-      </button>
-
+    <div class="strip">
+      <a href="https://vorion.org" target="_blank" rel="noopener">vorion.org</a>
+      <a href="https://cognigate.dev" target="_blank" rel="noopener">cognigate.dev</a>
+      <a href="https://agentanchorai.com" target="_blank" rel="noopener">agentanchorai.com</a>
+      <a href="https://aurais.net" target="_blank" rel="noopener">aurais.net</a>
+      <a href="https://rainbow.vorion.org" target="_blank" rel="noopener">rainbow.vorion.org</a>
+      <a href="https://demo.vorion.org" target="_blank" rel="noopener">demo.vorion.org</a>
+      <a href="https://bai-cc.com" target="_blank" rel="noopener">bai-cc.com</a>
+      <a href="https://beodraft.com" target="_blank" rel="noopener">beodraft.com</a>
     </div>
+    <p class="strip-foot"><a href="/projects">The full index, including the side work and the things built for no reason at all &rarr;</a></p>
   </div>
 </section>
 
@@ -560,7 +494,7 @@
 </section>
 
 <footer>
-  <a href="/">The Cason Line</a>·<a href="/hub">Site map</a>·<a href="/resume">Résumé</a>·<a href="/profile">Profile</a>·<a href="https://github.com/axiom-orion" target="_blank" rel="noopener">GitHub</a>
+  <a href="/">The Cason Line</a>·<a href="/hub">Site map</a>·<a href="/resume">Résumé</a>·<a href="/profile">Profile</a>·<a href="/projects">Projects</a>·<a href="https://github.com/axiom-orion" target="_blank" rel="noopener">GitHub</a>
   <div style="margin-top:8px;">ryan cason · portfolio · updated july 2026</div>
 </footer>
 
@@ -657,126 +591,6 @@
 </dialog>
 
 <!-- ████ DETAIL MODALS — the estate ████ -->
-
-<dialog id="modal-site-vorion" class="detail" aria-labelledby="modal-site-vorion-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">vorion.org</div>
-    <h3 id="modal-site-vorion-title">Vorion</h3>
-    <p>The home of the governance company: the BASIS specification in full, the CogniGate architecture, and the case for why agentic AI needs an enforced trust ladder rather than a vendor's promise. Static Astro site, deployed on Vercel.</p>
-    <div class="detail-links"><a href="https://vorion.org" target="_blank" rel="noopener">Visit vorion.org ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-cognigate" class="detail" aria-labelledby="modal-site-cognigate-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">cognigate.dev</div>
-    <h3 id="modal-site-cognigate-title">Cognigate</h3>
-    <p>CogniGate's own home: the policy-enforcement engine's spec, an interactive playground for testing rules against sample agent actions, and integration docs. Apache-2.0, and the fastest way to see the trust-tier gate actually run.</p>
-    <div class="detail-links"><a href="https://cognigate.dev" target="_blank" rel="noopener">Visit cognigate.dev ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-agentanchor" class="detail" aria-labelledby="modal-site-agentanchor-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">agentanchorai.com</div>
-    <h3 id="modal-site-agentanchor-title">AgentAnchor</h3>
-    <p>A public registry for agent trust attestations — real, signed T0–T7 certificates anyone can look up, the same idea as a certificate-transparency log applied to AI agents instead of TLS certs.</p>
-    <div class="detail-links"><a href="https://agentanchorai.com" target="_blank" rel="noopener">Visit agentanchorai.com ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-aurais" class="detail" aria-labelledby="modal-site-aurais-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">aurais.net</div>
-    <h3 id="modal-site-aurais-title">Aurais</h3>
-    <p>A security console built for people operating fleets of agents rather than one: anomaly detection against a learned behavioral baseline, one-click inspection of an agent's decision chain, and quarantine-on-click the moment something looks wrong.</p>
-    <div class="detail-links"><a href="https://aurais.net" target="_blank" rel="noopener">Visit aurais.net ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-rainbow" class="detail" aria-labelledby="modal-site-rainbow-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">rainbow.vorion.org</div>
-    <h3 id="modal-site-rainbow-title">Rainbow</h3>
-    <p>The analytics layer over the whole governed fleet — trust-tier distribution across every agent, how fast trust scores are moving, and drift detection, in configurable time windows.</p>
-    <div class="detail-links"><a href="https://rainbow.vorion.org" target="_blank" rel="noopener">Visit rainbow.vorion.org ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-demo" class="detail" aria-labelledby="modal-site-demo-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">demo.vorion.org</div>
-    <h3 id="modal-site-demo-title">Vorion demo</h3>
-    <p>A guided, click-through walkthrough of the governance runtime end to end — the fastest way to see what a policy decision, a trust tier, and an audit record actually look like without reading the spec first.</p>
-    <div class="detail-links"><a href="https://demo.vorion.org" target="_blank" rel="noopener">Visit demo.vorion.org ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-baicc" class="detail" aria-labelledby="modal-site-baicc-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">bai-cc.com</div>
-    <h3 id="modal-site-baicc-title">BAI Command Center</h3>
-    <p>The command center behind BanquetAI — the governed multi-app platform that the hospitality-facing product, BeoDraft, runs on top of.</p>
-    <div class="detail-links"><a href="https://bai-cc.com" target="_blank" rel="noopener">Visit bai-cc.com ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-beodraft" class="detail" aria-labelledby="modal-site-beodraft-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">beodraft.com</div>
-    <h3 id="modal-site-beodraft-title">BeoDraft</h3>
-    <p>The live BanquetAI product: give it a Banquet Event Order and it drafts the categorized line items, the equipment layout, and the stewarding pull sheet automatically. This is the one venue operators actually touch day to day.</p>
-    <div class="detail-links"><a href="https://beodraft.com" target="_blank" rel="noopener">Visit beodraft.com ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-footed" class="detail" aria-labelledby="modal-site-footed-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">footed.flcason.com</div>
-    <h3 id="modal-site-footed-title">Footed</h3>
-    <p>A small commissioned build, shipped for a client's job application rather than for the governance or hospitality work above. Kept here because it's live and it's mine.</p>
-    <div class="detail-links"><a href="https://footed.flcason.com" target="_blank" rel="noopener">Visit footed.flcason.com ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-anchor" class="detail" aria-labelledby="modal-site-anchor-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">anchor-hq-ashen.vercel.app</div>
-    <h3 id="modal-site-anchor-title">Anchor</h3>
-    <p>A personal human-in-the-loop dashboard for keeping an eye on everything above — the one piece of this estate that's just for me, not for a visitor or a customer.</p>
-    <div class="detail-links"><a href="https://anchor-hq-ashen.vercel.app" target="_blank" rel="noopener">Visit anchor-hq-ashen.vercel.app ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-enhancements" class="detail" aria-labelledby="modal-site-enhancements-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">enhancements.vorion.org</div>
-    <h3 id="modal-site-enhancements-title">Enhancements</h3>
-    <p>The public backlog and changelog for the whole Vorion estate — what shipped, what's in flight, and what's next, kept in the open rather than behind a private roadmap doc.</p>
-    <div class="detail-links"><a href="https://enhancements.vorion.org" target="_blank" rel="noopener">Visit enhancements.vorion.org ↗</a></div>
-  </div>
-</dialog>
-
-<dialog id="modal-site-fourier" class="detail" aria-labelledby="modal-site-fourier-title">
-  <form method="dialog" class="detail-close"><button aria-label="Close">&times;</button></form>
-  <div class="detail-body">
-    <div class="detail-kicker">fourier-scope.banquetaillc.workers.dev</div>
-    <h3 id="modal-site-fourier-title">Fourier Scope</h3>
-    <p>A small signal-processing toy — a live Fourier-transform visualizer — built on Cloudflare Workers mostly to learn the platform. Not part of the governance or hospitality work; just a fun standalone build.</p>
-    <div class="detail-links"><a href="https://fourier-scope.banquetaillc.workers.dev" target="_blank" rel="noopener">Visit Fourier Scope ↗</a></div>
-  </div>
-</dialog>
 
 <script>
 (function () {
