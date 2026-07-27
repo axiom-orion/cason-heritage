@@ -51,10 +51,38 @@ async function callGemini(system, user, maxTokens) {
   if (!r.ok) throw new Error('gemini ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const d = await r.json();
   const c = d.candidates && d.candidates[0];
-  return ((c && c.content && c.content.parts) || []).map(function (p) { return p.text || ''; }).join('').trim();
+  const text = ((c && c.content && c.content.parts) || []).map(function (p) { return p.text || ''; }).join('').trim();
+  // Fail loudly rather than returning a stub. A near-empty answer used to come
+  // back as a SUCCESSFUL provider, so a model that never really answered still
+  // counted as a participating voice, and only the adjudicator noticing kept it
+  // out of corroboration. An unusable answer is a non-participant, and the
+  // dossier should say which model dropped out and why.
+  if (!text) {
+    const why = (c && c.finishReason) ? c.finishReason : 'empty response';
+    throw new Error('gemini returned no usable text (finishReason: ' + why + ')');
+  }
+  return text;
 }
 
 const RESEARCH_SYS = 'You are a careful research assistant verifying historical and genealogical facts. Answer the question concisely (<=120 words). Be precise. End with your confidence as high, medium, or low. If you are not certain, say so explicitly and do NOT guess or fabricate. Where you can, name the type of source your answer rests on.';
+
+// Output budgets for the research pass. RESEARCH_SYS asks for <=120 words, but
+// the models overrun it — at 400 the tail of a substantive answer was being cut
+// mid-sentence.
+//
+// Gemini needs materially more, for a different reason: the 2.5-series counts
+// THINKING tokens against `maxOutputTokens`, so a 400-token budget was consumed
+// by internal reasoning before the visible answer began. In the 2026-07-27
+// dossier Gemini returned ~15 usable tokens ("Based on available primary
+// records for Pitt County, North Carolina: 1") and the adjudicator dropped it
+// from corroboration entirely — silently reducing a three-model consensus to
+// two and taking confidence from `high` to `medium`.
+//
+// That is not a cosmetic bug. "Corroboration counts independent SOURCES, not
+// voices" is the load-bearing law here, and a token cap was removing a third of
+// the sources before they could be counted.
+const RESEARCH_MAX_TOKENS = 1200;
+const GEMINI_RESEARCH_MAX_TOKENS = 2400;   // + headroom for thinking tokens
 
 function parseJson(s) { if (!s) return null; const a = s.indexOf('{'), b = s.lastIndexOf('}'); if (a < 0 || b < 0 || b < a) return null; try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } }
 
@@ -66,9 +94,9 @@ module.exports = async function (req, res) {
   const user = question + (p.context ? '\n\nContext: ' + clamp(p.context, 800) : '');
 
   const jobs = [];
-  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(RESEARCH_SYS, user, { max_tokens: 400 }); } });
-  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(RESEARCH_SYS, user, 400); } });
-  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(RESEARCH_SYS, user, 400); } });
+  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(RESEARCH_SYS, user, { max_tokens: RESEARCH_MAX_TOKENS }); } });
+  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(RESEARCH_SYS, user, RESEARCH_MAX_TOKENS); } });
+  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(RESEARCH_SYS, user, GEMINI_RESEARCH_MAX_TOKENS); } });
   if (!jobs.length) { res.status(501).json({ error: 'No research providers configured. Set ANTHROPIC_API_KEY, XAI_API_KEY, and/or GEMINI_API_KEY.' }); return; }
 
   const providers = await Promise.all(jobs.map(function (j) {
