@@ -74,7 +74,10 @@ const GOV = require(path.join(ROOT, 'ui_kits', 'living-line', 'governance.js'));
 const BOOKS = path.join(ROOT, 'books.json');
 const ENDPOINT = process.env.LIBRARIAN_CONSENSUS_URL || 'https://flcason.com/api/consensus';
 const OPENLIB = 'https://openlibrary.org/search.json';
-const TIMEOUT_MS = 20000;
+const GBOOKS = 'https://www.googleapis.com/books/v1/volumes';
+// 20s was too tight: the proposal call fans out to three models in parallel and
+// the slowest sets the pace, so a normal run intermittently aborted itself.
+const TIMEOUT_MS = Number(process.env.LIBRARIAN_TIMEOUT_MS) || 60000;
 
 function today() { return new Date().toISOString().slice(0, 10); }
 function clip(s, n) { s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; }
@@ -221,8 +224,16 @@ const PROPOSE_SYS = 'You are a well-read acquisitions librarian. You recommend b
 const VALIDATE_SYS = 'You are a hostile fact-checker assessing whether a specific book exists as ' +
   'described. You assume the claim is wrong until the evidence says otherwise. You are especially ' +
   'suspicious of titles that sound exactly like what a given author would plausibly write, because ' +
-  'that is the signature of a fabrication rather than evidence for one. An honest low score is ' +
-  'always a better answer than a charitable guess. When asked for JSON, you return only JSON.';
+  'that is the signature of a fabrication rather than evidence for one.\n\n' +
+  'CRITICAL: you have NO live internet access. You cannot search publisher sites, retailers or ' +
+  'databases, and you must never write as though you had — claiming "extensive searching yields no ' +
+  'evidence" is itself a fabrication, and a worse one than the claim you were asked to check. ' +
+  'Reason only from what you already know, and say plainly when your knowledge may simply not ' +
+  'reach a recent title.\n\n' +
+  'Absence from YOUR memory is weak evidence, not proof. Score near 50 when you genuinely do not ' +
+  'know; reserve scores under 20 for a claim that actively contradicts something you do know, such ' +
+  'as an author who does not exist or a title you know belongs to someone else. When asked for ' +
+  'JSON, you return only JSON.';
 
 function collectCandidates(res) {
   const providers = (res && res.providers) || [];
@@ -262,6 +273,35 @@ function collectCandidates(res) {
   return Array.from(byTitle.values());
 }
 
+/* Scores collected per provider, for the same reason candidates are: the
+   adjudicator can be offline, and its "Adjudication unavailable." sentinel is
+   truthy. Where reviewers disagree the LOWEST score wins — these are hostile
+   fact-checkers, and one of them confidently saying "I cannot substantiate
+   this" is the finding, not something to average away. Every score is kept so
+   the disagreement stays visible. */
+function collectScore(res) {
+  const scores = [];
+  ((res && res.providers) || []).filter(function (p) { return p && p.ok && p.answer; })
+    .forEach(function (p) {
+      const s = parseScore(p.answer);
+      if (s) scores.push(Object.assign({ by: p.provider }, s));
+    });
+  const adj = res && res.consensus && res.consensus.answer;
+  if (adj && !ADJUDICATOR_DOWN.test(adj)) {
+    const s = parseScore(adj);
+    if (s) scores.push(Object.assign({ by: 'adjudicator' }, s));
+  }
+  if (!scores.length) return null;
+
+  const lowest = scores.reduce(function (a, b) { return b.score < a.score ? b : a; });
+  return Object.assign({}, lowest, {
+    all: scores.map(function (s) { return s.by + ' ' + s.score; }),
+    // Any reviewer rejecting the citation rejects it for all of them.
+    citationSupports: scores.every(function (s) { return s.citationSupports; }),
+    reviewers: scores.length,
+  });
+}
+
 function parseScore(text) {
   if (!text) return null;
   let s = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
@@ -282,27 +322,80 @@ function parseScore(text) {
   };
 }
 
-/* ---- check 3: the objective third party ---- */
-async function lookupCatalogue(cand) {
-  let d;
-  try {
-    d = await getJSON(OPENLIB + '?q=' + encodeURIComponent(cand.title + ' ' + cand.author) + '&limit=5&fields=title,author_name,first_publish_year');
-  } catch (e) {
-    // An outage degrades the run; it never fabricates a pass.
-    return { state: 'unreachable', note: 'catalogue unreachable: ' + clip(e && e.message, 60) };
-  }
+/* ---- check 3: the objective third parties ----
+   Two catalogues, because one was measurably not enough. The 2026-07-27 live
+   run rejected six real books — Co-Intelligence, Slow Productivity, Nexus,
+   Supercommunicators, Clear Thinking, AI Snake Oil — and Open Library's patchy
+   coverage of recent trade non-fiction was half the reason. Google Books has
+   materially better coverage there but requires a key (the anonymous quota
+   answers 429), so it activates only when GOOGLE_BOOKS_API_KEY is set and the
+   agent runs correctly, if more strictly, without it.
+
+   A hit in EITHER catalogue is a hit: they have different gaps, and the point
+   is corroboration from something that is not a language model. */
+async function lookupOpenLibrary(cand) {
+  const d = await getJSON(OPENLIB + '?q=' + encodeURIComponent(cand.title + ' ' + cand.author) + '&limit=5&fields=title,author_name,first_publish_year');
   const docs = (d && d.docs) || [];
   const wantT = norm(cand.title), wantA = surname(cand.author);
   const titleHit = docs.filter(function (doc) { return norm(doc.title) === wantT; });
-  if (!titleHit.length) return { state: 'absent', note: 'no catalogue record for this title' };
+  if (!titleHit.length) return { state: 'absent' };
   const authorHit = titleHit.filter(function (doc) {
     return (doc.author_name || []).some(function (a) { return surname(a) === wantA; });
   });
   if (!authorHit.length) {
-    const who = (titleHit[0].author_name || []).slice(0, 2).join(', ') || 'unknown';
-    return { state: 'author-mismatch', note: 'catalogue has this title under ' + who + ', not ' + cand.author };
+    return { state: 'author-mismatch', who: (titleHit[0].author_name || []).slice(0, 2).join(', ') || 'unknown' };
   }
-  return { state: 'present', note: 'catalogue confirms title and author', year: authorHit[0].first_publish_year || null };
+  return { state: 'present', year: authorHit[0].first_publish_year || null };
+}
+
+async function lookupGoogleBooks(cand) {
+  const key = process.env.GOOGLE_BOOKS_API_KEY;
+  if (!key) return { state: 'skipped' };
+  const q = 'intitle:' + JSON.stringify(cand.title) + ' inauthor:' + JSON.stringify(surname(cand.author));
+  const d = await getJSON(GBOOKS + '?q=' + encodeURIComponent(q) + '&maxResults=5&key=' + encodeURIComponent(key));
+  const items = (d && d.items) || [];
+  const wantT = norm(cand.title), wantA = surname(cand.author);
+  const titleHit = items.map(function (i) { return i.volumeInfo || {}; })
+    .filter(function (v) { return norm(v.title) === wantT; });
+  if (!titleHit.length) return { state: 'absent' };
+  const authorHit = titleHit.filter(function (v) {
+    return (v.authors || []).some(function (a) { return surname(a) === wantA; });
+  });
+  if (!authorHit.length) {
+    return { state: 'author-mismatch', who: ((titleHit[0].authors) || []).slice(0, 2).join(', ') || 'unknown' };
+  }
+  return { state: 'present', year: parseInt(String(authorHit[0].publishedDate || '').slice(0, 4), 10) || null };
+}
+
+async function lookupCatalogue(cand) {
+  const results = [];
+  for (const [name, fn] of [['Open Library', lookupOpenLibrary], ['Google Books', lookupGoogleBooks]]) {
+    try {
+      const r = await fn(cand);
+      if (r.state !== 'skipped') results.push(Object.assign({ source: name }, r));
+    } catch (e) {
+      // An outage degrades the run; it never fabricates a pass.
+      results.push({ source: name, state: 'unreachable', err: clip(e && e.message, 50) });
+    }
+  }
+  if (!results.length) return { state: 'unreachable', note: 'no catalogue was consulted' };
+
+  const hit = results.filter(function (r) { return r.state === 'present'; })[0];
+  if (hit) return { state: 'present', note: hit.source + ' confirms title and author', year: hit.year, sources: results };
+
+  const mismatch = results.filter(function (r) { return r.state === 'author-mismatch'; })[0];
+  if (mismatch) return { state: 'author-mismatch', note: mismatch.source + ' has this title under ' + mismatch.who + ', not ' + cand.author, sources: results };
+
+  const checked = results.filter(function (r) { return r.state === 'absent'; });
+  if (!checked.length) {
+    return { state: 'unreachable', note: 'every catalogue was unreachable: ' + results.map(function (r) { return r.source; }).join(', ') };
+  }
+  return {
+    state: 'absent',
+    note: 'not found in ' + checked.map(function (r) { return r.source; }).join(' or ') +
+      (process.env.GOOGLE_BOOKS_API_KEY ? '' : ' (Google Books not consulted — no API key set)'),
+    sources: results,
+  };
 }
 
 /* ---- combine: each check covers the others' blind spot ----
@@ -358,9 +451,30 @@ function adjudicate(cand, score, cat) {
   if (cat.state === 'unreachable') {
     return { tier: 'unsupported', note: cat.note + ' — cannot confirm a supposedly-published title without it', score: score.score };
   }
+
+  /* Catalogue absent, claimed published. This used to return `unverified` with
+     the note "most likely invented" — which was itself an overclaim, and the
+     live run proved it: Co-Intelligence (Mollick, Portfolio 2024) is a real,
+     well-known book that Open Library simply does not have. The catalogue is
+     crowd-sourced and its coverage of recent trade non-fiction is patchy, so
+     absence is missing evidence, not evidence of absence.
+
+     A fabrication fails BOTH checks — no catalogue record AND a reviewer who
+     can find nothing to support it. Requiring both keeps the guard while
+     letting a real book with a strong citation through on the same terms as a
+     forthcoming one. */
+  if (score.score >= SCORE_FORTHCOMING) {
+    return {
+      tier: 'attested',
+      note: 'not in the catalogue, whose coverage of recent titles is incomplete, but the citation ' +
+        'survived review at ' + score.score + '/100 (' + score.sourceType + ') — treated as uncorroborated, not disproven',
+      score: score.score,
+    };
+  }
   return {
     tier: 'unverified',
-    note: 'claimed already published, but no catalogue record exists — the most likely explanation is that it was invented',
+    note: 'claimed already published, but no catalogue record and the citation scored only ' +
+      score.score + '/100 — nothing independent supports it',
     score: score.score,
   };
 }
@@ -420,7 +534,8 @@ async function main() {
   const arg = function (f, dflt) { const i = argv.indexOf(f); return i !== -1 && argv[i + 1] ? argv[i + 1] : dflt; };
   const max = Math.max(1, Math.min(20, parseInt(arg('--max', '8'), 10) || 8));
   const dryRun = argv.indexOf('--dry-run') !== -1;
-  const OUT = path.join(ROOT, arg('--out', path.join('research', 'proposals')));
+  // resolve, not join: an absolute --out should be used as given, not appended to ROOT.
+  const OUT = path.resolve(ROOT, arg('--out', path.join('research', 'proposals')));
 
   const profile = loadProfile();
   const question = buildQuestion(profile, max);
@@ -496,11 +611,7 @@ async function main() {
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ question: buildValidationQuestion(cand), system: VALIDATE_SYS, maxQuestion: 2000 }),
         });
-        score = parseScore((vres.consensus && vres.consensus.answer) || '');
-        if (!score && vres.providers) {
-          const texts = Object.values(vres.providers).filter(function (p) { return p && p.text; });
-          for (let k = 0; k < texts.length && !score; k++) score = parseScore(texts[k].text);
-        }
+        score = collectScore(vres);
       } catch (e) {
         score = null; // an outage is not a pass
       }
@@ -546,7 +657,9 @@ async function main() {
   const mdFile = path.join(OUT, 'librarian-' + d.date + '.md');
   const trFile = path.join(OUT, 'librarian-' + d.date + '.trace.ndjson');
   fs.writeFileSync(mdFile, render(d));
-  fs.writeFileSync(trFile, trace.events.map(function (e) { return JSON.stringify(e); }).join('\n') + '\n');
+  // toNdjson(), not events.map — `events` is an accessor function on the Trace
+  // API, not an array. The Keeper has always used toNdjson(); this didn't.
+  fs.writeFileSync(trFile, trace.toNdjson());
 
   const ok = items.filter(function (i) { return PASSING.indexOf(i.check.tier) !== -1; }).length;
   console.log('Librarian: ' + items.length + ' candidate(s), ' + ok + ' survived review, ' + (items.length - ok) + ' withheld.');
@@ -559,7 +672,7 @@ if (require.main === module) {
 
 module.exports = {
   norm: norm, surname: surname,
-  parseCandidates: parseCandidates, parseScore: parseScore, collectCandidates: collectCandidates,
+  parseCandidates: parseCandidates, parseScore: parseScore, collectCandidates: collectCandidates, collectScore: collectScore,
   ADJUDICATOR_DOWN: ADJUDICATOR_DOWN,
   buildQuestion: buildQuestion, buildValidationQuestion: buildValidationQuestion,
   adjudicate: adjudicate, render: render,
