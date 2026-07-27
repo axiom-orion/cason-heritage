@@ -18,6 +18,9 @@
      http-ok             — does that URL actually serve?
      record-count        — derived live from data.js, so a count on the
                            résumé can never silently drift from the record
+     file-count          — counts regex matches in a tracked source file, so
+                           a "N agents" / "N rules" figure is derived from the
+                           registry that defines them rather than from memory
      attested            — a real measurement from a source a workflow
                            cannot reach; sourced and dated, and it expires
      unverified          — honestly declared as uncheckable; must carry a
@@ -94,6 +97,42 @@ async function verify(claim, opts) {
     if (!counts) return { method: m, checkable: true, ok: false, error: 'record-count needs ui_kits/family-tree-app/data.js, which this repo does not have' };
     const observed = counts[v.metric];
     if (observed === undefined) return { method: m, checkable: true, ok: false, error: 'unknown metric `' + v.metric + '`' };
+    return { method: m, checkable: true, ok: true, observed: observed, expected: v.expect };
+  }
+
+  /* file-count — the generic sibling of record-count. record-count knows about
+     data.js and only works in THIS repo; file-count is portable: point it at any
+     tracked file and a pattern, and a count published on a page is derived from
+     the thing that defines it. Added after "13-agent roster" sat stale in a doc
+     for a day because the roster number lived in prose and nothing could check it. */
+  if (m === 'file-count') {
+    if (!v.file || !v.pattern) {
+      return { method: m, checkable: true, ok: false, error: 'file-count needs both `file` and `pattern`' };
+    }
+    // Contain the read to the repo: a manifest is repo-controlled, but a path
+    // that escapes ROOT would make the verifier a file-disclosure primitive.
+    const abs = path.resolve(ROOT, v.file);
+    if (abs !== ROOT && !abs.startsWith(ROOT + path.sep)) {
+      return { method: m, checkable: true, ok: false, error: 'file-count path escapes the repo: ' + v.file };
+    }
+    if (!fs.existsSync(abs)) {
+      return { method: m, checkable: true, ok: false, error: 'file-count target does not exist: ' + v.file };
+    }
+    let re;
+    try {
+      // 'g' is forced (we are counting); only line-oriented flags are honored.
+      const flags = 'g' + String(v.flags || '').replace(/[^mi]/g, '');
+      re = new RegExp(v.pattern, flags);
+    } catch (e) {
+      return { method: m, checkable: true, ok: false, error: 'file-count bad pattern: ' + clip(e && e.message, 90) };
+    }
+    const body = fs.readFileSync(abs, 'utf8');
+    const observed = (body.match(re) || []).length;
+    if (observed === 0) {
+      // Zero almost always means the pattern rotted, not that the roster emptied.
+      // Failing loudly beats silently "confirming" a count of zero.
+      return { method: m, checkable: true, ok: false, error: 'file-count matched nothing in ' + v.file + ' — the pattern is probably stale' };
+    }
     return { method: m, checkable: true, ok: true, observed: observed, expected: v.expect };
   }
 

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "subject": "Ryan Cason — the reading record",
+  "note": "Source of truth for /profile's shelf band. The page derives every number from this file — nothing is hand-typed into the HTML — so the count on a public page cannot drift from the actual log. Same discipline as claims.json: if the number is on the site, something has to be able to check it.",
+
+  "_schema": {
+    "shelf": "The influences. Curated and ordered — the ones that changed how I build, not everything I finished. `why` is the whole point: what it changed, not what the book is about. Two sentences. Entries here should also appear in `log`.",
+    "log": "Every title finished. `finished` (ISO date) is optional and currently absent — the count does not depend on it. Add dates going forward and the page can start showing how long since a NEW title landed.",
+    "revisiting": "Titles with a re-listen currently in progress. These are second or third passes, NOT unfinished books — every title in this file is finished. `remainingMinutes` is what's left on the current pass.",
+    "_deliberatelyNoGoal": "There is no annual target and no pace bar. A made-up number would be exactly the kind of unbacked figure rule 06 exists to keep off this site.",
+    "_allReadTwice": "Every title below has been through at least twice. Stated by the subject 2026-07-26; it is why `revisiting` exists as its own bucket instead of being mislabeled 'in progress'."
+  },
+
+  "shelf": [],
+
+  "log": [
+    { "title": "The Science of Scaling", "author": "Benjamin Hardy & Blake Erickson" },
+    { "title": "The Next Conversation", "author": "Jefferson Fisher" },
+    { "title": "Think and Grow Rich", "author": "Napoleon Hill" },
+    { "title": "Outwitting the Devil", "author": "Napoleon Hill" },
+    { "title": "Scattered Minds", "author": "Dr. Gabor Maté" },
+    { "title": "Build a Business You Love", "author": "Dave Ramsey" },
+    { "title": "Extreme Ownership", "author": "Jocko Willink & Leif Babin" },
+    { "title": "The Dichotomy of Leadership", "author": "Jocko Willink & Leif Babin" },
+    { "title": "Becoming Supernatural", "author": "Dr. Joe Dispenza" },
+    { "title": "Something Deeply Hidden", "author": "Sean Carroll" },
+    { "title": "The Vision of the Anointed", "author": "Thomas Sowell" },
+    { "title": "Basic Economics", "author": "Thomas Sowell" },
+    { "title": "The 21 Irrefutable Laws of Leadership", "author": "John C. Maxwell" },
+    { "title": "Beyond Positive Thinking", "author": "Arnold Fox & Barry Fox" },
+    { "title": "Nine-Figure Mindset", "author": "Brandon Dawson" },
+    { "title": "The Hypomanic Edge", "author": "John D. Gartner" },
+    { "title": "Inner Excellence", "author": "Jim Murphy" },
+    { "title": "The 7 Habits of Highly Effective People & The 8th Habit", "author": "Stephen R. Covey" },
+    { "title": "The Total Money Makeover", "author": "Dave Ramsey" },
+    { "title": "Rich Dad Poor Dad", "author": "Robert T. Kiyosaki" },
+    { "title": "The Let Them Theory", "author": "Mel Robbins" },
+    { "title": "Atomic Habits", "author": "James Clear" },
+    { "title": "Unfu*k Yourself", "author": "Gary John Bishop" },
+    { "title": "Wise as Fu*k", "author": "Gary John Bishop" },
+    { "title": "How to Talk to Anyone", "author": "Leil Lowndes" },
+    { "title": "Your Next Five Moves", "author": "Patrick Bet-David" },
+    { "title": "Burn the Boats", "author": "Matt Higgins" }
+  ],
+
+  "revisiting": [
+    { "title": "Build a Business You Love", "author": "Dave Ramsey", "remainingMinutes": 2 },
+    { "title": "The Hypomanic Edge", "author": "John D. Gartner", "remainingMinutes": 6 },
+    { "title": "Inner Excellence", "author": "Jim Murphy", "remainingMinutes": 6 },
+    { "title": "The Let Them Theory", "author": "Mel Robbins", "remainingMinutes": 44 },
+    { "title": "Extreme Ownership", "author": "Jocko Willink & Leif Babin", "remainingMinutes": 73 },
+    { "title": "The Dichotomy of Leadership", "author": "Jocko Willink & Leif Babin", "remainingMinutes": 134 },
+    { "title": "Something Deeply Hidden", "author": "Sean Carroll", "remainingMinutes": 475 },
+    { "title": "Basic Economics", "author": "Thomas Sowell", "remainingMinutes": 1635 }
+  ]
+}

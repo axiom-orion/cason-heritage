@@ -20,7 +20,7 @@ Vorion-branded concepts to the live mechanisms, and an honest public-claim ledge
 The brief reads as a greenfield design. **It is not greenfield.** Surveying the four
 repositories on `claude/flcason-agent-orchestration-9adb4y`:
 
-- **cason-heritage** runs a live 13-agent roster (`ui_kits/living-line/agents.js`,
+- **cason-heritage** runs a live 15-agent roster (`ui_kits/living-line/agents.js`,
   selftest-enforced), a typed pre-execution gate (`governance.js`, seven named rules),
   NDJSON traces, a `/proof` evidence-tier surface, a `/living` glass-box governance view,
   a weekly **drift-audit** (`scripts/drift-audit.js`) that emits a content-addressed
