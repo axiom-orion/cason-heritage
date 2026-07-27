@@ -51,14 +51,21 @@ ok('parseScore: clamps above 100', L.parseScore('{"score":900,"citationSupports"
 ok('parseScore: clamps below 0', L.parseScore('{"score":-5,"citationSupports":true}').score === 0);
 ok('parseScore: garbage yields null, not a default pass', L.parseScore('I think it is probably real') === null);
 ok('parseScore: a missing score yields null', L.parseScore('{"citationSupports":true}') === null);
-ok('parseScore: citationSupports must be explicitly true',
-  L.parseScore('{"score":90,"citationSupports":"yes"}').citationSupports === false);
+ok('parseScore: existsScore and citationScore are read separately',
+  L.parseScore('{"existsScore":90,"citationScore":10}').score === 90 &&
+  L.parseScore('{"existsScore":90,"citationScore":10}').citationScore === 10);
+ok('parseScore: the older single `score` shape still degrades usefully',
+  L.parseScore('{"score":70,"sourceType":"publisher"}').score === 70);
+ok('parseScore: a missing citationScore is null, not zero',
+  L.parseScore('{"existsScore":70}').citationScore === null);
 
 /* ---- ADJUDICATION: the part where a bug lets a fabrication through ---- */
-const strong = { score: 90, citationSupports: true, sourceType: 'publisher', reasoning: 'r', concerns: '' };
-const weak = { score: 55, citationSupports: true, sourceType: 'publisher', reasoning: 'r', concerns: '' };
-const vague = { score: 90, citationSupports: true, sourceType: 'vague', reasoning: 'r', concerns: '' };
-const rejects = { score: 30, citationSupports: false, sourceType: 'news', reasoning: 'r', concerns: '' };
+// `score` is existsScore: does the BOOK exist. citationScore is separate, and
+// deliberately cannot veto a catalogue hit.
+const strong  = { score: 90, citationScore: 80, sourceType: 'publisher', reasoning: 'r', concerns: '' };
+const weak    = { score: 55, citationScore: 50, sourceType: 'publisher', reasoning: 'r', concerns: '' };
+const vague   = { score: 90, citationScore: 10, sourceType: 'vague',     reasoning: 'r', concerns: '' };
+const rejects = { score: 30, citationScore: 10, sourceType: 'vague',     reasoning: 'r', concerns: '' };
 const present = { state: 'present', note: 'catalogue confirms title and author', year: 2025 };
 const absent = { state: 'absent', note: 'no catalogue record for this title' };
 const mismatch = { state: 'author-mismatch', note: 'catalogue has this title under Someone Else' };
@@ -89,10 +96,21 @@ ok('adjudicate: forthcoming is held to the HIGHER bar',
   L.adjudicate(fwd(), weak, absent).tier === 'unsupported');
 ok('adjudicate: published passes at a score that would fail forthcoming',
   L.adjudicate(pub(), weak, present).tier === 'verified' && weak.score < L.SCORE_FORTHCOMING);
-ok('adjudicate: a vague source is rejected however high the score',
-  L.adjudicate(fwd(), vague, absent).tier === 'unsupported');
-ok('adjudicate: reviewer rejecting the citation overrides a catalogue hit',
-  L.adjudicate(pub(), rejects, present).tier === 'unsupported');
+// A vague citation no longer vetoes a book the reviewer believes is real —
+// a model with no web access can almost never call a citation "specific".
+ok('adjudicate: a vague citation does NOT sink a book scored real',
+  L.adjudicate(fwd(), vague, absent).tier === 'attested');
+ok('adjudicate: a vague citation DOES sink a book that also scored low',
+  L.adjudicate(fwd(), rejects, absent).tier === 'unsupported');
+/* The regression that forced this design. The 2026-07-27 run rejected
+   "The Diary of a CEO: The 33 Laws of Business and Life" at 22/100 while the
+   reviewer wrote "the actual known title is 'The Diary of a CEO: The 33 Laws
+   of Business and Life'" — it confirmed the book and rejected it for the
+   citation's imprecision. The catalogue now outranks the citation. */
+ok('adjudicate: a catalogue hit survives a thin citation',
+  L.adjudicate(pub(), rejects, present).tier === 'verified');
+ok('adjudicate: a catalogue hit says so when the citation was thin',
+  L.adjudicate(pub(), rejects, present).note.indexOf('catalogue is the evidence') !== -1);
 ok('adjudicate: author mismatch → conflict',
   L.adjudicate(pub(), strong, mismatch).tier === 'conflict');
 ok('adjudicate: an unusable score is treated as unsupported, not assumed good',
@@ -154,8 +172,10 @@ ok('validation: the scorer is warned about plausible-sounding fabrications',
   v.indexOf('sounds exactly like what') !== -1);
 ok('validation: the scorer is NOT given the reading profile (it cannot be swayed by fit)',
   books.log.every(function (b) { return v.indexOf(b.title) === -1; }));
-ok('validation: a low score is explicitly endorsed as a correct answer',
-  v.indexOf('honest low score is the correct answer') !== -1);
+ok('validation: existence and citation quality are asked as separate questions',
+  v.indexOf('TWO SEPARATE questions') !== -1 && v.indexOf('existsScore') !== -1 && v.indexOf('citationScore') !== -1);
+ok('validation: the scorer is told a sloppy citation does not make a book fake',
+  v.indexOf('still a real book') !== -1);
 
 /* ---- the degraded-adjudicator case: this wasted the first live run ----
    The endpoint returns HTTP 200 with consensus.answer set to the literal
