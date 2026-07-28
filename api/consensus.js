@@ -24,6 +24,24 @@ function clamp(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.s
 
    Dynamic filtering is built into this tool version, so `code_execution` must
    NOT also be declared — a second execution environment confuses the model. */
+/* The domain is what a grader actually tiers — a publisher's own listing
+   outranks a retailer, which outranks a blog. Google's grounding API returns
+   opaque `vertexaisearch...redirect` URLs, but puts the real host in `title`,
+   so fall back to that rather than reporting redirect domains nobody can rank. */
+function sourceDomain(url, title) {
+  let host = '';
+  try { host = new URL(String(url)).hostname.replace(/^www\./, ''); } catch (e) { host = ''; }
+  const opaque = !host || /(^|\.)vertexaisearch\.cloud\.google\.com$/.test(host);
+  if (opaque) {
+    const t = String(title || '').trim().toLowerCase();
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/.test(t)) return t.replace(/^www\./, '');
+    // Redirect host with no domain in the title: report nothing rather than a
+    // hostname that grades every source identically and tells a grader nothing.
+    return '';
+  }
+  return host;
+}
+
 const WEB_SEARCH_TOOL = 'web_search_20260209';
 const MAX_PAUSE_RESUMES = 3;
 
@@ -39,7 +57,7 @@ function claudeSources(content) {
       return;
     }
     b.content.forEach(function (r) {
-      if (r && r.url) out.push({ title: clamp(r.title || '', 200), url: r.url });
+      if (r && r.url) out.push({ title: clamp(r.title || '', 200), url: r.url, domain: sourceDomain(r.url, r.title) });
     });
   });
   return out;
@@ -85,18 +103,36 @@ async function callGrok(system, user, maxTokens, opts) {
   // if the shape is ever rejected the provider errors loudly rather than
   // silently answering from recall while claiming to have searched.
   if (opts.webSearch) body.search_parameters = { mode: 'auto', return_citations: true };
-  const r = await fetch('https://api.x.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: { authorization: 'Bearer ' + process.env.XAI_API_KEY, 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+
+  async function post(b) {
+    return fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: { authorization: 'Bearer ' + process.env.XAI_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify(b),
+    });
+  }
+
+  let r = await post(body);
+  /* Live Search was retired — the API answers 410 pointing at its Agent Tools
+     successor. Rather than lose a third of the panel, retry ungrounded and say
+     so: `searched` comes back false and no sources are claimed. A voice that
+     answered from recall is still worth counting, as long as nobody mistakes
+     it for one that looked something up. */
+  let degraded = false;
+  if (!r.ok && (r.status === 410 || r.status === 400) && body.search_parameters) {
+    delete body.search_parameters;
+    degraded = true;
+    r = await post(body);
+  }
   if (!r.ok) throw new Error('xai ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const d = await r.json();
   const text = ((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').trim();
   const sources = (d.citations || []).map(function (u) {
-    return typeof u === 'string' ? { url: u } : { url: u && u.url, title: clamp((u && u.title) || '', 200) };
+    const url = typeof u === 'string' ? u : (u && u.url);
+    const title = typeof u === 'string' ? '' : clamp((u && u.title) || '', 200);
+    return { url: url, title: title, domain: sourceDomain(url, title) };
   }).filter(function (x) { return x.url; });
-  return { text: text, sources: sources, searched: !!opts.webSearch };
+  return { text: text, sources: sources, searched: !!opts.webSearch && !degraded };
 }
 
 async function callGemini(system, user, maxTokens, opts) {
@@ -128,7 +164,8 @@ async function callGemini(system, user, maxTokens, opts) {
   }
   const chunks = (c && c.groundingMetadata && c.groundingMetadata.groundingChunks) || [];
   const sources = chunks.map(function (g) {
-    return g && g.web ? { url: g.web.uri, title: clamp(g.web.title || '', 200) } : null;
+    if (!g || !g.web) return null;
+    return { url: g.web.uri, title: clamp(g.web.title || '', 200), domain: sourceDomain(g.web.uri, g.web.title) };
   }).filter(function (x) { return x && x.url; });
   return { text: text, sources: sources, searched: !!opts.webSearch };
 }
