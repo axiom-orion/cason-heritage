@@ -16,37 +16,102 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'; // set to a
 
 function clamp(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) : s; }
 
-async function callClaude(system, user, opts) {
-  opts = opts || {};
-  const body = { model: CLAUDE_MODEL, max_tokens: opts.max_tokens || 400, system: system, messages: [{ role: 'user', content: user }] };
-  if (opts.thinking) body.thinking = opts.thinking;
+/* Anthropic's server-side web search. Runs on Anthropic's infrastructure — no
+   client loop, no beta header — and returns the pages it actually retrieved as
+   `web_search_tool_result` blocks. Those URLs are the point: a citation lifted
+   from a tool result is evidence the model fetched something, where a citation
+   written into prose is only a claim that it did.
+
+   Dynamic filtering is built into this tool version, so `code_execution` must
+   NOT also be declared — a second execution environment confuses the model. */
+const WEB_SEARCH_TOOL = 'web_search_20260209';
+const MAX_PAUSE_RESUMES = 3;
+
+/* A server-tool failure arrives as HTTP 200 with an error object where the
+   result list would be — success `content` is an ARRAY, an error is an OBJECT.
+   Indexing without checking turns a failed search into a silent empty result. */
+function claudeSources(content) {
+  const out = [];
+  (content || []).forEach(function (b) {
+    if (b.type !== 'web_search_tool_result') return;
+    if (!Array.isArray(b.content)) {
+      out.push({ error: (b.content && b.content.error_code) || 'web_search_failed' });
+      return;
+    }
+    b.content.forEach(function (r) {
+      if (r && r.url) out.push({ title: clamp(r.title || '', 200), url: r.url });
+    });
+  });
+  return out;
+}
+
+async function anthropicPost(body) {
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error('anthropic ' + r.status + ': ' + (await r.text()).slice(0, 200));
-  const d = await r.json();
-  return (d.content || []).filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join('').trim();
+  return r.json();
 }
 
-async function callGrok(system, user, maxTokens) {
+async function callClaude(system, user, opts) {
+  opts = opts || {};
+  const body = { model: CLAUDE_MODEL, max_tokens: opts.max_tokens || 400, system: system, messages: [{ role: 'user', content: user }] };
+  if (opts.thinking) body.thinking = opts.thinking;
+  if (opts.webSearch) body.tools = [{ type: WEB_SEARCH_TOOL, name: 'web_search' }];
+
+  let d = await anthropicPost(body);
+  let sources = claudeSources(d.content);
+  let text = (d.content || []).filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join('');
+
+  /* The server-side search loop caps at 10 iterations and returns `pause_turn`
+     rather than finishing. Resuming means re-sending the turn so far — with no
+     extra user message; the trailing server_tool_use is the resume signal. */
+  for (let i = 0; i < MAX_PAUSE_RESUMES && d.stop_reason === 'pause_turn'; i++) {
+    body.messages = [{ role: 'user', content: user }, { role: 'assistant', content: d.content }];
+    d = await anthropicPost(body);
+    sources = sources.concat(claudeSources(d.content));
+    text += (d.content || []).filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join('');
+  }
+
+  return { text: text.trim(), sources: sources, searched: !!opts.webSearch };
+}
+
+async function callGrok(system, user, maxTokens, opts) {
+  opts = opts || {};
+  const body = { model: XAI_MODEL, max_tokens: maxTokens, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] };
+  // xAI Live Search. Verified against the live API before being relied on —
+  // if the shape is ever rejected the provider errors loudly rather than
+  // silently answering from recall while claiming to have searched.
+  if (opts.webSearch) body.search_parameters = { mode: 'auto', return_citations: true };
   const r = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
     headers: { authorization: 'Bearer ' + process.env.XAI_API_KEY, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: XAI_MODEL, max_tokens: maxTokens, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+    body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error('xai ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const d = await r.json();
-  return ((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').trim();
+  const text = ((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').trim();
+  const sources = (d.citations || []).map(function (u) {
+    return typeof u === 'string' ? { url: u } : { url: u && u.url, title: clamp((u && u.title) || '', 200) };
+  }).filter(function (x) { return x.url; });
+  return { text: text, sources: sources, searched: !!opts.webSearch };
 }
 
-async function callGemini(system, user, maxTokens) {
+async function callGemini(system, user, maxTokens, opts) {
+  opts = opts || {};
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(process.env.GEMINI_API_KEY);
   const r = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { maxOutputTokens: maxTokens } }),
+    body: JSON.stringify(Object.assign({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: 'user', parts: [{ text: user }] }],
+      generationConfig: { maxOutputTokens: maxTokens },
+    // Google Search grounding. Sources come back as groundingChunks, which are
+    // retrieved pages rather than model-asserted citations.
+    }, opts.webSearch ? { tools: [{ google_search: {} }] } : {})),
   });
   if (!r.ok) throw new Error('gemini ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const d = await r.json();
@@ -61,7 +126,11 @@ async function callGemini(system, user, maxTokens) {
     const why = (c && c.finishReason) ? c.finishReason : 'empty response';
     throw new Error('gemini returned no usable text (finishReason: ' + why + ')');
   }
-  return text;
+  const chunks = (c && c.groundingMetadata && c.groundingMetadata.groundingChunks) || [];
+  const sources = chunks.map(function (g) {
+    return g && g.web ? { url: g.web.uri, title: clamp(g.web.title || '', 200) } : null;
+  }).filter(function (x) { return x && x.url; });
+  return { text: text, sources: sources, searched: !!opts.webSearch };
 }
 
 const RESEARCH_SYS = 'You are a careful research assistant verifying historical and genealogical facts. Answer the question concisely (<=120 words). Be precise. End with your confidence as high, medium, or low. If you are not certain, say so explicitly and do NOT guess or fabricate. Where you can, name the type of source your answer rests on.';
@@ -117,15 +186,28 @@ module.exports = async function (req, res) {
   // Absent that, the Keeper's system prompt is unchanged.
   const system = p.system ? clamp(String(p.system), HARD_MAX_SYSTEM) : RESEARCH_SYS;
 
+  /* Web search is opt-in per request. The Keeper and the Librarian ask questions
+     that require looking things up; a model with no retrieval can only answer
+     from recall, and when pressed for a source it invents one. Callers that
+     want a grounded answer set `webSearch: true` and read `providers[].sources`
+     — pages actually retrieved, not citations a model asserted. */
+  const webSearch = p.webSearch === true;
+
   const jobs = [];
-  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(system, user, { max_tokens: RESEARCH_MAX_TOKENS }); } });
-  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(system, user, RESEARCH_MAX_TOKENS); } });
-  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(system, user, GEMINI_RESEARCH_MAX_TOKENS); } });
+  if (process.env.ANTHROPIC_API_KEY) jobs.push({ provider: 'Claude', run: function () { return callClaude(system, user, { max_tokens: RESEARCH_MAX_TOKENS, webSearch: webSearch }); } });
+  if (process.env.XAI_API_KEY) jobs.push({ provider: 'Grok', run: function () { return callGrok(system, user, RESEARCH_MAX_TOKENS, { webSearch: webSearch }); } });
+  if (process.env.GEMINI_API_KEY) jobs.push({ provider: 'Gemini', run: function () { return callGemini(system, user, GEMINI_RESEARCH_MAX_TOKENS, { webSearch: webSearch }); } });
   if (!jobs.length) { res.status(501).json({ error: 'No research providers configured. Set ANTHROPIC_API_KEY, XAI_API_KEY, and/or GEMINI_API_KEY.' }); return; }
 
   const providers = await Promise.all(jobs.map(function (j) {
-    return j.run().then(function (answer) { return { provider: j.provider, ok: true, answer: answer }; })
-      .catch(function (e) { return { provider: j.provider, ok: false, error: String(e.message || e) }; });
+    return j.run().then(function (out) {
+      return {
+        provider: j.provider, ok: true, answer: out.text,
+        // Retrieved pages, kept distinct from anything the model wrote. A
+        // caller can grade these; it cannot grade a sentence claiming a source.
+        sources: out.sources || [], searched: !!out.searched,
+      };
+    }).catch(function (e) { return { provider: j.provider, ok: false, error: String(e.message || e) }; });
   }));
   const good = providers.filter(function (s) { return s.ok && s.answer; });
 
@@ -142,7 +224,7 @@ module.exports = async function (req, res) {
     const adjSys = 'You are a meticulous adjudicator guarding against hallucination. You are given answers from several INDEPENDENT AI models to the same question. Compare them. A claim counts as CORROBORATED only if at least two independent models assert it. A claim from a single model is UNVERIFIED and must never be elevated to fact. If models conflict, report the conflict. Never add facts that none of the models provided. Respond with ONLY a single JSON object, no prose, of exactly this shape: {"agreement":"strong|partial|conflict|insufficient","confidence":"high|medium|low","corroborated":"the points two or more models agree on, or empty","disputed":"where the models differ, or empty","unverified":"claims only one model made, or empty","answer":"a synthesized, honest answer that treats only multi-model-agreed points as established and explicitly marks single-source or conflicting points as unconfirmed"}.';
     const adjUser = 'Question: ' + question + '\n\nModel answers:\n' + block;
     let raw = '';
-    try { raw = await callClaude(adjSys, adjUser, { max_tokens: 1500, thinking: { type: 'adaptive' } }); } catch (e) { raw = ''; }
+    try { raw = (await callClaude(adjSys, adjUser, { max_tokens: 1500, thinking: { type: 'adaptive' } })).text; } catch (e) { raw = ''; }
     consensus = parseJson(raw) || {
       agreement: good.length >= 2 ? 'partial' : 'insufficient', confidence: 'low',
       corroborated: '', disputed: '', unverified: '', answer: clamp(raw, 800) || 'Adjudication unavailable.',
