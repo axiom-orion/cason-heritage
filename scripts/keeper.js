@@ -62,6 +62,7 @@ const OUT = path.join(ROOT, String(flag('out', 'research/proposals')));
 const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus';
 // the typed governance gate + NDJSON trace (governed-agents contract, ported).
 const GOV = require(path.join(LIVING, 'governance.js'));
+const EVID = require(path.join(LIVING, 'evidence.js'));
 // the record's supersession ledger — values the gate refuses to re-assert.
 const SUP = require(path.join(LIVING, 'supersessions.js'));
 // durable cross-run memory via agent-memory-service (env-gated; no-op when unset).
@@ -139,20 +140,101 @@ function selectPerPersona(g) {
   return picks.slice(0, MAX);
 }
 
+
+/* ---- distinctive tokens for the evidence gate ----
+   What text matching can honestly do for a genealogical question is narrow,
+   and worth stating plainly.
+
+   For a book the title IS the claim, so a page naming it supports the claim.
+   A genealogical question has no such handle. "Bo Williams names my brother
+   William's wife as Ann Munden" mentions a secondary-source AUTHOR, a brother,
+   a wife and a surname — and demanding one page contain all of them refuses
+   every question, which is the false-negative failure the Librarian already
+   taught us to avoid.
+
+   So the conjunction is capped at TWO: the subject's surname, plus the single
+   most distinctive other proper noun. That is a topic filter, not proof — it
+   excludes pages about unrelated families and claims nothing more.
+
+   For genealogy the gate's real discriminator is the SOURCE TIER, not the
+   text. Twelve forum pages and zero archives is a meaningful answer about
+   whether a record has been located, and that judgement needs no string
+   matching at all — which is why the dossier reports the tier spread. */
+const STOPWORDS = /^(the|and|but|for|his|her|my|is|was|are|were|who|what|where|when|which|that|this|there|bo|sr|jr|i|a|an|of|in|on|at|to|it|as|by|be|do|not|no|yes|one|two)$/i;
+function questionTerms(q) {
+  const seen = {}, out = [];
+
+  /* Drop the attributor before choosing terms. "Bo Williams names my brother's
+     wife as Ann Munden" puts a secondary-source AUTHOR in the subject position,
+     so taking proper nouns in order made the gate filter for pages about Bo
+     Williams rather than about the marriage. A name followed by an attribution
+     verb is who is MAKING the claim, not who the claim is ABOUT. */
+  const ATTRIB = /\b([A-Z][a-z]{3,})\s+(?:[A-Z][a-z]+\s+)?(?:names|claims|says|writes|reports|records|lists|gives|has)\b/g;
+  const attributors = {};
+  const body = String(q.text || '');
+  let mm;
+  while ((mm = ATTRIB.exec(body)) !== null) { attributors[mm[1].toLowerCase()] = 1; }
+
+  const add = function (w) {
+    const t = String(w || '').replace(/[^A-Za-z]/g, '');
+    if (t.length < 4 || STOPWORDS.test(t)) return;
+    if (attributors && attributors[t.toLowerCase()]) return;
+    const k = t.toLowerCase();
+    if (seen[k]) return;
+    seen[k] = 1; out.push(t);
+  };
+  /* The subject's surname first — it anchors every question about this person.
+     Walk back past generational suffixes: the surname of "Ransom Cason Sr." is
+     Cason, and taking the last token blindly yields "Sr", which is dropped as
+     too short and leaves that question with no anchor at all. */
+  const SUFFIX = /^(sr|jr|ii|iii|iv|esq)\.?$/i;
+  const nameParts = String(q.name || '').trim().split(/\s+/)
+    .filter(function (w) { return w && !SUFFIX.test(w); });
+  if (nameParts.length) add(nameParts[nameParts.length - 1]);
+  // then capitalised words in the question body, which are the other parties
+  (body.match(/[A-Z][a-z]{3,}/g) || []).forEach(add);
+  return out.slice(0, 2);
+}
+
 /* ---- 3. ask the consensus endpoint ---- */
 async function research(q, extraContext) {
+  q = Object.assign({}, q, { terms: q.terms || questionTerms(q) });
   const question = 'For ' + q.name + (q.lifespan ? ' (' + q.lifespan + ')' : '') + ': ' + q.text +
     '\nWhat do the primary records say? Name the record type and tier the evidence.';
   const ctl = new AbortController();
-  const t = setTimeout(function () { ctl.abort(); }, 60000);
+  // 60s was sized for three bare completions. With retrieval on, each provider
+  // runs a search loop before it answers, and the slowest sets the pace — the
+  // first grounded run aborted itself at 60s and reported 'research unavailable'.
+  const t = setTimeout(function () { ctl.abort(); }, Number(process.env.KEEPER_TIMEOUT_MS) || 240000);
   try {
     const r = await fetch(ENDPOINT, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ question: question, context: CONTEXT + (extraContext || '') }), signal: ctl.signal,
+      body: JSON.stringify({
+        question: question,
+        context: CONTEXT + (extraContext || ''),
+        // The whole point. Until now this asked three models with no retrieval
+        // where a primary record is — a question none of them could answer, so
+        // the honest ones said "not found" and the third invented a will book.
+        webSearch: true,
+      }), signal: ctl.signal,
     });
     const j = await r.json();
     if (!r.ok || j.error) return { ok: false, error: j.error || ('HTTP ' + r.status) };
-    return { ok: true, question: question, consensus: j.consensus || {}, providers: j.providers || [], models: j.models || {} };
+
+    /* Grade what was actually retrieved, not what was asserted. `mustAppearAll`
+       is the distinctive conjunction for this question — a page has to name all
+       of it to count as supporting the claim rather than the family. */
+    const merged = EVID.fromProviders(j.providers || []);
+    const evidence = EVID.grade({
+      sources: merged.sources,
+      searched: merged.searched,
+      mustAppearAll: q.terms || [],
+    });
+
+    return {
+      ok: true, question: question, consensus: j.consensus || {},
+      providers: j.providers || [], models: j.models || {}, evidence: evidence,
+    };
   } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
   finally { clearTimeout(t); }
 }
@@ -174,6 +256,17 @@ function gate(res, eliminated) {
   // models agreeing the claim is UNPROVEN is corroboration of an open question, not a new fact.
   if (corroborated && NEGATIVE.test([c.corroborated, c.answer].filter(Boolean).join(' ')))
     return { tier: 'unsolved', verdict: '>=2 models agree — but on the ABSENCE of a primary record. The line stays open; the dossier names what would close it.', quarantined: false };
+  /* The evidence gate overrides model agreement. Three models concurring on
+     something no retrieved page supports is three voices, not a source —
+     which is the distinction bloodhound.md draws and this now enforces. */
+  const ev = res.evidence;
+  if (corroborated && ev && ev.grade === 'REFUSED') {
+    return {
+      tier: 'unsolved',
+      verdict: 'Models agreed, but nothing retrieved supports the claim (' + ev.why + '). Agreement without a source is voices, not corroboration — held.',
+      quarantined: false,
+    };
+  }
   if (corroborated) return { tier: 'leading', verdict: 'Corroborated by >=2 independent models — a lead, not proof. Needs a primary record to confirm.', quarantined: false };
   if (okN >= 1 && (c.unverified || '').trim()) return { tier: 'possible', verdict: 'Single-source / unverified — recorded as a thread to chase, not as fact.', quarantined: false };
   return { tier: 'unsolved', verdict: 'No corroboration (conflict or insufficient) — the question stays open.', quarantined: false };
@@ -293,6 +386,37 @@ function traceItem(trace, step, r, action, decision) {
   }
 }
 
+/* ---- the evidence block: what was actually retrieved ----
+   Printed before the model narrative on purpose. A reader should see the
+   sources and their tiers first, and judge the prose against them — not the
+   other way round. */
+function evidenceBlock(ev) {
+  if (!ev) return '';
+  let md = '**Evidence gate:** `' + ev.grade + '`';
+  md += ev.publishable ? ' — publishable' : ' — not publishable';
+  md += '  ·  ' + ev.why + '\n\n';
+  if (ev.violations && ev.violations.length) {
+    ev.violations.forEach(function (v) { md += '- ⚠ **' + v.rule + '** — ' + v.detail + '\n'; });
+    md += '\n';
+  }
+  if (ev.sources && ev.sources.length) {
+    // Tier spread is the honest signal for a genealogical question: archives
+    // present or absent says more than any sentence a model writes.
+    const byTier = {};
+    ev.sources.forEach(function (x) { (byTier[x.tier] = byTier[x.tier] || []).push(x.domain); });
+    md += '**Sources retrieved (on point):**\n\n';
+    ['primary', 'secondary', 'aggregator', 'unknown'].forEach(function (t) {
+      if (!byTier[t]) return;
+      const uniq = byTier[t].filter(function (d, i, a) { return a.indexOf(d) === i; });
+      md += '- `' + t + '` — ' + uniq.join(', ') + '\n';
+    });
+    md += '\n';
+  }
+  if (ev.topical && ev.topical.length) {
+    md += '_' + ev.topical.length + ' further page(s) matched the subject but not this claim, and are excluded from the grade._\n\n';
+  }
+  return md;
+}
 /* ---- 5. dossier ---- */
 function snippet(q, tier) {
   return JSON.stringify({
@@ -325,6 +449,7 @@ function dossier(runs, memNote) {
     const q = r.q;
     md += '\n## ' + (i + 1) + '. ' + q.name + (q.lifespan ? ' — ' + q.lifespan : '') + '\n\n';
     md += '**Open line (`' + q.ownerId + '`):** ' + q.text + '\n\n';
+    md += evidenceBlock(r.res && r.res.evidence);
     md += '**Bloodhound verdict:** `' + r.gate.tier + '` — ' + r.gate.verdict + '\n\n';
     if (r.decision) md += '**Gate (policy):** `' + r.decision.decision + '`' + (r.decision.violations.length ? ' — ' + r.decision.violations.map(function (v) { return v.rule; }).join(', ') : ' (no violations)') + '\n\n';
     if (r.prior && r.prior.length) md += '**Prior memory (earlier runs):** ' + r.prior.slice(0, 3).map(function (m) { return clip(m.content, 120) + (m.superseded ? ' _(superseded)_' : ''); }).join(' · ') + '\n\n';
