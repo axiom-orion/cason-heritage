@@ -60,6 +60,13 @@ jobs:
           # Set repo variable KEEPER_PROPOSE_URL (e.g. https://flcason.com/api/propose) and secret KEEPER_INGEST_TOKEN.
           KEEPER_PROPOSE_URL: ${{ vars.KEEPER_PROPOSE_URL }}
           KEEPER_INGEST_TOKEN: ${{ secrets.KEEPER_INGEST_TOKEN }}
+          # Durable cross-run memory. memory-client.js reads exactly these two
+          # names; without them here the Keeper is stateless no matter what is
+          # set on the repo, and it re-researches questions it already answered.
+          # The service is durable as of 2026-07-28 (Firestore-backed), so a
+          # finding written this week is recalled next week.
+          KEEPER_MEMORY_URL: ${{ vars.KEEPER_MEMORY_URL }}
+          KEEPER_MEMORY_TOKEN: ${{ secrets.KEEPER_MEMORY_TOKEN }}
         # Default (incl. the weekly cron, where inputs are empty) is per-persona:
         # each persona pursues its OWN top open question. Same cost as before
         # (still --max questions), just spread across the family instead of
