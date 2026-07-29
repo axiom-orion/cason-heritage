@@ -63,6 +63,7 @@ const ENDPOINT = process.env.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/co
 // the typed governance gate + NDJSON trace (governed-agents contract, ported).
 const GOV = require(path.join(LIVING, 'governance.js'));
 const EVID = require(path.join(LIVING, 'evidence.js'));
+const SLOT = require(path.join(LIVING, 'slot-conflict.js'));
 // the record's supersession ledger — values the gate refuses to re-assert.
 const SUP = require(path.join(LIVING, 'supersessions.js'));
 // durable cross-run memory via agent-memory-service (env-gated; no-op when unset).
@@ -242,7 +243,7 @@ async function research(q, extraContext) {
 /* ---- 4. bloodhound gate: catch myths, tier honestly ---- */
 // a consensus that AGREES nothing is proven is a clean negative, not a lead.
 const NEGATIVE = /no primary record|no such record|not located|no record (was )?(found|identified|located)|cannot confirm|unproven|unverified (working )?hypothes|clean negative|treated? as unverified|derives entirely from/i;
-function gate(res, eliminated) {
+function gate(res, eliminated, kin) {
   if (!res.ok) return { tier: 'unsolved', verdict: 'research unavailable (' + res.error + ')', quarantined: false };
   const c = res.consensus, blob = [c.answer, c.corroborated, c.disputed, c.unverified].filter(Boolean).join(' ');
   if (BANNED.test(blob)) return { tier: 'disproven', verdict: 'A model repeated a quarantined claim — caught and held, not proposed as fact.', quarantined: true };
@@ -250,6 +251,22 @@ function gate(res, eliminated) {
   // out (`evidence: 'eliminated'`) as kin is caught against the kinship graph.
   const revived = (eliminated || []).filter(function (e) { return e.pattern.test(blob); });
   if (revived.length) return { tier: 'graph-conflict', verdict: 'A model named a ruled-out ancestor as kin — ' + revived.map(function (e) { return e.name; }).join(', ') + ' (evidence: eliminated in the family graph). Caught and held, not proposed.', quarantined: true };
+  /* Confirmed-slot conflict — the other half of the kin guard.
+     `no-eliminated-kin` above catches a model reviving someone the family
+     ruled OUT. This catches the opposite and, on 2026-07-27, the more
+     damaging case: a model inventing a name the family never had and
+     putting it in a slot the graph marks confirmed. That run handed the
+     models "Phoebe Munden [confirmed]" as ground truth, got "Elizabeth
+     Green" back, and reported 0 caught — because a blocklist cannot catch
+     an invention. */
+  const slotHits = kin ? SLOT.detect(blob, kin) : [];
+  if (slotHits.length) {
+    return {
+      tier: 'graph-conflict',
+      verdict: SLOT.verdictFor(slotHits) + ' Matched: "' + slotHits[0].sentence + '"',
+      quarantined: true,
+    };
+  }
   const okN = res.providers.filter(function (p) { return p.ok; }).length;
   const corro = (c.corroborated || '').trim().length > 0;
   const corroborated = (c.agreement === 'strong' || c.agreement === 'partial') && corro && okN >= 2;
@@ -540,7 +557,7 @@ async function main() {
     }
     if (!run) {
       const res = await research(q, groundingText(kin) + priorMemoryText(prior));  // graph-grounded + memory-grounded
-      run = { q: q, kin: kin, rel: rel, res: res, gate: gate(res, eliminated) };
+      run = { q: q, kin: kin, rel: rel, res: res, gate: gate(res, eliminated, kin) };
     }
     run.prior = prior;
     const action = proposedAction(q, run);
