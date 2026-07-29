@@ -184,5 +184,36 @@ ok('on-point: a needle too short to be distinctive is ignored, not matched loose
   E.grade({ searched: true, mustAppear: ['AI'], sources: [src('penguinrandomhouse.com')] })
     .violations.some(function (v) { return v.rule === 'unscoped-claim'; }));
 
+/* ---- conjunction matching, for claims that are relationships ----
+   "William Cason married Ann Munden" is supported by a page naming BOTH. A
+   page naming only Cason is about the family, not about the marriage — the
+   same subject-versus-claim distinction, one level down. */
+const pg = function (d, title) { return { domain: d, url: 'https://' + d + '/x', title: title }; };
+
+const bothNames = E.grade({
+  searched: true, mustAppearAll: ['Cason', 'Munden'],
+  sources: [
+    pg('familysearch.org', 'Cason-Munden marriage bond, Camden County'),
+    pg('archives.gov', 'Munden and Cason family papers'),
+    pg('wikipedia.org', 'Cason (surname)'),
+  ],
+});
+ok('conjunction: only pages naming BOTH terms count', bothNames.distinctDomains === 2);
+ok('conjunction: the family-only page is set aside as topical', bothNames.topical.length === 1);
+ok('conjunction: two archives → confirmed', bothNames.grade === 'confirmed');
+
+const oneNameOnly = E.grade({
+  searched: true, mustAppearAll: ['Cason', 'Munden'],
+  sources: [pg('wikipedia.org', 'Cason (surname)'), pg('ancestry.com', 'Cason family tree')],
+});
+ok('conjunction: pages naming only one term support nothing', oneNameOnly.grade === 'REFUSED');
+ok('conjunction: the violation lists every required term',
+  /Cason \+ Munden/.test(oneNameOnly.violations.filter(function (v) { return v.rule === 'sources-not-on-point'; })[0].detail));
+ok('conjunction: a short-but-distinctive token is allowed (>=4 chars)',
+  E.grade({ searched: true, mustAppearAll: ['Cason'],
+    sources: [pg('archives.gov', 'Cason record'), pg('loc.gov', 'Cason papers')] }).grade === 'confirmed');
+ok('conjunction: scoping by conjunction clears the unscoped-claim flag',
+  !bothNames.violations.some(function (v) { return v.rule === 'unscoped-claim'; }));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed.\n');
 process.exit(fail ? 1 : 0);

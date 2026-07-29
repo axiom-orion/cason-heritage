@@ -150,12 +150,28 @@
     return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
-  function onPoint(source, mustAppear) {
+  /* Two modes, because two kinds of claim.
+
+     A book claim has ONE distinctive string — the title — and any page naming
+     it is on point: `mustAppear` (any-of).
+
+     A genealogical claim is a conjunction. "William Cason married Ann Munden"
+     is supported by a page mentioning BOTH; a page naming only Cason is about
+     the family, not the marriage — the same subject-versus-claim distinction,
+     one level down: `mustAppearAll` (all-of, within a single page).
+
+     Matching is substring-on-flattened-text, which is honest about what it can
+     do. It will match "Cason" inside "Casondra" and will miss "Wm. Cason" for
+     "William Cason". Use distinctive tokens — surnames, place names, record
+     types — not full formal names. It narrows the field; it is not an oracle. */
+  function onPoint(source, mustAppear, mustAppearAll) {
     const hay = flatten((source.title || '') + ' ' + (source.url || ''));
-    return mustAppear.some(function (m) {
+    const has = function (m) {
       const needle = flatten(m);
-      return needle.length >= 6 && hay.indexOf(needle) !== -1;
-    });
+      return needle.length >= 4 && hay.indexOf(needle) !== -1;
+    };
+    if (mustAppearAll && mustAppearAll.length) return mustAppearAll.every(has);
+    return mustAppear.some(function (m) { return flatten(m).length >= 6 && has(m); });
   }
 
   /* ---- the gate ----
@@ -180,6 +196,8 @@
     const raw = input.sources || [];
     const searched = input.searched === true;
     const mustAppear = (input.mustAppear || []).filter(function (m) { return flatten(m).length >= 6; });
+    const mustAppearAll = (input.mustAppearAll || []).filter(function (m) { return flatten(m).length >= 4; });
+    const scoped = mustAppear.length || mustAppearAll.length;
     const violations = [];
 
     let graded = raw
@@ -187,14 +205,15 @@
       .filter(function (s) { return s.domain; });
 
     let topical = [];
-    if (mustAppear.length) {
-      const supporting = graded.filter(function (s) { return onPoint(s, mustAppear); });
-      topical = graded.filter(function (s) { return !onPoint(s, mustAppear); });
+    if (scoped) {
+      const supporting = graded.filter(function (s) { return onPoint(s, mustAppear, mustAppearAll); });
+      topical = graded.filter(function (s) { return !onPoint(s, mustAppear, mustAppearAll); });
       if (!supporting.length && graded.length) {
         violations.push({
           rule: 'sources-not-on-point',
-          detail: 'retrieved ' + graded.length + ' page(s) about the subject, but none naming "' +
-            mustAppear[0] + '" — the topic is real, the specific claim is unsupported',
+          detail: 'retrieved ' + graded.length + ' page(s) about the subject, but none naming ' +
+            (mustAppearAll.length ? 'all of [' + mustAppearAll.join(' + ') + ']' : '"' + mustAppear[0] + '"') +
+            ' — the topic is real, the specific claim is unsupported',
         });
       }
       graded = supporting;

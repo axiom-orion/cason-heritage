@@ -43,3 +43,6 @@ node_modules/
 
 # local librarian test output
 _libtest/
+
+# local keeper test output
+_keepertest/
