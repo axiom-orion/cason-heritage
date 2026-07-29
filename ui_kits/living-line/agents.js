@@ -130,6 +130,20 @@
       abilities: ['derive a taste profile from the finished log', 'demand a citation for every recommendation', 'score a citation independently of the profile that motivated it', 'catch an invented title claimed as already published', 'refuse to recommend a book already read'],
       hooks: ['propose-never-publish — it never writes books.json', 'no citation, no consideration', 'the scorer never sees the reading profile, so it cannot be swayed by fit', 'an unusable score is unsupported, never assumed good', 'withheld candidates stay visible — the count is the measure of trust'],
     },
+    {
+      id: 'citation-validator', name: 'Citation Validator', layer: 'governance', status: 'live', autonomy: 'advises',
+      modules: ['ui_kits/living-line/evidence.js', 'ui_kits/living-line/slot-conflict.js'],
+      system: 'The shared evidence gate every researching agent calls, so a source is tiered identically wherever it lands. Enforces four steps: no guess (a claim with zero retrieved sources is refused, not downgraded), cite (a named citation must appear in what was actually retrieved), validate (a provider that did not search answered from recall and cannot be elevated), grade source (primary / secondary / aggregator / unknown). Counts DISTINCT DOMAINS rather than model voices, which is what bloodhound.md always specified and what was unenforceable until the panel could retrieve. Also detects a model contradicting a slot the family graph marks confirmed — the case a blocklist structurally cannot catch, because an invented name is on no list.',
+      abilities: ['refuse a claim with no retrieved source', 'catch a citation naming a domain nobody fetched', 'separate sources that support the claim from sources merely about the subject', 'tier a domain as primary, secondary, aggregator or unknown', 'catch an invented name displacing a confirmed one'],
+      hooks: ['advises — it grades, the calling agent decides', 'retrieval proves the subject exists; only a page naming the claim supports the claim', 'an unrankable domain is weak, never wrong', 'a missing check is reported as a gap, never as an all-clear'],
+    },
+    {
+      id: 'loop-warden', name: 'Loop Warden', layer: 'governance', status: 'live', autonomy: 'proposes',
+      modules: ['scripts/loop-warden.js'],
+      system: 'Watches the agents rather than the record. Every loop here reports honestly on its own run; none can see the shape ACROSS runs, and that is where the real failures lived — four dossiers, eight questions, zero corroborated leads, one question asked in five of them, every individual run correct. Sweeps for questions re-asked without ever advancing, consecutive runs producing nothing, agents that have gone quiet against their own cadence, agent PRs nobody has decided on, and proposals accumulating unread.',
+      abilities: ['catch a question re-asked on a schedule that never advances', 'catch a loop producing nothing across consecutive runs', 'catch a scheduled agent that has stopped running', 'catch agent PRs piling up undecided', 'distinguish never-ran from went-quiet'],
+      hooks: ['propose-never-publish — it cannot change a schedule, close a PR, or edit a dossier', 'a warden that quietly fixed what it found would remove the reason to read it', 'thresholds are generous on purpose — a warden that cries early gets muted', 'an unchecked item is reported as a gap in the sweep, never as an all-clear'],
+    },
   ];
 
   function byId(id) { return AGENTS.filter(function (a) { return a.id === id; })[0] || null; }
