@@ -1,0 +1,84 @@
+name: Loop Warden
+
+# Watches the agents rather than the record: is anything actually moving?
+#
+# Runs AFTER the other Monday crons (Public Record Auditor 12:00, Keeper 13:00,
+# drift-audit 14:00) so it sees the week's output rather than last week's.
+#
+# Propose, never publish — it opens a PR with a report and can change nothing
+# itself. It cannot alter a schedule, close a PR, or edit a dossier.
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'        # Mondays 16:00 UTC, after the week's agents have run
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: loop-warden
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    name: Is anything moving?
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the warden reasons over the sequence of dossiers, and a
+      # shallow clone would make a long-running stall look like a fresh one.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Skip if a warden PR is already open
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search 'Loop warden in:title' --json number --jq 'length')
+          echo "open=$open" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then echo "A warden PR is already open — the backlog it would report is already visible."; fi
+
+      - name: Verify the warden's own logic before trusting its sweep
+        if: steps.guard.outputs.open == '0'
+        run: node scripts/loop-warden.selftest.js
+
+      - name: Sweep
+        if: steps.guard.outputs.open == '0'
+        env:
+          # Needed for the PR-backlog check. Without it that check reports a gap
+          # rather than an all-clear, which is the honest degradation.
+          GITHUB_TOKEN: ${{ github.token }}
+          WARDEN_REPO: ${{ github.repository }}
+        run: node scripts/loop-warden.js
+
+      - name: Open a report PR
+        if: steps.guard.outputs.open == '0'
+        env:
+          GH_TOKEN: ${{ secrets.KEEPER_PAT || github.token }}
+        run: |
+          if [ -z "$(git status --porcelain research/warden)" ]; then
+            echo "Nothing changed — no report to file."; exit 0
+          fi
+          date=$(date -u +%Y-%m-%d)
+          branch="warden/sweep-${{ github.run_id }}"
+          git config user.name  'cason-keeper[bot]'
+          git config user.email 'cason-keeper@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add research/warden
+          git commit -m "Loop warden: sweep $date"
+          git push -u origin "$branch"
+          if gh pr create \
+            --title "Loop warden: sweep $date" \
+            --body $'A sweep across runs rather than within one.\n\nEvery loop in this estate reports honestly on its own execution. None can see the shape ACROSS runs — which is where the failures actually lived: four dossiers, eight questions, zero corroborated leads, one question asked in five of them, and every individual run correct.\n\n**Propose, never publish.** This report changes nothing. The warden cannot alter a schedule, close a PR, or edit a dossier — a warden that quietly fixed what it found would remove the only reason to read it.\n\nMerge to keep the sweep as a record; close to dismiss it.' \
+            --base main --head "$branch"; then
+            echo "Opened warden PR from $branch."
+          else
+            echo "::warning::Could not open the PR automatically (org disables Actions PR-create). The report is on branch '$branch' — open a PR from it manually, or add a KEEPER_PAT secret."
+          fi

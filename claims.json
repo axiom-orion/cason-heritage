@@ -341,7 +341,7 @@
       "id": "agent-roster-count",
       "claimKind": "metric",
       "visibility": "public",
-      "text": "Fifteen research agents",
+      "text": "Seventeen research agents",
       "appearsIn": [
         "profile.html"
       ],
@@ -350,7 +350,7 @@
         "file": "ui_kits/living-line/agents.js",
         "pattern": "^\\s*id:\\s*'[a-z0-9-]+'",
         "flags": "m",
-        "expect": 15
+        "expect": 17
       },
       "note": "Derived from the registry that defines the roster, not from memory. The count was 13 until the Public Record Auditor was added 2026-07-26; research/VORION-GOVERNANCE.md sat stale at '13-agent roster' because the number lived in prose with nothing able to check it. That is what `file-count` exists to prevent: add or remove an agent and this claim drifts on the next run instead of quietly outliving the truth."
     }
