@@ -111,6 +111,60 @@ function personBlocked(p) {
   return false;
 }
 
+/* ---- run memory: do not re-ask what has already gone nowhere ----
+   The Loop Warden found `ransom-sr` asked in five consecutive dossiers,
+   never rising above `possible`, while forty other lines went untouched.
+   The cause was structural: selection scored gaps by intrinsic importance
+   and nothing else, so the same top-scoring questions won every week no
+   matter how many times they had already come back empty.
+
+   The Keeper now reads its own published dossiers — the same files the
+   Warden reads — and demotes a question it has already asked without
+   result. Not a blocklist: the penalty scales with how many times the
+   question has gone nowhere, so a demoted line resurfaces once the fresher
+   ones are exhausted, and any question that DID advance is never demoted.
+
+   This is deliberately derived from the published record rather than from
+   the durable memory service, so it works on a clean clone with no external
+   dependency — the same reason the record itself is the source of truth for
+   every other count on this site. */
+const PRIOR = (function () {
+  try {
+    const W = require(path.join(__dirname, 'loop-warden.js'));
+    const dir = path.join(ROOT, 'research', 'proposals');
+    if (!fs.existsSync(dir)) return {};
+    const files = fs.readdirSync(dir).filter(function (f) { return /^keeper-\d{4}-\d{2}-\d{2}\.md$/.test(f); }).sort();
+    const map = {};
+    files.forEach(function (f) {
+      W.parseKeeper(f).items.forEach(function (it) {
+        const k = it.id + '|' + String(it.question || '').slice(0, 50).toLowerCase().replace(/[^a-z0-9]/g, '');
+        const e = map[k] = map[k] || { asked: 0, advanced: false };
+        e.asked++;
+        if (it.tier === 'leading' || it.tier === 'secondary' || it.tier === 'confirmed') e.advanced = true;
+      });
+    });
+    return map;
+  } catch (e) { return {}; }   // no history is not an error; it is a first run
+}());
+
+function priorKey(q) {
+  return q.ownerId + '|' + String(q.text || '').slice(0, 50).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/* A question that already advanced keeps its score. One that has gone
+   nowhere loses a third of its score per barren attempt, floored so it can
+   still surface when nothing fresher is left. */
+function withRunMemory(q) {
+  const e = PRIOR[priorKey(q)];
+  if (!e || e.advanced || !e.asked) return q;
+  const penalty = Math.pow(0.66, e.asked);
+  return Object.assign({}, q, {
+    score: q.score * penalty,
+    priorAsked: e.asked,
+    demoted: true,
+  });
+}
+
 // GLOBAL: the top-N open questions across the whole record.
 function selectQuestions(g) {
   const seen = {};
@@ -118,6 +172,7 @@ function selectQuestions(g) {
     .filter(function (n) { return n.kind === 'gap'; })
     .map(function (n) { return questionFrom(n, g.DATA.people[n.ownerId] || {}, n.ownerId); })
     .filter(function (q) { const k = q.ownerId + '|' + q.text; if (seen[k]) return false; seen[k] = 1; return true; })
+    .map(withRunMemory)
     .sort(function (a, b) { return b.score - a.score; })
     .slice(0, MAX);
 }
@@ -133,7 +188,7 @@ function selectPerPersona(g) {
     const sub = g.MEM.access(pid);                         // horizon-bounded to this persona
     const gaps = sub.individual.filter(function (n) { return n.kind === 'gap'; });
     if (!gaps.length) return;
-    const top = gaps.map(function (n) { return questionFrom(n, p, pid); })
+    const top = gaps.map(function (n) { return withRunMemory(questionFrom(n, p, pid)); })
       .sort(function (a, b) { return b.score - a.score; })[0];
     picks.push(top);                                       // one top question for this persona
   });

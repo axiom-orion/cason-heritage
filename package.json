@@ -49,13 +49,14 @@
     "selftest:claims": "node scripts/claim-audit.selftest.js",
     "corpus-audit": "node scripts/corpus-audit.js",
     "selftest:corpus-audit": "node scripts/corpus-audit.selftest.js",
-    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis && npm run selftest:gate-contract && npm run selftest:landing && npm run selftest:corpus && npm run selftest:corpus-audit && npm run selftest:stats && npm run selftest:media && npm run selftest:confidence && npm run selftest:tiers && npm run selftest:docs && npm run selftest:corpus-memory && npm run selftest:interview && npm run selftest:inquiry && npm run selftest:keeper && npm run selftest:mcp && npm run selftest:encounter-gate && npm run selftest:discovery && npm run selftest:encounters && npm run selftest:gedcom && npm run selftest:llm && npm run selftest:family-store && npm run selftest:family-cloud && npm run selftest:records && npm run selftest:claims && npm run selftest:evidence && npm run selftest:slot-conflict && npm run selftest:warden && npm run selftest:librarian",
+    "selftest:all": "npm run selftest && npm run selftest:kinship && npm run selftest:governance && npm run selftest:supersessions && npm run selftest:memory && npm run selftest:drift && npm run selftest:agents && npm run selftest:basis && npm run selftest:gate-contract && npm run selftest:landing && npm run selftest:corpus && npm run selftest:corpus-audit && npm run selftest:stats && npm run selftest:media && npm run selftest:confidence && npm run selftest:tiers && npm run selftest:docs && npm run selftest:corpus-memory && npm run selftest:interview && npm run selftest:inquiry && npm run selftest:keeper && npm run selftest:mcp && npm run selftest:encounter-gate && npm run selftest:discovery && npm run selftest:encounters && npm run selftest:gedcom && npm run selftest:llm && npm run selftest:family-store && npm run selftest:family-cloud && npm run selftest:records && npm run selftest:claims && npm run selftest:evidence && npm run selftest:slot-conflict && npm run selftest:warden && npm run selftest:run-memory && npm run selftest:librarian",
     "librarian": "node scripts/librarian.js",
     "selftest:librarian": "node scripts/librarian.selftest.js",
     "selftest:evidence": "node scripts/evidence.selftest.js",
     "selftest:slot-conflict": "node scripts/slot-conflict.selftest.js",
     "warden": "node scripts/loop-warden.js",
-    "selftest:warden": "node scripts/loop-warden.selftest.js"
+    "selftest:warden": "node scripts/loop-warden.selftest.js",
+    "selftest:run-memory": "node scripts/run-memory.selftest.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
