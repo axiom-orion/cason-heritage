@@ -55,6 +55,12 @@ jobs:
         if: steps.guard.outputs.open == '0'
         env:
           LIBRARIAN_CONSENSUS_URL: ${{ vars.KEEPER_CONSENSUS_URL || 'https://flcason.com/api/consensus' }}
+          # Optional second catalogue. Open Library's coverage of recent trade
+          # non-fiction is patchy — it does not have Co-Intelligence — and a
+          # title present in neither catalogue is judged on its citation alone.
+          # Absent this key the run is still correct, just stricter: the script
+          # says so in the dossier rather than silently skipping the check.
+          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
         run: node scripts/librarian.js --max "${{ github.event.inputs.max || '8' }}"
 
       - name: Push the proposals branch and open a PR
