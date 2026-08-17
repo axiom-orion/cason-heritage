@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>The Metric Is the Walls — preview</title>
+<!--
+  ⛔ THIS FILE CONTAINS NO MANUSCRIPT TEXT AND MUST NEVER CONTAIN ANY.
+  cason-heritage deploys with outputDirectory ".", so every committed file here is publicly
+  fetchable. A password prompt in JavaScript is not a gate when the text sits in the page behind
+  it. The shell is public; the book arrives from /api/metric-piece only after the key is checked
+  server-side, one piece per request.
+-->
+<style>
+  :root{
+    --bg:#faf9f7; --ink:#1a1a19; --dim:#6b6a66; --rule:#dedbd4; --card:#fffefc;
+    --accent:#7a5c2e; --accent-soft:#f0e7d6; --warn:#8a4b2a;
+    --correction:#a3402a; --observation:#4a6670; --suggestion:#5c6b3f;
+    --measure:34rem;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#15161a; --ink:#e6e4df; --dim:#9a988f; --rule:#2e3038; --card:#1b1d22;
+      --accent:#c9a55f; --accent-soft:#2a2519;
+      --correction:#d97a63; --observation:#8fb2c0; --suggestion:#a3b878;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15161a; --ink:#e6e4df; --dim:#9a988f; --rule:#2e3038; --card:#1b1d22;
+    --accent:#c9a55f; --accent-soft:#2a2519;
+    --correction:#d97a63; --observation:#8fb2c0; --suggestion:#a3b878;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.62 Georgia,'Iowan Old Style','Times New Roman',serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:var(--measure); margin:0 auto; padding:1.25rem 1.1rem 6rem}
+  .mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+  h1,h2,h3,.ui{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+  a{color:var(--accent)}
+  button{font:inherit; cursor:pointer}
+
+  /* ── gate ─────────────────────────────────────────────── */
+  #gate{max-width:26rem;margin:14vh auto;padding:0 1.1rem;text-align:left}
+  #gate h1{font:600 1.35rem/1.3 system-ui,sans-serif;margin:0 0 .3rem}
+  #gate .sub{color:var(--dim);font-size:.9rem;margin:0 0 1.6rem}
+  #gate input{
+    width:100%;padding:.7rem .8rem;border:1px solid var(--rule);border-radius:8px;
+    background:var(--card);color:var(--ink);font-family:ui-monospace,monospace;font-size:1rem;
+  }
+  #gate button{
+    width:100%;margin-top:.6rem;padding:.7rem;border:0;border-radius:8px;
+    background:var(--accent);color:var(--bg);font-weight:600;font-family:system-ui,sans-serif;
+  }
+  .err{color:var(--warn);font-size:.85rem;margin-top:.7rem;font-family:system-ui,sans-serif}
+
+  /* ── chrome ───────────────────────────────────────────── */
+  header.bar{
+    position:sticky;top:0;z-index:30;background:var(--bg);
+    border-bottom:1px solid var(--rule);
+  }
+  .bar-in{
+    max-width:var(--measure);margin:0 auto;padding:.55rem 1.1rem;
+    display:flex;align-items:center;gap:.5rem;font-family:system-ui,sans-serif;font-size:.82rem;
+  }
+  .bar button{
+    background:none;border:1px solid var(--rule);color:var(--dim);
+    border-radius:6px;padding:.28rem .55rem;font-size:.8rem;
+  }
+  .bar .spacer{flex:1}
+  .who{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ── contents ─────────────────────────────────────────── */
+  .toc h1{font-size:1.5rem;margin:.4rem 0 .1rem;line-height:1.22}
+  .toc .subtitle{color:var(--dim);font-size:.92rem;font-style:italic;margin:0 0 .2rem}
+  .toc .byline{color:var(--dim);font-size:.85rem;margin:0 0 1.5rem;font-family:system-ui,sans-serif}
+  .toc ol{list-style:none;margin:0;padding:0}
+  .toc li{border-bottom:1px solid var(--rule)}
+  .toc a{
+    display:flex;gap:.7rem;align-items:baseline;padding:.7rem .2rem;
+    text-decoration:none;color:var(--ink);
+  }
+  .toc .num{font-family:ui-monospace,monospace;font-size:.78rem;color:var(--dim);min-width:1.9rem}
+  .toc .t{flex:1}
+  .toc .meta{font-family:system-ui,sans-serif;font-size:.72rem;color:var(--dim);white-space:nowrap}
+
+  /* ── reading ──────────────────────────────────────────── */
+  article h2{font-size:1.3rem;line-height:1.25;margin:.6rem 0 1.1rem}
+  article p{margin:0 0 1.05rem;position:relative}
+  article p.has-note{
+    border-left:2px solid var(--accent);margin-left:-.7rem;padding-left:.55rem;
+  }
+  .brk{border:0;border-top:1px solid var(--rule);width:3.5rem;margin:1.8rem 0 1.8rem}
+  .noteable{cursor:text}
+
+  .player{
+    display:flex;align-items:center;gap:.6rem;margin:0 0 1.4rem;padding:.55rem .7rem;
+    border:1px solid var(--rule);border-radius:9px;background:var(--card);
+  }
+  .player audio{width:100%}
+  .player .none{color:var(--dim);font:.8rem system-ui,sans-serif}
+
+  /* ── notes ────────────────────────────────────────────── */
+  .note{
+    margin:0 0 1.05rem;padding:.55rem .7rem;border-radius:8px;background:var(--card);
+    border:1px solid var(--rule);border-left:3px solid var(--observation);
+    font:.85rem/1.5 system-ui,sans-serif;
+  }
+  .note.correction{border-left-color:var(--correction)}
+  .note.suggestion{border-left-color:var(--suggestion)}
+  .note .k{
+    text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;font-weight:700;
+    color:var(--dim);
+  }
+  .note .sel{color:var(--dim);font-style:italic;margin:.2rem 0}
+  .note .st{float:right;font-size:.66rem;color:var(--dim)}
+
+  #pop{
+    position:fixed;z-index:50;left:0;right:0;bottom:0;
+    background:var(--card);border-top:1px solid var(--rule);
+    padding:.8rem 1.1rem calc(.9rem + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 28px rgba(0,0,0,.16);display:none;
+  }
+  #pop.on{display:block}
+  #pop .in{max-width:var(--measure);margin:0 auto}
+  #pop .sel{
+    font:.8rem/1.45 Georgia,serif;color:var(--dim);font-style:italic;
+    max-height:3.6em;overflow:hidden;margin:0 0 .5rem;
+  }
+  #pop .kinds{display:flex;gap:.35rem;margin:0 0 .5rem}
+  #pop .kinds button{
+    flex:1;padding:.4rem;border:1px solid var(--rule);border-radius:6px;
+    background:none;color:var(--dim);font:.76rem system-ui,sans-serif;
+  }
+  #pop .kinds button[aria-pressed="true"]{
+    background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:600;
+  }
+  #pop textarea{
+    width:100%;min-height:4.6rem;padding:.55rem;border:1px solid var(--rule);border-radius:7px;
+    background:var(--bg);color:var(--ink);font:.92rem/1.45 system-ui,sans-serif;resize:vertical;
+  }
+  #pop .row{display:flex;gap:.5rem;margin-top:.5rem}
+  #pop .row button{flex:1;padding:.55rem;border-radius:7px;border:1px solid var(--rule);
+    background:none;color:var(--dim);font:.85rem system-ui,sans-serif}
+  #pop .row button.go{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+
+  #toast{
+    position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:60;
+    background:var(--ink);color:var(--bg);padding:.5rem .9rem;border-radius:20px;
+    font:.82rem system-ui,sans-serif;opacity:0;transition:opacity .2s;pointer-events:none;
+    max-width:88vw;text-align:center;
+  }
+  #toast.on{opacity:1}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>The Metric Is the Walls</h1>
+  <p class="sub">Preview. Enter the key you were given.</p>
+  <input id="key" type="password" inputmode="text" autocomplete="off"
+         spellcheck="false" placeholder="preview key" aria-label="Preview key">
+  <button id="go">Open the book</button>
+  <div class="err hide" id="gerr"></div>
+</div>
+
+<div id="app" class="hide">
+  <header class="bar">
+    <div class="bar-in">
+      <button id="back">← Contents</button>
+      <span class="spacer"></span>
+      <span class="who mono" id="who"></span>
+      <button id="smaller" title="Smaller text">A−</button>
+      <button id="bigger" title="Larger text">A+</button>
+      <button id="theme" title="Light or dark">◐</button>
+    </div>
+  </header>
+  <div class="wrap" id="view"></div>
+</div>
+
+<div id="pop">
+  <div class="in">
+    <p class="sel" id="popsel"></p>
+    <div class="kinds">
+      <button data-k="correction">Correction</button>
+      <button data-k="observation" aria-pressed="true">Observation</button>
+      <button data-k="suggestion">Suggestion</button>
+    </div>
+    <textarea id="popbody" placeholder="What is wrong, or what did you notice?"></textarea>
+    <div class="row">
+      <button id="popcancel">Cancel</button>
+      <button id="popsave" class="go">Save note</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var KEY='metric.key', POS='metric.pos', SIZE='metric.size', THEME='metric.theme';
+  var key=null, toc=[], cur=null, kind='observation', target=null;
+
+  var $=function(s){return document.querySelector(s)};
+  function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');
+    clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on')},2200);}
+  function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+
+  function api(path,payload){
+    return fetch('/api/'+path,{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify(Object.assign({key:key},payload||{}))
+    }).then(function(r){
+      return r.json().catch(function(){return {error:'The server sent something unreadable.'};})
+        .then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; });
+    });
+  }
+
+  /* ── text size and theme, remembered. He is reading a book on a phone; both of these are
+     the difference between a tool and a demo. ─────────────────────────────────────────── */
+  function applySize(){var s=localStorage.getItem(SIZE)||'16';document.body.style.fontSize=s+'px';}
+  function applyTheme(){var t=localStorage.getItem(THEME);
+    if(t) document.documentElement.setAttribute('data-theme',t);
+    else document.documentElement.removeAttribute('data-theme');}
+  applySize(); applyTheme();
+  $('#bigger').onclick=function(){var s=Math.min(24,(parseInt(localStorage.getItem(SIZE)||'16',10))+1);
+    localStorage.setItem(SIZE,s);applySize();};
+  $('#smaller').onclick=function(){var s=Math.max(13,(parseInt(localStorage.getItem(SIZE)||'16',10))-1);
+    localStorage.setItem(SIZE,s);applySize();};
+  $('#theme').onclick=function(){
+    var cur=localStorage.getItem(THEME);
+    var next = cur==='dark' ? 'light' : cur==='light' ? '' : 'dark';
+    if(next) localStorage.setItem(THEME,next); else localStorage.removeItem(THEME);
+    applyTheme();
+  };
+
+  /* ── gate ─────────────────────────────────────────────── */
+  function unlock(k,quiet){
+    key=k;
+    return api('metric-auth',{}).then(function(j){
+      sessionStorage.setItem(KEY,k);
+      toc=j.toc||[];
+      $('#who').textContent=j.label||'';
+      $('#gate').classList.add('hide'); $('#app').classList.remove('hide');
+      if(j.empty){ $('#view').innerHTML='<p class="ui">'+esc(j.message)+'</p>'; return; }
+      var last=localStorage.getItem(POS);
+      if(last && toc.some(function(t){return t.file===last})) openPiece(last); else showToc();
+    }).catch(function(e){
+      key=null; sessionStorage.removeItem(KEY);
+      if(!quiet){ var g=$('#gerr'); g.textContent=e.message; g.classList.remove('hide'); }
+      throw e;
+    });
+  }
+  $('#go').onclick=function(){
+    var k=$('#key').value.trim(); if(!k) return;
+    $('#gerr').classList.add('hide'); unlock(k,false).catch(function(){});
+  };
+  $('#key').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#go').click(); });
+
+  /* ── contents ─────────────────────────────────────────── */
+  function showToc(){
+    localStorage.removeItem(POS); cur=null;
+    var h='<div class="toc"><h1>The Metric Is the Walls</h1>'+
+      '<p class="subtitle">What the Floor Knows About Systems, Scale, and the Invisible Work That Holds Organizations Together</p>'+
+      '<p class="byline">Ryan Cason</p><ol>';
+    toc.forEach(function(t){
+      h+='<li><a href="#" data-f="'+esc(t.file)+'"><span class="num">'+esc(t.n)+'</span>'+
+         '<span class="t">'+esc(t.title)+'</span><span class="meta">'+
+         (t.words?(t.words.toLocaleString()+'w'):'')+(t.hasAudio?' · ♪':'')+'</span></a></li>';
+    });
+    $('#view').innerHTML=h+'</ol></div>';
+    $('#view').querySelectorAll('a[data-f]').forEach(function(a){
+      a.onclick=function(e){e.preventDefault();openPiece(a.getAttribute('data-f'));};
+    });
+    window.scrollTo(0,0);
+  }
+  $('#back').onclick=showToc;
+
+  /* ── one piece ────────────────────────────────────────── */
+  function openPiece(file){
+    $('#view').innerHTML='<p class="ui" style="color:var(--dim)">Loading…</p>';
+    api('metric-piece',{file:file}).then(function(p){
+      cur=p; localStorage.setItem(POS,file);
+      var byFrag={};
+      (p.notes||[]).forEach(function(n){
+        var k=(n.frag||'')+'#'+(n.occ||0); (byFrag[k]=byFrag[k]||[]).push(n);
+      });
+      var h='<article><h2>'+esc(p.title)+'</h2>';
+      h+='<div class="player" id="player">'+(p.hasAudio
+          ? '<span class="none">Loading audio…</span>'
+          : '<span class="none">Not narrated.</span>')+'</div>';
+      (p.blocks||[]).forEach(function(b,i){
+        if(b.t==='break'){ h+='<hr class="brk">'; return; }
+        var k=(b.frag||'')+'#'+(b.occ||0), notes=byFrag[k]||[];
+        h+='<p class="noteable'+(notes.length?' has-note':'')+'" data-i="'+i+
+           '" data-frag="'+esc(b.frag)+'" data-occ="'+(b.occ||0)+'">'+esc(b.text)+'</p>';
+        notes.forEach(function(n){ h+=noteHtml(n); });
+      });
+      $('#view').innerHTML=h+'</article>';
+      window.scrollTo(0,0);
+      if(p.hasAudio) loadAudio(file);
+    }).catch(function(e){
+      $('#view').innerHTML='<p class="err">'+esc(e.message)+'</p>';
+    });
+  }
+
+  function noteHtml(n){
+    return '<div class="note '+esc(n.kind)+'" data-id="'+esc(n.id)+'">'+
+      '<span class="st">'+esc(n.status==='pulled'?'in the manuscript':n.status==='done'?'done':'new')+'</span>'+
+      '<span class="k">'+esc(n.kind)+'</span> · <span class="k">'+esc(n.key_label)+'</span>'+
+      (n.selected?'<div class="sel">“'+esc(n.selected)+'”</div>':'')+
+      '<div>'+esc(n.comment)+'</div></div>';
+  }
+
+  function loadAudio(file){
+    api('metric-audio',{file:file}).then(function(j){
+      var el=$('#player'); if(!el) return;
+      if(!j.url){ el.innerHTML='<span class="none">'+esc(j.reason||'Not narrated.')+'</span>'; return; }
+      el.innerHTML='<audio controls preload="none" src="'+esc(j.url)+'"></audio>';
+    }).catch(function(e){
+      var el=$('#player'); if(el) el.innerHTML='<span class="none">Audio unavailable — '+esc(e.message)+'</span>';
+    });
+  }
+
+  /* ── annotating ───────────────────────────────────────────────────────────────────────
+     A selection inside a paragraph opens the note sheet with that span attached. A tap with
+     no selection attaches the paragraph itself. Either way what travels is an ANCHOR plus a
+     comment -- never a rewritten paragraph. That is the pipeline rule, and it is enforced at
+     the endpoint too, so a clever client cannot get round it. ─────────────────────────── */
+  function paraOf(node){
+    while(node && node!==document.body){
+      if(node.nodeType===1 && node.classList && node.classList.contains('noteable')) return node;
+      node=node.parentNode;
+    }
+    return null;
+  }
+  document.addEventListener('mouseup', onPick);
+  document.addEventListener('touchend', onPick);
+  function onPick(){
+    if(!cur) return;
+    setTimeout(function(){
+      var sel=window.getSelection(); if(!sel || sel.isCollapsed) return;
+      var p=paraOf(sel.anchorNode); if(!p) return;
+      openPop(p, String(sel).trim());
+    },10);
+  }
+  document.addEventListener('click',function(e){
+    if(!cur) return;
+    var p=paraOf(e.target); if(!p) return;
+    var sel=window.getSelection();
+    if(sel && !sel.isCollapsed) return;      // handled by onPick
+    if(e.detail===2) openPop(p,'');          // double-tap a paragraph to note the whole thing
+  });
+
+  function openPop(p, selected){
+    target={frag:p.getAttribute('data-frag'), occ:parseInt(p.getAttribute('data-occ'),10)||0,
+            selected:selected, el:p};
+    $('#popsel').textContent = selected ? '“'+selected+'”'
+      : (p.textContent.slice(0,140)+(p.textContent.length>140?'…':''));
+    $('#popbody').value=''; $('#pop').classList.add('on');
+    setTimeout(function(){$('#popbody').focus();},50);
+  }
+  function closePop(){ $('#pop').classList.remove('on'); target=null;
+    var s=window.getSelection(); if(s) s.removeAllRanges(); }
+  $('#popcancel').onclick=closePop;
+  document.querySelectorAll('#pop .kinds button').forEach(function(b){
+    b.onclick=function(){
+      kind=b.getAttribute('data-k');
+      document.querySelectorAll('#pop .kinds button').forEach(function(o){
+        o.setAttribute('aria-pressed', o===b ? 'true':'false');
+      });
+    };
+  });
+  $('#popsave').onclick=function(){
+    if(!target) return;
+    var body=$('#popbody').value.trim();
+    if(!body){ toast('The note is empty.'); return; }
+    var t=target, btn=$('#popsave'); btn.disabled=true; btn.textContent='Saving…';
+    api('metric-note',{file:cur.file, frag:t.frag, occ:t.occ, selected:t.selected,
+                       comment:body, kind:kind}).then(function(j){
+      btn.disabled=false; btn.textContent='Save note';
+      closePop(); toast('Noted.');
+      if(j.note && t.el){
+        t.el.classList.add('has-note');
+        t.el.insertAdjacentHTML('afterend', noteHtml(j.note));
+      }
+    }).catch(function(e){
+      btn.disabled=false; btn.textContent='Save note'; toast(e.message);
+    });
+  };
+
+  /* Resume a session without retyping the key, but only for this tab -- sessionStorage dies with
+     the tab, so a shared or borrowed device does not keep the book open. */
+  var saved=sessionStorage.getItem(KEY);
+  if(saved) unlock(saved,true).catch(function(){});
+})();
+</script>
+</body>
+</html>
