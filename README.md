@@ -91,7 +91,9 @@ npm run keeper -- --max 3       # research 3 open lines, gate them, write a doss
 npm run drift-audit             # the self-audit: re-run invariants + attest the governed state
 npm run claim-audit             # the public record: verify every published claim against its source
 npm test                        # the Playwright browser smoke suite (the live site + glass box)
-npm run check:syntax            # parse-gate all JSX (files + inline babel in .html) + ban iOS lookbehind
+npm run build:jsx               # compile ui_kits/**/*.jsx -> the .js the browser actually loads
+npm run check:jsx               # fail if any compiled .js is stale (wired into pretest + pre-push)
+npm run check:syntax            # parse-gate all JSX + ban iOS lookbehind
 npm run selftest:all            # every Node selftest in one shot
 
 # the agent/governance self-tests (Node, no deps):
