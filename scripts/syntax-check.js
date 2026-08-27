@@ -1,12 +1,18 @@
 /* ============================================================
-   Parse gate for the no-build browser sources.
+   Parse gate for the browser sources.
    ------------------------------------------------------------
-   The site ships JSX raw and compiles it with in-browser Babel,
-   so a syntax error doesn't fail a build — it ships straight to
-   production as a blank page (that's how /living went dark for
-   ~6 days from smart quotes in LivingWorld.jsx).
+   The site used to ship JSX raw and compile it with in-browser
+   Babel, so a syntax error couldn't fail a build — it shipped
+   straight to production as a blank page (that's how /living went
+   dark for ~6 days from smart quotes in LivingWorld.jsx).
 
-   This script fails fast instead:
+   `npm run build:jsx` now compiles the JSX at author time, so that
+   class of failure is a build error rather than a blank page. This
+   script stays as the cheap front-line gate: it catches the parse
+   error before the build runs, and it still owns the lookbehind ban
+   (step 4), which no compiler would flag.
+
+   It fails fast on:
      1. esbuild parse (loader: jsx) over ui_kits/**\/*.jsx
      2. node --check over ui_kits/living-line/*.js + ui_kits/archive/*.js
      3. esbuild parse of the inline <script type="text/babel"> blocks

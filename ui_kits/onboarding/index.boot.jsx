@@ -1,0 +1,400 @@
+
+const { useState, useMemo, useRef } = React;
+
+/* a small, evocative sample so a visitor with no file can still meet a family */
+const SAMPLE = [
+  '0 @I1@ INDI','1 NAME Amos /Fairweather/','1 SEX M','1 BIRT','2 DATE ABT 1788','2 PLAC Kent, England','1 DEAT','2 DATE 1861','2 PLAC Boston, Massachusetts','1 FAMS @F1@',
+  '0 @I2@ INDI','1 NAME Eliza /Hart/','1 SEX F','1 BIRT','2 DATE 1794','2 PLAC Sussex, England','1 DEAT','2 DATE 1870','1 FAMS @F1@',
+  '0 @I3@ INDI','1 NAME Martha /Fairweather/','1 SEX F','1 BIRT','2 DATE 12 MAY 1820','2 PLAC Boston, Massachusetts','1 DEAT','2 DATE 1889','1 FAMC @F1@','1 FAMS @F2@','1 NOTE A seamstress who kept the family letters.',
+  '0 @I4@ INDI','1 NAME John /Reed/','1 SEX M','1 BIRT','2 DATE 1816','1 FAMS @F2@',
+  '0 @I5@ INDI','1 NAME Samuel /Reed/','1 SEX M','1 BIRT','2 DATE 1848','2 PLAC Lowell, Massachusetts','1 DEAT','2 DATE 1921','1 FAMC @F2@','1 FAMS @F3@','1 NOTE Worked the Lowell mills, then went west.',
+  '0 @I6@ INDI','1 NAME Clara /Bishop/','1 SEX F','1 BIRT','2 DATE 1853','1 FAMS @F3@',
+  '0 @I7@ INDI','1 NAME Ada /Reed/','1 SEX F','1 BIRT','2 DATE 1879','2 PLAC Denver, Colorado','1 FAMC @F3@',
+  '0 @F1@ FAM','1 HUSB @I1@','1 WIFE @I2@','1 CHIL @I3@',
+  '0 @F2@ FAM','1 HUSB @I4@','1 WIFE @I3@','1 CHIL @I5@',
+  '0 @F3@ FAM','1 HUSB @I5@','1 WIFE @I6@','1 CHIL @I7@',
+].join('\n');
+
+function buildFrom(gedcomText){
+  const out = window.CASON_GEDCOM.parse(gedcomText);
+  const data = { people: out.people, eras: [], directLine: [] };
+  window.CASON_DATA = data;
+  const g = window.CASON_MEMORY_API.build(data);
+  g.access = (id, opts) => window.CASON_MEMORY_API.access(g, data, id, opts);
+  g.knownPeersOf = (id) => window.CASON_MEMORY_API.helpers.knownPeersOf(data, id);
+  window.CASON_MEMORY = g;
+  window.CASON_PERSONAS = window.CASON_PERSONAS_API.build(data);
+  g.encounters = window.CASON_ENCOUNTERS.build(data);
+  window.CASON_ENCOUNTERS.ingestEdges(g, g.encounters);
+  return { data, out };
+}
+function surnameOf(name){ const p = String(name||'').trim().split(/\s+/); return p.length ? p[p.length-1] : ''; }
+function familyName(people){
+  const c = {}; Object.keys(people).forEach(id => { const s = surnameOf(people[id].name); if(s) c[s]=(c[s]||0)+1; });
+  const top = Object.keys(c).sort((a,b)=>c[b]-c[a])[0]; return top ? 'The ' + top + ' Line' : 'Your family';
+}
+function first(name){ return String(name||'').split(' ')[0]; }
+function lifespan(p){ const b=p.born&&p.born.year, d=p.died&&p.died.year; if(!b&&!d) return ''; return (b||'?') + ' – ' + (d||'?'); }
+function H(){ return window.CASON_MEMORY_API.helpers; }
+
+/* ---------------- intro / import ---------------- */
+function Intro({ onImport }){
+  const fileRef = useRef(null);
+  const [drag, setDrag] = useState(false);
+  const [err, setErr] = useState('');
+  function read(file){
+    setErr('');
+    if(!file){ return; }
+    if(file.size > 12*1024*1024){ setErr('That file is large (>12MB). Try exporting a smaller branch.'); return; }
+    const r = new FileReader();
+    r.onload = () => { try{ onImport(String(r.result||'')); }catch(e){ setErr('Could not read that GEDCOM: ' + (e&&e.message||e)); } };
+    r.onerror = () => setErr('Could not read the file.');
+    r.readAsText(file);
+  }
+  return (
+    <div className="wrap" style={{paddingTop:70,paddingBottom:60}}>
+      <p className="eyebrow">The trustworthy ancestor</p>
+      <h1 style={{fontSize:'clamp(38px,7vw,66px)'}}>Meet your ancestors,<br/><span style={{color:'var(--pine)',fontStyle:'italic',fontWeight:500}}>grounded in the record.</span></h1>
+      <p className="lead" style={{fontSize:19,marginTop:22}}>
+        Drop your family tree and each ancestor becomes a person you can explore &mdash; knowing only
+        what <b style={{color:'var(--body)'}}>their own lifetime and their record allow</b>. Nothing is invented.
+        Nothing leaks from the future. It just shows you what the record can honestly support.
+      </p>
+
+      <div
+        onDragOver={e=>{e.preventDefault();setDrag(true);}}
+        onDragLeave={()=>setDrag(false)}
+        onDrop={e=>{e.preventDefault();setDrag(false);read(e.dataTransfer.files&&e.dataTransfer.files[0]);}}
+        className="card"
+        style={{marginTop:34,padding:'46px 30px',textAlign:'center',borderStyle:'dashed',
+          borderColor: drag?'var(--pine)':'var(--line-strong)', borderWidth:2, background: drag?'var(--pine-wash)':'var(--surface)',
+          transition:'all .15s', cursor:'pointer'}}
+        onClick={()=>fileRef.current&&fileRef.current.click()}
+      >
+        <div style={{fontFamily:'var(--serif)',fontSize:22,color:'var(--ink)'}}>Drop your GEDCOM here</div>
+        <div style={{color:'var(--muted)',marginTop:6,fontSize:14.5}}>a <span className="mono">.ged</span> export from Ancestry, MyHeritage, FamilySearch, Gramps&hellip;</div>
+        <input ref={fileRef} type="file" accept=".ged,.GED,text/plain" style={{display:'none'}} onChange={e=>read(e.target.files&&e.target.files[0])} />
+        <div style={{marginTop:20,display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
+          <button className="btn" onClick={e=>{e.stopPropagation();fileRef.current&&fileRef.current.click();}}>Choose a file</button>
+          <button className="btn ghost" onClick={e=>{e.stopPropagation();onImport(SAMPLE);}}>Try a sample family</button>
+        </div>
+        {err && <div style={{color:'var(--rust)',marginTop:14,fontSize:13.5}}>{err}</div>}
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:18,marginTop:34}}>
+        <Assurance title="Stays in your browser" body="Your file is read on your device and never uploaded. Close the tab and it's gone." tone="var(--good)" />
+        <Assurance title="Never invents" body="An ancestor speaks only to what their record supports, in their own lifetime. No hallucinated names, dates, or events." tone="var(--pine)" />
+        <Assurance title="Honestly tiered" body="Everything imported is marked unverified until a source backs it. A clean 'we don't know' is a real answer." tone="var(--gold)" />
+      </div>
+    </div>
+  );
+}
+function Assurance({title,body,tone}){
+  return (
+    <div style={{borderTop:'2px solid '+tone,paddingTop:12}}>
+      <div style={{fontWeight:700,fontSize:13,letterSpacing:'.03em',color:'var(--ink)',textTransform:'uppercase'}}>{title}</div>
+      <div style={{color:'var(--muted)',fontSize:14,marginTop:6}}>{body}</div>
+    </div>
+  );
+}
+
+/* ---------------- bring-your-own-key settings ---------------- */
+function LLMSettings(){
+  const L = window.CASON_LLM;
+  const [open,setOpen] = useState(false);
+  const [cfg,setCfg] = useState(()=> (L&&L.getConfig()) || {provider:'openrouter',model:'',key:'',baseUrl:''});
+  const [on,setOn] = useState(()=> !!(L&&L.configured()));
+  if(!L) return null;
+  const P = L.PROVIDERS;
+  const prov = P[cfg.provider] || P.openrouter;
+  const lbl = {display:'block',fontFamily:'var(--mono)',fontSize:10.5,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--muted)',margin:'10px 0 3px'};
+  const fld = {width:'100%',padding:'7px 9px',borderRadius:6,border:'1px solid var(--line-strong)',background:'var(--raise)',color:'var(--ink)',fontSize:13,fontFamily:'var(--sans)'};
+  function save(){ L.setConfig({provider:cfg.provider,model:(cfg.model||'').trim(),key:(cfg.key||'').trim(),baseUrl:(cfg.baseUrl||'').trim()}); setOn(L.configured()); setOpen(false); }
+  function disconnect(){ L.clearConfig(); setCfg({provider:'openrouter',model:'',key:'',baseUrl:''}); setOn(false); }
+  return (
+    <div style={{position:'relative'}}>
+      <button className="btn ghost sm" onClick={()=>setOpen(o=>!o)} style={on?{borderColor:'var(--good)',color:'var(--good)'}:{}}>
+        {on ? ('● Your AI: ' + cfg.provider) : 'Use your own AI'}
+      </button>
+      {open && (
+        <div className="card" style={{position:'absolute',right:0,top:'calc(100% + 8px)',zIndex:30,width:328,padding:16,boxShadow:'0 12px 44px rgba(40,32,20,.22)'}}>
+          <div style={{fontWeight:700,fontSize:13.5,color:'var(--ink)'}}>Bring your own model</div>
+          <div style={{fontSize:12,color:'var(--muted)',marginTop:3}}>Your key stays in this browser and calls the provider directly &mdash; we never see it, and you pay only your provider.</div>
+          <label style={lbl}>Provider</label>
+          <select value={cfg.provider} onChange={e=>setCfg(c=>Object.assign({},c,{provider:e.target.value,model:''}))} style={fld}>
+            {Object.keys(P).map(k=><option key={k} value={k}>{P[k].label}{P[k].browser?'':' — needs a proxy'}</option>)}
+          </select>
+          {prov.note && <div style={{fontSize:11,color:'var(--faint)',marginTop:4}}>{prov.note}</div>}
+          {cfg.provider==='custom' && (<div><label style={lbl}>Base URL</label><input style={fld} value={cfg.baseUrl} onChange={e=>setCfg(c=>Object.assign({},c,{baseUrl:e.target.value}))} placeholder="https://host/v1/chat/completions" /></div>)}
+          <label style={lbl}>Model</label>
+          <input style={fld} list="cason-mlist" value={cfg.model} onChange={e=>setCfg(c=>Object.assign({},c,{model:e.target.value}))} placeholder={prov.models[0]||'model id'} />
+          <datalist id="cason-mlist">{(prov.models||[]).map(m=><option key={m} value={m} />)}</datalist>
+          {!prov.noKey && (<div><label style={lbl}>API key</label><input style={fld} type="password" value={cfg.key} onChange={e=>setCfg(c=>Object.assign({},c,{key:e.target.value}))} placeholder={prov.keyHint} autoComplete="off" /></div>)}
+          <div style={{display:'flex',gap:8,marginTop:14}}>
+            <button className="btn" onClick={save}>Save</button>
+            {on && <button className="btn ghost" onClick={disconnect}>Disconnect</button>}
+          </div>
+          <div style={{fontSize:11,color:'var(--faint)',marginTop:11,fontStyle:'italic'}}>No key? The honest offline voice still works, right here.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- account sync (optional) ---------------- */
+function CloudSync(){
+  const A = window.CASON_AUTH;
+  const [st,setSt] = useState(()=> (A&&A.getState&&A.getState())||{});
+  const [msg,setMsg] = useState('');
+  React.useEffect(function(){ if(!A||!A.onChange) return; return A.onChange(function(){ setSt(Object.assign({},A.getState())); }); },[]);
+  if(!A || !A.enabled) return null;
+  if(st.verified) return <span className="mono" style={{fontSize:11,color:'var(--good)',whiteSpace:'nowrap'}}>&#9679; Synced &middot; {(st.name||st.email||'you').split('@')[0]}</span>;
+  function signIn(){
+    const email = prompt('Sync across your devices — enter your email for a one-time sign-in link:');
+    if(!email) return;
+    setMsg('Sending a link to ' + email.trim() + '…');
+    A.signIn(email.trim()).then(function(){ setMsg('Check your email, then return here.'); }).catch(function(e){ setMsg('Could not send: ' + (e&&e.message||e)); });
+  }
+  return (
+    <span style={{position:'relative'}}>
+      <button className="btn ghost sm" onClick={signIn}>Sync across devices</button>
+      {msg && <span style={{position:'absolute',right:0,top:'calc(100% + 4px)',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:6,padding:'5px 9px',zIndex:20}}>{msg}</span>}
+    </span>
+  );
+}
+
+/* ---------------- explorer ---------------- */
+function Explorer({ data, stats, saved, tooLarge, onReset, onForget }){
+  const people = data.people;
+  const ids = Object.keys(people);
+  const [sel, setSel] = useState(ids[0] || null);
+  const fam = useMemo(()=>familyName(people),[data]);
+  const byGen = useMemo(()=>{
+    const m = {}; ids.forEach(id => { const g = people[id].generation||0; (m[g]=m[g]||[]).push(id); }); return m;
+  },[data]);
+  const gens = Object.keys(byGen).map(Number).sort((a,b)=>a-b);
+
+  return (
+    <div>
+      <div style={{borderBottom:'1px solid var(--line)',background:'var(--surface)'}}>
+        <div className="wrap" style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',gap:16,padding:'16px 22px',flexWrap:'wrap'}}>
+          <div>
+            <div style={{fontFamily:'var(--serif)',fontSize:22,color:'var(--ink)'}}>{fam}</div>
+            <div className="mono" style={{fontSize:11.5,color:'var(--muted)',letterSpacing:'.06em',marginTop:2}}>
+              {stats.people} PEOPLE &middot; {stats.generations} GENERATIONS &middot; {stats.withBirthYear} DATED &middot; <span style={saved?{color:'var(--good)'}:{}}>{tooLarge ? 'TOO LARGE TO SAVE HERE' : saved ? 'SAVED ON THIS DEVICE' : 'ON YOUR DEVICE'}</span>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <CloudSync />
+            <LLMSettings />
+            <button className="btn ghost sm" onClick={onReset}>Import another</button>
+            {onForget && saved && <button className="btn ghost sm" onClick={function(){ if(confirm('Forget this family from this device? Your GEDCOM file is untouched.')) onForget(); }} style={{color:'var(--rust)',borderColor:'var(--line)'}}>Forget</button>}
+          </div>
+        </div>
+      </div>
+
+      <div className="wrap" style={{display:'grid',gridTemplateColumns:'minmax(200px,270px) 1fr',gap:26,padding:'26px 22px 70px',alignItems:'start'}}>
+        <aside style={{position:'sticky',top:14,maxHeight:'82vh',overflowY:'auto'}}>
+          {gens.map(g => (
+            <div key={g} style={{marginBottom:14}}>
+              <div className="mono" style={{fontSize:10,letterSpacing:'.14em',color:'var(--rust)',textTransform:'uppercase',margin:'0 0 6px 2px'}}>Generation {g+1}</div>
+              {byGen[g].map(id => (
+                <button key={id} onClick={()=>setSel(id)}
+                  style={{display:'block',width:'100%',textAlign:'left',padding:'7px 10px',marginBottom:3,borderRadius:6,cursor:'pointer',
+                    border:'1px solid '+(sel===id?'var(--pine)':'transparent'), background: sel===id?'var(--pine-wash)':'transparent',
+                    fontFamily:'var(--sans)',fontSize:13.5,color:sel===id?'var(--ink)':'var(--body)'}}>
+                  {people[id].name}
+                  <span style={{display:'block',fontSize:11,color:'var(--faint)'}}>{lifespan(people[id])}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </aside>
+        {sel ? <Detail key={sel} id={sel} people={people} /> : <div style={{color:'var(--muted)'}}>Select a person.</div>}
+      </div>
+    </div>
+  );
+}
+
+function Detail({ id, people }){
+  const p = people[id];
+  const MEM = window.CASON_MEMORY;
+  const born = (p.born&&p.born.year) || H().birthYearOf(p);
+  const died = (p.died&&p.died.year) || H().deathYearOf(p);
+  const top = died || (born!=null?Math.min((new Date()).getFullYear(), born+90):null);
+  const [asOf, setAsOf] = useState(top!=null?top:null);
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [rec, setRec] = useState(null);
+  const [recBusy, setRecBusy] = useState(false);
+  function findRecords(){
+    if(recBusy || !window.CASON_RECORDS) return;
+    setRecBusy(true); setRec(null);
+    window.CASON_RECORDS.search(p).then(function(o){ setRec(o); }).catch(function(){ setRec({items:[],error:'unreachable'}); }).then(function(){ setRecBusy(false); });
+  }
+
+  const sub = useMemo(()=>MEM.access(id, asOf!=null?{simNow:asOf}:undefined),[id,asOf]);
+  const facts = sub.individual.filter(n=>n.kind!=='gap'&&n.evidence!=='disproven'&&n.evidence!=='eliminated').map(n=>n.text);
+  const questions = sub.individual.filter(n=>n.kind==='gap').map(n=>n.text);
+  const knew = useMemo(()=>{
+    const idx = MEM.encounters; if(!idx) return [];
+    let list = window.CASON_ENCOUNTERS.encountersOf(idx, id);
+    if(asOf!=null) list = list.filter(e=>e.year==null||e.year<=asOf);
+    return list;
+  },[id,asOf]);
+
+  function ask(q){
+    const t=(q!=null?q:input).trim(); if(!t||busy) return; setInput('');
+    setMsgs(m=>m.concat([{r:'q',t}])); setBusy(true);
+    const live = !!(window.CASON_LLM && window.CASON_LLM.configured());
+    window.CASON_AI.personaRespond({personId:id,userMessage:t,mode:live?'live':'templated',simNow:asOf})
+      .then(o=>setMsgs(m=>m.concat([{r:'a',t:o.text,mode:o.mode}])))
+      .catch(()=>{ const off=window.CASON_AI.templated(id,t,asOf); setMsgs(m=>m.concat([{r:'a',t:off.text,mode:'templated',note:'your model was unreachable'}])); })
+      .then(()=>setBusy(false));
+  }
+  const age = (born!=null&&asOf!=null)?(asOf-born):null;
+
+  return (
+    <div>
+      <h2 style={{fontFamily:'var(--serif)',fontWeight:600,fontSize:30,color:'var(--ink)',margin:0}}>{p.name}</h2>
+      <div style={{color:'var(--muted)',marginTop:4,fontSize:15}}>
+        {lifespan(p)}{p.born&&p.born.place?' · '+p.born.place:''}
+        {(p.tags||[]).indexOf('imported')!==-1 && <span className="mono" style={{marginLeft:10,fontSize:10.5,letterSpacing:'.08em',color:'var(--gold)',border:'1px solid var(--line-strong)',padding:'1px 6px',borderRadius:4}}>IMPORTED &middot; UNVERIFIED</span>}
+      </div>
+
+      {born!=null && top!=null && top>born && (
+        <div className="card" style={{marginTop:16,padding:'11px 14px',background:'var(--raise)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+            <span className="mono" style={{fontSize:11,letterSpacing:'.06em',color:'var(--pine)',textTransform:'uppercase'}}>Meet {first(p.name)} at</span>
+            <span style={{fontSize:13,color:'var(--muted)'}}><b style={{color:'var(--ink)',fontSize:15}}>{asOf}</b>{age!=null?' · age '+(age<0?0:age):''}</span>
+          </div>
+          <input type="range" min={born} max={top} step={1} value={asOf} onChange={e=>setAsOf(parseInt(e.target.value,10))}
+            style={{width:'100%',marginTop:8,accentColor:'var(--rust)'}} />
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:10.5,color:'var(--faint)'}}><span>born {born}</span><span>{died?'died '+died:'today'}</span></div>
+        </div>
+      )}
+
+      <Panel title={'What ' + first(p.name) + ' could know'} note={sub.stats.blockedFuture+' still sealed beyond their horizon'}
+        items={facts.length ? facts : [<span style={{color:'var(--muted)',fontStyle:'italic'}}>Little of this life is written down yet, and {first(p.name)} won't pretend otherwise.</span>]} />
+
+      <Panel title={'Who ' + first(p.name) + ' knew'} note={knew.length + ' recorded'}
+        items={knew.length ? knew.slice(0,20).map((e)=>(
+          <span><b style={{color:'var(--ink)'}}>{(people[e.who]||{}).name||e.who}</b><span style={{color:'var(--faint)'}}> - {e.basis}{e.year?', from '+e.year:''}{e.certainty==='probable'?' (likely)':''}</span></span>
+        )) : [<span style={{color:'var(--muted)',fontStyle:'italic'}}>No one recorded yet.</span>]} />
+
+      {questions.length>0 && (
+        <Panel title={'What ' + first(p.name) + ' still wonders'} note="the open questions in their record"
+          items={questions.slice(0,4).map((q)=><span style={{fontStyle:'italic'}}>{q}</span>)} />
+      )}
+
+      <div style={{marginTop:20}}>
+        <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',borderBottom:'1.5px solid var(--line-strong)',paddingBottom:6,gap:10,flexWrap:'wrap'}}>
+          <span style={{fontWeight:700,fontSize:13,letterSpacing:'.03em',color:'var(--ink)',textTransform:'uppercase'}}>Find records for {first(p.name)}</span>
+          <button className="btn ghost sm" onClick={findRecords} disabled={recBusy}>{recBusy?'Searching the archive…':'Search the archive'}</button>
+        </div>
+        {!rec && <div style={{fontSize:12,color:'var(--faint)',marginTop:8,fontStyle:'italic'}}>Search the Library of Congress historic-newspaper archive for {first(p.name)} — real records to check, cited to LOC. Leads, not facts.</div>}
+        {rec && rec.error && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:10}}>Couldn&rsquo;t reach the archive ({rec.error}).</div>}
+        {rec && !rec.error && rec.items.length===0 && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:10}}>No newspaper matches in {first(p.name)}&rsquo;s window. That&rsquo;s an honest &ldquo;not found&rdquo; — not a dead end.</div>}
+        {rec && !rec.error && rec.items.length>0 && (
+          <div style={{marginTop:10}}>
+            <div style={{fontSize:11.5,color:'var(--faint)',fontStyle:'italic',marginBottom:9}}>{rec.note}</div>
+            <ul style={{listStyle:'none',margin:0,padding:0,display:'flex',flexDirection:'column',gap:10}}>
+              {rec.items.slice(0,8).map(function(it,i){ return (
+                <li key={i} style={{borderLeft:'2px solid var(--gold)',paddingLeft:11}}>
+                  <a href={it.url} target="_blank" rel="noopener" style={{fontSize:13.5,color:'var(--ink)',fontWeight:600,textDecoration:'none',borderBottom:'1px solid var(--line-strong)'}}>{it.title}</a>
+                  <div style={{fontSize:11,color:'var(--faint)',fontFamily:'var(--mono)',marginTop:3}}>{it.date} &middot; {it.source}</div>
+                  {it.snippet && <div style={{fontSize:12.5,color:'var(--muted)',marginTop:3}}>{it.snippet}</div>}
+                </li>
+              ); })}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div style={{marginTop:22,borderTop:'1px solid var(--line)',paddingTop:16}}>
+        <div className="mono" style={{fontSize:11,letterSpacing:'.1em',color:'var(--faint)',textTransform:'uppercase',marginBottom:10}}>Speak with {first(p.name)}</div>
+        {msgs.length>0 && (
+          <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10,maxHeight:280,overflowY:'auto'}}>
+            {msgs.map((m,i)=> m.r==='q'
+              ? <div key={i} style={{alignSelf:'flex-end',maxWidth:'80%',background:'var(--pine-wash)',borderRadius:'10px 10px 2px 10px',padding:'6px 11px',fontSize:13.5}}>{m.t}</div>
+              : <div key={i} style={{alignSelf:'flex-start',maxWidth:'88%',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:'10px 10px 10px 2px',padding:'8px 12px',fontFamily:'var(--serif)',fontSize:14.5,lineHeight:1.5,color:'var(--ink)'}}>{m.t}<span style={{display:'block',marginTop:5,fontFamily:'var(--mono)',fontSize:9.5,color:'var(--faint)'}}>{first(p.name)} · {m.mode==='byok'?'your model':'offline voice'}{m.note?' · '+m.note:''}</span></div>
+            )}
+          </div>
+        )}
+        <div style={{display:'flex',gap:8}}>
+          <input type="text" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')ask();}}
+            placeholder={'Ask ' + first(p.name) + ' about ' + (asOf||'their life') + '…'} style={{flex:1}} disabled={busy} />
+          <button className="btn" onClick={()=>ask()} disabled={busy}>{busy?'…':'Ask'}</button>
+        </div>
+        <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
+          {['Tell me about your life.','Who are the people closest to you?','What do you hope for?'].map((q,i)=>
+            <button key={i} className="btn ghost sm" onClick={()=>ask(q)}>{q}</button>)}
+        </div>
+        <div style={{marginTop:14,fontSize:12.5,color:'var(--faint)',fontStyle:'italic'}}>
+          {first(p.name)} answers only from the record above, within their own lifetime &mdash; on <b>your own model</b> when you connect one, or an honest offline voice otherwise.
+        </div>
+      </div>
+    </div>
+  );
+}
+function Panel({title,note,items}){
+  return (
+    <div style={{marginTop:20}}>
+      <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',borderBottom:'1.5px solid var(--line-strong)',paddingBottom:6}}>
+        <span style={{fontWeight:700,fontSize:13,letterSpacing:'.03em',color:'var(--ink)',textTransform:'uppercase'}}>{title}</span>
+        {note && <span className="mono" style={{fontSize:10.5,color:'var(--faint)'}}>{note}</span>}
+      </div>
+      <ul style={{listStyle:'none',margin:'10px 0 0',padding:0,display:'flex',flexDirection:'column',gap:7}}>
+        {items.map((c,i)=><li key={i} style={{fontSize:14,color:'var(--body)',paddingLeft:16,position:'relative'}}>
+          <span style={{position:'absolute',left:2,top:9,width:5,height:5,borderRadius:'50%',background:'var(--pine)',opacity:.6}}></span>{c}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+function App(){
+  // come back to the family saved on this device, if any
+  const [state, setState] = useState(function(){
+    const saved = window.CASON_FAMILY && window.CASON_FAMILY.load();
+    if(saved && saved.gedcom){ try { const b = buildFrom(saved.gedcom); if(Object.keys(b.data.people).length) return { data:b.data, stats:b.out.stats, saved:true }; } catch(e){} }
+    return null;
+  });
+  function doImport(text){
+    const { data, out } = buildFrom(text);
+    if(!Object.keys(data.people).length){ alert('No people found in that file. Is it a GEDCOM (.ged) export?'); return; }
+    const nm = familyName(data.people);
+    const saved = window.CASON_FAMILY ? window.CASON_FAMILY.save(nm, text) : { ok:false };
+    // account sync: persist the tree to the DB (DB-as-record) when signed in
+    if(window.CASON_CLOUD && window.CASON_CLOUD.configured()) window.CASON_CLOUD.push({ name:nm, gedcom:text, tree:data }).catch(function(){});
+    setState({ data, stats: out.stats, saved: !!(saved && saved.ok), tooLarge: !!(saved && saved.reason==='too-large') });
+    window.scrollTo(0,0);
+  }
+  function forget(){ if(window.CASON_FAMILY) window.CASON_FAMILY.clear(); setState(null); }
+
+  // when a signed-in account is present, reconcile local <-> cloud (newest wins)
+  React.useEffect(function(){
+    const C = window.CASON_CLOUD, A = window.CASON_AUTH; if(!C) return;
+    let done = false;
+    function reconcile(){
+      if(done || !C.configured()) return;
+      C.pull().then(function(cloud){
+        if(done) return;
+        const local = window.CASON_FAMILY && window.CASON_FAMILY.load();
+        const win = C.pickNewest(local, cloud);
+        if(!win || !win.gedcom) return;
+        if(win.source === 'cloud'){
+          try { const b = buildFrom(win.gedcom); if(Object.keys(b.data.people).length){ if(window.CASON_FAMILY) window.CASON_FAMILY.save(win.name, win.gedcom); setState({ data:b.data, stats:b.out.stats, saved:true }); } } catch(e){}
+        } else if(!cloud && local){ C.push({ name:local.name, gedcom:local.gedcom, tree:null }).catch(function(){}); }
+      }).catch(function(){});
+    }
+    reconcile();
+    const off = (A && A.onChange) ? A.onChange(reconcile) : null;   // re-run after sign-in
+    return function(){ done = true; if(off) off(); };
+  }, []);
+
+  return state
+    ? <Explorer data={state.data} stats={state.stats} saved={state.saved} tooLarge={state.tooLarge} onReset={()=>setState(null)} onForget={forget} />
+    : <Intro onImport={doImport} />;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);

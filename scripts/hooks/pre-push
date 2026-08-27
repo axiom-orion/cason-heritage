@@ -5,7 +5,10 @@
 # leaves the machine:
 #   1. check:syntax  — esbuild/node-parse all JSX (files + inline
 #                      babel blocks) and reject iOS-fatal lookbehind
-#   2. selftest:all  — the headless Node selftests over the real modules
+#   2. check:jsx     — the committed .js next to each .jsx is current.
+#                      The browser now loads the compiled .js, so a .jsx
+#                      edited without rebuilding would ship the old page.
+#   3. selftest:all  — the headless Node selftests over the real modules
 # Playwright smoke is left to CI (too slow for a push gate).
 #
 # Activated by `git config core.hooksPath scripts/hooks`, which the
@@ -16,6 +19,9 @@ set -e
 
 echo "pre-push: syntax gate…"
 npm run --silent check:syntax
+
+echo "pre-push: compiled-JSX freshness…"
+npm run --silent check:jsx
 
 echo "pre-push: node selftests…"
 npm run --silent selftest:all >/dev/null
