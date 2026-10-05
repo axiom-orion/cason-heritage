@@ -130,7 +130,8 @@ stdio JSON-RPC; register via the project `.mcp.json`, or in `claude_desktop_conf
 | `ui_kits/living-line/` | The Living World app + **the agent layer**: `agents.js` (registry), `governance.js` (gate + trace), `kinship.js`, `supersessions.js`, `memory-client.js`, `ingestion.js`, `journey.js`, `reflection.js`, `personas.js`, `memory-graph.js`, `world-engine.js`, `LivingWorld.jsx`. |
 | `ui_kits/family-tree-app/` | The `/dashboard` family-tree app + `data.js` — the single source of truth for the line. |
 | `scripts/keeper.js` · `scripts/drift-audit.js` | The Conductor and the Drift Auditor (Node). |
-| `api/` | Vercel serverless functions: `persona.js` (live persona voice), `consensus.js` (multi-model corroboration). |
+| `api/` | Server functions (run by the Worker): `persona.js` (live persona voice), `consensus.js` (multi-model corroboration), `records.js`, `propose.js`, and the gated book reader `metric-*.js`. |
+| `worker/` · `wrangler.jsonc` | The Cloudflare Worker that serves the site and runs `api/`. See [`DEPLOY.md`](DEPLOY.md). |
 | `research/` | The design docs — see below. |
 | `.github/workflows/` | `keeper.yml` (weekly research pass), `drift-audit.yml` (weekly self-audit), `ci.yml` (Playwright smoke). |
 
@@ -149,10 +150,11 @@ stdio JSON-RPC; register via the project `.mcp.json`, or in `claude_desktop_conf
 No build step — `index.html` and the `ui_kits/` pages are served as static files. The
 visual system (parchment, gold leaf, rust, deep navy; Playfair Display + Source Serif 4 +
 Source Sans 3) is inlined under `:root`. The friendly routes (`/living`, `/dashboard`,
-`/tree`, `/proof`, `/deck`) are defined in `vercel.json` / `serve.json`.
+`/tree`, `/proof`, `/deck`) are defined in `worker/index.mjs` (production) and
+`serve.json` (local `npm run dev`).
 
-**Deploy.** Connected to Vercel (project `cason-heritage`, `vorion` team): a merge to
-`main` ships a production deploy; PRs get a preview URL. By hand: `vercel --prod`.
+**Deploy.** A Cloudflare Worker: from an up-to-date `main`, `npm run deploy` (details in
+[`DEPLOY.md`](DEPLOY.md)).
 `main` is branch-protected — no direct pushes; open a PR, let CI (`.github/workflows/ci.yml`)
 go green, then merge. A `pre-push` hook (`scripts/hooks/pre-push`, auto-wired by `npm install`)
 runs the syntax gate + selftests locally first.
@@ -168,4 +170,4 @@ local-only `.og-builder/` Playwright tool (`cd .og-builder && npm install && nod
 ## Domain
 
 - Canonical: https://flcason.com — the apex, served directly
-- `www.flcason.com` redirects to the apex · Vercel alias: https://cason-heritage.vercel.app
+- `www.flcason.com` redirects to the apex (308)

@@ -118,7 +118,7 @@ for (const file of htmlFiles) {
       if (CHECK) problems.push(rel(bootJsx) + ' — missing (regenerate with `npm run build:jsx`)');
       else { fs.writeFileSync(bootJsx, body.replace(/^\n/, '').replace(/\s+$/, '') + '\n'); changed.push(rel(bootJsx)); }
     }
-    // Absolute, not relative: these pages are reached through vercel.json
+    // Absolute, not relative: these pages are reached through the Worker's
     // rewrites (/living -> /ui_kits/living-line), so the URL path is NOT the
     // file path. A relative src resolves against the URL and 404s.
     return '<script src="/' + rel(bootJsx).replace(/\.jsx$/, '.js') + '"></script>';

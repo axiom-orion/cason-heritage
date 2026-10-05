@@ -171,8 +171,8 @@ policy gate** on every item, so nothing can be approved that violates policy.
 
 To turn it on:
 
-1. In **Vercel** env: `SUPABASE_SERVICE_ROLE_KEY` (the project's service-role key)
-   and `KEEPER_INGEST_TOKEN` (any long random string you choose).
+1. As **Worker secrets** (`npx wrangler secret put NAME`): `SUPABASE_SERVICE_ROLE_KEY`
+   (the project's service-role key) and `KEEPER_INGEST_TOKEN` (any long random string you choose).
 2. In **GitHub** repo settings: variable `KEEPER_PROPOSE_URL` =
    `https://flcason.com/api/propose`, and secret `KEEPER_INGEST_TOKEN` = the
    same string.

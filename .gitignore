@@ -46,3 +46,8 @@ _libtest/
 
 # local keeper test output
 _keepertest/
+
+# Cloudflare Worker — staged site + local state
+/dist/
+.wrangler/
+.dev.vars*

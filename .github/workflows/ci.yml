@@ -35,3 +35,22 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  worker:
+    name: Cloudflare Worker builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22  # wrangler 4 needs Node 22+
+          cache: npm
+      - run: npm install
+      # Stage dist/ exactly as a deploy would, then prove server code and config stay out of it.
+      - run: npm run build:site
+      - run: |
+          for f in api worker scripts tests package.json wrangler.jsonc .gitignore; do
+            if [ -e "dist/$f" ]; then echo "::error::dist/$f must not be deployed"; exit 1; fi
+          done
+      # Bundles the Worker (api/ included) and validates wrangler.jsonc without publishing.
+      - run: npx wrangler deploy --dry-run --outdir .wrangler/dry
