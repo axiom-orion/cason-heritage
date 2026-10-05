@@ -2,9 +2,12 @@
   "name": "cason-heritage",
   "version": "1.0.0",
   "private": true,
-  "description": "The Cason Line — heritage narrative + audit-verified lineage ledger + family-tree-app variants + research prompt. Static site, deployed to Vercel.",
+  "description": "The Cason Line — heritage narrative + audit-verified lineage ledger + family-tree-app variants + research prompt. Static site, deployed as a Cloudflare Worker.",
   "scripts": {
     "dev": "npx serve . -p 4000",
+    "build:site": "node scripts/build-site.js",
+    "preview": "npm run build:site && wrangler dev",
+    "deploy": "npm run build:site && wrangler deploy",
     "prepare": "git config core.hooksPath scripts/hooks || true",
     "check:syntax": "node scripts/syntax-check.js",
     "build:jsx": "node scripts/build-jsx.js",
@@ -63,6 +66,7 @@
   "devDependencies": {
     "@playwright/test": "^1.49.1",
     "esbuild": "^0.28.1",
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "wrangler": "^4.147.0"
   }
 }

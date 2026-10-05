@@ -1,26 +1,40 @@
 # Deployment & CI
 
-## Vercel deploy
+## Cloudflare deploy
 
-This is a pure static site. No build step.
+The site runs as one Cloudflare Worker (`flcason`) with static assets:
 
-1. Push to GitHub.
-2. In Vercel, **Add New… → Project → Import** this repository.
-3. **Framework Preset:** *Other*.
-4. **Build Command:** *(leave blank)*.
-5. **Output Directory:** *(leave blank — root)*.
-6. Deploy.
+- `worker/index.mjs` serves the site, applies the friendly rewrites and headers, upgrades
+  http to https (308, with HSTS), folds `www` into the apex, and runs the `api/` functions
+  unchanged through a small adapter that gives them Vercel's `(req, res)` shape.
+- `scripts/build-site.js` stages the public site into `dist/` from **git-tracked files
+  only**, minus server code and tooling. An untracked file in your working copy (uploads,
+  drafts, `.dev.vars`) can never be deployed.
+- `wrangler.jsonc` binds `dist/` as the assets and claims `flcason.com` + `www.flcason.com`
+  as custom domains (the zone must be on the same Cloudflare account).
 
-`vercel.json` handles clean URLs and the friendly rewrites:
+Deploy from a clean, up-to-date `main`:
+
+```sh
+npm install
+npx wrangler login     # once per machine
+npm run deploy         # build-site + wrangler deploy
+```
+
+`npm run preview` runs the same build under `wrangler dev` (add `--local-protocol https`
+to `wrangler dev` if you want to click around, since plain http redirects to https).
 
 | Path | Serves |
 | --- | --- |
-| `/` | `index.html` — heritage landing |
-| `/heritage` | `ui_kits/heritage-site/index.html` — the narrative |
+| `/`, `/heritage` | `index.html` — heritage landing |
 | `/tree` | `cason-tree.html` — the audit ledger |
 | `/dashboard` | `ui_kits/family-tree-app/index.html` — five variants |
 | `/living` | `ui_kits/living-line/index.html` — The Living Line (agentic personas) |
+| `/living/world` | `ui_kits/living-line/world.html` |
+| `/proof`, `/archive` | `ui_kits/proof/`, `ui_kits/archive/` |
+| `/demo`, `/try` | `ui_kits/onboarding/index.html` |
 | `/deck` | `slides/index.html` — audit deck |
+| `/system` | `README.md` |
 | `/prompt` | `research/edge-expansion-prompt.md` |
 
 ## Local development
@@ -46,24 +60,20 @@ npm run test:report  # open last HTML report
 
 `.github/workflows/ci.yml` runs three jobs on every push to `main` and every PR:
 
-1. **smoke** — Playwright across all surfaces. Artifact: `playwright-report/`.
-2. **lint-html** — fast sanity check that all expected entry points and config files exist.
-3. **deploy-preview** — Vercel preview deploy for PRs (gated on `VERCEL_TOKEN` secret).
+1. **selftests** — the Node selftests (governance, drift, BASIS, agents).
+2. **smoke** — Playwright across all surfaces. Artifact: `playwright-report/`.
+3. **worker** — builds `dist/` and runs `wrangler deploy --dry-run`, so a broken Worker
+   or config fails the PR instead of the deploy.
 
-Production deploys happen automatically via Vercel's git integration once the GitHub repo is connected — no workflow needed for that side.
-
-### Required secrets for `deploy-preview`
-
-- `VERCEL_TOKEN` — personal token from <https://vercel.com/account/tokens>
-- `VERCEL_ORG_ID` — from `.vercel/project.json` after first manual deploy
-- `VERCEL_PROJECT_ID` — same file
+Production deploys are `npm run deploy` (see above).
 
 ## Live AI & multi-model research (optional — `/living`)
 
 The Living Line runs fully offline by default (deterministic templated voices, no
 keys, no cost). Two **serverless functions** under `api/` add live capabilities when
-you set the matching environment variables in Vercel (Project → Settings → Environment
-Variables). Keys stay server-side; the browser never sees them.
+you set the matching Worker secrets (`npx wrangler secret put NAME`, then paste the value;
+plain settings like `CLAUDE_MODEL` can go in the dashboard as variables). Keys stay
+server-side; the browser never sees them.
 
 | Endpoint | Feature | Env vars |
 | --- | --- | --- |
@@ -76,8 +86,8 @@ Notes:
 - Set `XAI_MODEL` / `GEMINI_MODEL` to a model id your key actually supports; a wrong id
   just marks that one provider failed and consensus proceeds with the rest.
 - These calls cost tokens (the consensus runs 3–4 frontier-model calls per question);
-  responses are cached client-side so repeats are free. The whole site is a static
-  deploy with no build step — the functions use only Node built-ins (no npm install).
+  responses are cached client-side so repeats are free. The functions use only Node
+  built-ins (no npm dependencies); they run in the Worker with `nodejs_compat`.
 - Corroborated findings can be saved (browser `localStorage`) as evidence-tiered,
   clearly-labelled "AI consensus" notes — never as `confirmed`, which stays reserved
   for documented genealogical sources.
@@ -131,7 +141,7 @@ Members then sign in by email magic-link; only allowlisted emails become members
 
 ## Caching headers
 
-Set by `vercel.json`:
+Set by `worker/index.mjs` (`withSiteHeaders`):
 
 | Pattern | Cache |
 | --- | --- |
@@ -143,4 +153,4 @@ Set by `vercel.json`:
 
 - [ ] Vendor Inter + Geist Mono + Playfair Display + Source Serif/Sans locally (currently CDN from Google Fonts).
 - [ ] Add `og:image` to each entry HTML for link unfurls.
-- [ ] Configure custom domain in Vercel.
+- [x] Custom domains `flcason.com` + `www.flcason.com` (Worker routes in `wrangler.jsonc`).

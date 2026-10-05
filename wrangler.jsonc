@@ -1,0 +1,34 @@
+{
+  // Cloudflare Worker for flcason.com (replaces the Vercel project).
+  //
+  //   npm run deploy     build dist/ from tracked files, then publish
+  //   npm run preview    the same, served locally by wrangler dev
+  //
+  // Secrets (each one: `npx wrangler secret put NAME`, then paste the value):
+  //   ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY   /living persona + research consensus
+  //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY          gated book reader + agent ingest
+  //   KEEPER_INGEST_TOKEN                              bearer token for /api/propose
+  // Optional plain vars: CLAUDE_MODEL, XAI_MODEL, GEMINI_MODEL.
+  // Anything not set just turns its feature off, exactly as on Vercel.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "flcason",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-10-02",
+  // nodejs_compat: api/_metric.js uses require('crypto'), and every api/ module
+  // reads its keys from process.env.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    // Vercel's cleanUrls + trailingSlash:false: /tree serves tree.html, /dir serves dir/index.html.
+    "html_handling": "drop-trailing-slash"
+  },
+  "routes": [
+    { "pattern": "flcason.com", "custom_domain": true },
+    { "pattern": "www.flcason.com", "custom_domain": true }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
